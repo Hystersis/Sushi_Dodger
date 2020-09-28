@@ -80,21 +80,9 @@ class sushi(pygame.sprite.Sprite):
         self.directory = self.directory + str(self.ran) + '.png'
         self.center = pygame.image.load(str(self.directory))
         self.center = pygame.Surface.convert_alpha(self.center)
-        self.image = self.rt.copy()
-        self.th = self.image.copy()
         self.image.blit(self.center, (0,0))
-        self.ut = self.image.copy()
         self.rect = self.image.get_rect()
         self.rect = [70,80]
-    def update(self):
-        #debugging
-        global screen
-        screen.blit(self.rt, (0,0))
-        screen.blit(self.center, (16,0))
-        screen.blit(self.image, (32,0))
-        screen.blit(self.th, (48,0))
-        screen.blit(self.ut, (64,0))
-
 
 
 
@@ -113,7 +101,6 @@ def main():
         global ddger_group, sshi_group
         pygame.time.delay(300)
         clock.tick(60)
-        sshi_group.update()
         pygame.display.flip()
         screen.fill((0,0,0))
         sshi_group.draw(screen)
