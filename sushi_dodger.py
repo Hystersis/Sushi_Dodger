@@ -79,7 +79,7 @@ class sushi(pygame.sprite.Sprite):
         self.ran = random.randrange(2)
         self.directory = self.directory + str(self.ran) + '.png'
         self.center = pygame.image.load(str(self.directory))
-        self.center = pygame.Surface.convert_alpha(self.center)
+        self.image = self.rt.copy()
         self.image.blit(self.center, (0,0))
         self.rect = self.image.get_rect()
         self.rect = [70,80]
