@@ -74,24 +74,26 @@ class dodger(pygame.sprite.Sprite):
 class sushi(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.image.load('sushi_template.png')
+        self.rt = pygame.image.load('sushi_template.png')
         self.directory = 'sushi_center_'
         self.ran = random.randrange(2)
         self.directory = self.directory + str(self.ran) + '.png'
         self.center = pygame.image.load(str(self.directory))
         self.center = pygame.Surface.convert_alpha(self.center)
-        self.merged = self.image.copy()
-        self.th = self.merged.copy()
-        self.merged.blit(self.center, (0,0))
-        self.rect = self.merged.get_rect()
+        self.image = self.rt.copy()
+        self.th = self.image.copy()
+        self.image.blit(self.center, (0,0))
+        self.ut = self.image.copy()
+        self.rect = self.image.get_rect()
         self.rect = [70,80]
     def update(self):
         #debugging
         global screen
-        screen.blit(self.image, (0,0))
+        screen.blit(self.rt, (0,0))
         screen.blit(self.center, (16,0))
-        screen.blit(self.merged, (32,0))
+        screen.blit(self.image, (32,0))
         screen.blit(self.th, (48,0))
+        screen.blit(self.ut, (64,0))
 
 
 
