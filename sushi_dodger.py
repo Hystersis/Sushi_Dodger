@@ -9,40 +9,42 @@ from tkinter import messagebox
 
 
 pygame.init()
-flag = True
-# Game Screen
-screen_width = 256
-screen = pygame.display.set_mode((screen_width,screen_width))
-pygame.display.set_caption("Sushi Dodger")
-pygame.mouse.set_visible(False)
-# Level and dodger initilization
-lvel = Level()
-ddger = dodger("dodger_1.png")
-ddger_group = pygame.sprite.Group()
-ddger_group.add(ddger)
-# sushi setup code
-global sshi_group
-sshi_group = pygame.sprite.Group()
-for sus in range(11):
-    sshi = sushi((random.randrange(256),random.randrange(256)))
-    sshi_group.add(sshi)
+
+def initi():
+    global flag, screen_width, screen, ddger_group, sshi_group, lvel
+    flag = True
+    # Game Screen
+    screen_width = 256
+    screen = pygame.display.set_mode((screen_width,screen_width))
+    pygame.display.set_caption("Sushi Dodger")
+    pygame.mouse.set_visible(False)
+    # Level and dodger initilization
+    lvel = Level()
+    ddger = dodger("dodger_1.png")
+    ddger_group = pygame.sprite.Group()
+    ddger_group.add(ddger)
+    # sushi setup code
+    sshi_group = pygame.sprite.Group()
+    for a in range(11):
+        sshi = sushi((random.randrange(256),random.randrange(256)))
+        sshi_group.add(sshi)
 
 
-class Level():
+class Level:
     lev = 1
     def __init__(self):
-        lev_num = Level.lev
+        lev_num = self.lev
     def get_num(self, num_sshi = 0):
         if num_sshi >= 40:
             num_sshi = 40
         else:
-            num_sshi = Level.lev * 2 + 14
+            num_sshi = self.lev * 2 + 14
         return int(num_sshi)
     def get_lev(self):
-        return int(Level.lev)
+        return int(self.lev)
     def next_lev(self, is_endless = False):
-        if Level.lev < 5 or is_endless:
-            Level.lev += 1
+        if self.lev < 5 or is_endless:
+            self.lev += 1
             next_Lvl()
 
 
@@ -50,19 +52,17 @@ class Level():
 
 
 class dodger(pygame.sprite.Sprite):
-    def __init__(self,picture_path):
-        global pos, dirnx, dirny
+    pos = [128,16]
+    dirnx = 0
+    dirny = 0
+    def __init__(self, picture_path):
         super().__init__()
         # Sprite
-        pos = [128,16]
-        dirnx = 0
-        dirny = 0
         self.image = pygame.image.load(picture_path)
         self.image.set_colorkey((255,255,255))
         self.rect = self.image.get_rect()
-        self.rect.topleft = pos
+        self.rect.topleft = self.pos
     def update(self):
-        global pos, dirnx, dirny
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -71,34 +71,34 @@ class dodger(pygame.sprite.Sprite):
 
             for key in keys:
                 if keys[pygame.K_LEFT]:
-                    dirnx = -1
-                    print('Going left',dirnx,dirny)
+                    self.dirnx = -1
+                    print('Going left',self.dirnx,self.dirny)
                 elif keys[pygame.K_RIGHT]:
-                    dirnx = 1
-                    print('Going right',dirnx,dirny)
+                    self.dirnx = 1
+                    print('Going right',self.dirnx,self.dirny)
                 else:
-                    dirnx = 0
+                    self.dirnx = 0
 
                 if keys[pygame.K_UP]:
-                    dirny = -1
-                    print('Going up',dirnx,dirny)
+                    self.dirny = -1
+                    print('Going up',self.dirnx,self.dirny)
                 elif keys[pygame.K_DOWN]:
-                    dirny = 1
-                    print('Going down',dirnx,dirny)
+                    self.dirny = 1
+                    print('Going down',self.dirnx,self.dirny)
                 else:
-                    dirny = 0
+                    self.dirny = 0
 
-        dirny += 0.025
-        if 0 < pos[0] and dirnx <= 0:
-            pos[0] += dirnx
-        elif 240 > pos[0] and dirnx >= 0:
-            pos[0] += dirnx
-        if 0 < pos[1] and dirny <= 0:
-            pos[1] += dirny
-        if 240 > pos[1] and dirny >= 0:
-            pos[1] += dirny
-        # update position
-        self.rect.topleft = pos
+        self.dirny += 0.025
+        if 0 < self.pos[0] and self.dirnx <= 0:
+            self.pos[0] += self.dirnx
+        elif 240 > self.pos[0] and self.dirnx >= 0:
+            self.pos[0] += self.dirnx
+        if 0 < self.pos[1] and self.dirny <= 0:
+            self.pos[1] += self.dirny
+        if 240 > self.pos[1] and self.dirny >= 0:
+            self.pos[1] += self.dirny
+        # update self.position
+        self.rect.topleft = self.pos
 
 
 
@@ -121,9 +121,11 @@ def next_Lvl():
     global ddger, ddger_group, sshi_group
     sshi_group.clear()
     sshi_group = pygame.sprite.Group()
-    for sushi in range(level.get_num()):
+    lvel.next_lev()
+    for sushi in range(lvel.get_num()):
         sshi = sushi((random.randrange(256),random.randrange(256)))
         sshi_group.add(sshi)
+
 
 
 def main():
@@ -137,4 +139,5 @@ def main():
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
+initi()
 main()
