@@ -11,7 +11,7 @@ from tkinter import messagebox
 pygame.init()
 
 def initi():
-    global flag, screen_width, screen, ddger_group, sshi_group, lvel
+    global flag, screen_width, screen, ddger_group, sshi_group, lvel, ddger
     flag = True
     # Game Screen
     screen_width = 256
@@ -99,11 +99,16 @@ class dodger(pygame.sprite.Sprite):
             self.pos[1] += self.dirny
         # update self.position
         self.rect.topleft = self.pos
+    def get_posx(self):
+        return int(self.pos[0])
+    def get_posy(self):
+        return int(self.pos[1])
 
 
 
 class sushi(pygame.sprite.Sprite):
-    def __init__(self, sop):
+    pos = (0,0)
+    def __init__(self, ranpos):
         super().__init__()
         self.rt = pygame.image.load('sushi_template.png')
         self.directory = 'sushi_center_'
@@ -113,7 +118,11 @@ class sushi(pygame.sprite.Sprite):
         self.image = self.rt.copy()
         self.image.blit(self.center, (0,0))
         self.rect = self.image.get_rect()
-        self.rect = sop
+        self.rect = ranpos
+        self.pos = ranpos
+    def update(self):
+        self.posx = self.pos[0]
+        self.posy
 
 
 
@@ -139,5 +148,6 @@ def main():
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
+        sshi_group.update()
 initi()
 main()
