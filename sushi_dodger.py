@@ -15,6 +15,37 @@ screen_width = 256
 screen = pygame.display.set_mode((screen_width,screen_width))
 pygame.display.set_caption("Sushi Dodger")
 pygame.mouse.set_visible(False)
+# Level and dodger initilization
+lvel = Level()
+ddger = dodger("dodger_1.png")
+ddger_group = pygame.sprite.Group()
+ddger_group.add(ddger)
+# sushi setup code
+global sshi_group
+sshi_group = pygame.sprite.Group()
+for sus in range(11):
+    sshi = sushi((random.randrange(256),random.randrange(256)))
+    sshi_group.add(sshi)
+
+
+class Level():
+    lev = 1
+    def __init__(self):
+        lev_num = Level.lev
+    def get_num(self, num_sshi = 0):
+        if num_sshi >= 40:
+            num_sshi = 40
+        else:
+            num_sshi = Level.lev * 2 + 14
+        return int(num_sshi)
+    def get_lev(self):
+        return int(Level.lev)
+    def next_lev(self, is_endless = False):
+        if Level.lev < 5 or is_endless:
+            Level.lev += 1
+            next_Lvl()
+
+
 
 
 
@@ -72,7 +103,7 @@ class dodger(pygame.sprite.Sprite):
 
 
 class sushi(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self, sop):
         super().__init__()
         self.rt = pygame.image.load('sushi_template.png')
         self.directory = 'sushi_center_'
@@ -82,17 +113,17 @@ class sushi(pygame.sprite.Sprite):
         self.image = self.rt.copy()
         self.image.blit(self.center, (0,0))
         self.rect = self.image.get_rect()
-        self.rect = [70,80]
+        self.rect = sop
 
 
 
-
-ddger = dodger("dodger_1.png")
-ddger_group = pygame.sprite.Group()
-ddger_group.add(ddger)
-sshi = sushi()
-sshi_group = pygame.sprite.Group()
-sshi_group.add(sshi)
+def next_Lvl():
+    global ddger, ddger_group, sshi_group
+    sshi_group.clear()
+    sshi_group = pygame.sprite.Group()
+    for sushi in range(level.get_num()):
+        sshi = sushi((random.randrange(256),random.randrange(256)))
+        sshi_group.add(sshi)
 
 
 def main():
