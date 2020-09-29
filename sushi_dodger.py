@@ -121,9 +121,18 @@ class sushi(pygame.sprite.Sprite):
         self.rect = ranpos
         self.pos = ranpos
     def update(self):
-        self.posx = self.pos[0]
-        self.posy
+        pf = path_finder(self.pos[0],self.pos[1])
+        x_movement = pf.xmove()
+        y_movement = pf.ymove()
 
+
+class path_finder(pygame.sprite.Sprite):
+    X = 0
+    Y = 0
+    def __init__(self, x, y):
+        X = x
+        Y = y
+        
 
 
 def next_Lvl():
