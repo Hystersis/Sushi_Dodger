@@ -5,6 +5,7 @@ import math
 import random
 import pygame
 import tkinter as tk
+import grid_values as gr
 from tkinter import messagebox
 
 
@@ -124,15 +125,24 @@ class sushi(pygame.sprite.Sprite):
         pf = path_finder(self.pos[0],self.pos[1])
         x_movement = pf.xmove()
         y_movement = pf.ymove()
-
+        for
 
 class path_finder(pygame.sprite.Sprite):
     X = 0
     Y = 0
+    XY = []
     def __init__(self, x, y):
-        X = x
-        Y = y
-        
+        X = int(x)
+        Y = int(y)
+        XY.append(X)
+        XY.append(Y)
+        neighbours = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1]]
+        for neighbour in neighbours:
+            ncell_pos = gr.get_grid_values()
+            
+
+
+
 
 
 def next_Lvl():
