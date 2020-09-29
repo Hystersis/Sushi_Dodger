@@ -99,10 +99,16 @@ class dodger(pygame.sprite.Sprite):
             self.pos[1] += self.dirny
         # update self.position
         self.rect.topleft = self.pos
+    def where_am_i(self):
+        poses = []
+        poses.append(self.pos[0])
+        poses.append(self.pos[1])
+        return poses
 
 
 
 class sushi(pygame.sprite.Sprite):
+    sop = (0,0)
     def __init__(self, sop):
         super().__init__()
         self.rt = pygame.image.load('sushi_template.png')
@@ -113,7 +119,21 @@ class sushi(pygame.sprite.Sprite):
         self.image = self.rt.copy()
         self.image.blit(self.center, (0,0))
         self.rect = self.image.get_rect()
-        self.rect = sop
+        self.sop = sop
+        self.rect = self.sop
+    def update(self,d_x,d_y):
+        if self.sop[0] < d_x:
+            self.dirnx = random.randrange(2) - random.randrange(0.6,1.2,0.1)
+        elif self.sop[0] > d_x:
+            self.dirnx = random.randrange(2) - random.randrange(0.8,1.4,0.1)
+        if self.sop[1] < d_y:
+            self.dirny = random.randrange(2) - random.randrange(0.6,1.2,0.1)
+        elif self.sop[1] > d_y:
+            self.dirny = random.randrange(2) - random.randrange(0.8,1.4,0.1)
+        self.sop[0] += self.dirnx
+        self.sop[1] += self.dirny
+        self.rect = self.sop
+
 
 
 
@@ -139,5 +159,8 @@ def main():
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
+        pstn = ddger_group.where_am_i()
+        print(pstn)
+        sshi_group.update(pstn[0],pstn[1])
 initi()
 main()
