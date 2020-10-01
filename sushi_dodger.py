@@ -27,7 +27,7 @@ def initi():
     # sushi setup code
     sshi_group = pygame.sprite.Group()
     for a in range(11):
-        sshi = sushi((random.randrange(256),random.randrange(256)))
+        sshi = sushi([random.randrange(256),random.randrange(256)])
         sshi_group.add(sshi)
 
 
@@ -110,8 +110,12 @@ class dodger(pygame.sprite.Sprite):
 
 
 class sushi(pygame.sprite.Sprite):
-    def __init__(self, ranpos):
+    def __init__(self, sop):
         super().__init__()
+        self.sop = [0,0]
+        self.sop[0] = sop[0]
+        self.sop[1] = sop[1]
+        self.dirny = self.dirnx = 0
         self.rt = pygame.image.load('sushi_template.png')
         self.directory = 'sushi_center_'
         self.ran = random.randrange(2)
@@ -120,8 +124,7 @@ class sushi(pygame.sprite.Sprite):
         self.image = self.rt.copy()
         self.image.blit(self.center, (0,0))
         self.rect = self.image.get_rect()
-        self.rect = ranpos
-        self.pos = ranpos
+        self.rect.topleft = self.sop
     def update(self):
         self.move =
 
