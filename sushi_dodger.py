@@ -100,12 +100,12 @@ class dodger(pygame.sprite.Sprite):
             self.pos[1] += self.dirny
         # update self.position
         self.rect.topleft = self.pos
-    def get_posx(self):
-        self.rposx = self.pos[0] // 1
-        return int(self.rposx)
-    def get_posy(self):
-        self.rposy = self.pos[1] // 1
-        return int(self.rposy)
+    def where_am_i(self):
+        poses = []
+        poses.append(self.pos[0])
+        poses.append(self.pos[1])
+        return poses
+
 
 
 
@@ -125,8 +125,31 @@ class sushi(pygame.sprite.Sprite):
         self.image.blit(self.center, (0,0))
         self.rect = self.image.get_rect()
         self.rect.topleft = self.sop
-    def update(self):
-        self.move =
+    def update(self,d_xy):
+        # Makes Maze
+        d = [d_xy]
+        z = (d_xy[0],d_xy[1])
+        for x in range(15):
+            z[0] += 1
+            d.append(z)
+            print(d)
+        maze = []
+        add = []
+        for a in range(256):
+            for b in range(256):
+                if b <= 0:
+                    if ()
+                    add.append(0,)
+                elif b >= 255:
+                    add.append(0)
+                    if a < 255:
+                        maze.append(add,)
+                    else:
+                        maze.append(add)
+                    add = []
+                else:
+                    add.append(0,)
+        self.move = a_star_main(maze,self.sop,)
 
 
 
@@ -154,7 +177,8 @@ def main():
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
-        sshi_group.update()
+        pstn = ddger_group.where_am_i()
+        sshi_group.update(pstn)
 initi()
 main()
 
@@ -258,12 +282,6 @@ def astar(maze, start, end):
             open_list.append(child)
 
 
-def a_star_main(mazze,sttart, ennd):
-
-    maze = mazze
-
-    start = sttart
-    end = ennd
-
+def a_star_main(maze,start, end):
     path = astar(maze, start, end)
     return path
