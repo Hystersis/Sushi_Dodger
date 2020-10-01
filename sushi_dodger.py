@@ -25,7 +25,7 @@ def initi():
     ddger_group.add(ddger)
     # sushi setup code
     sshi_group = pygame.sprite.Group()
-    for a in range(11):
+    for a in range(10):
         sshi = sushi([random.randrange(256),random.randrange(256)])
         sshi_group.add(sshi)
 
@@ -154,7 +154,7 @@ def next_Lvl():
 def main():
     clock = pygame.time.Clock()
     while flag:
-        pygame.time.delay(300)
+        pygame.time.delay(60)
         clock.tick(60)
         pygame.display.flip()
         screen.fill((0,0,0))
@@ -162,7 +162,6 @@ def main():
         ddger_group.draw(screen)
         ddger_group.update()
         pstn = ddger.where_am_i()
-        print('Where is dodger:',pstn)
         sshi_group.update(pstn[0],pstn[1])
 initi()
 main()
