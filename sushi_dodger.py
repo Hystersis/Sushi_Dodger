@@ -109,6 +109,18 @@ class dodger(pygame.sprite.Sprite):
 
 
 
+#                               ,,
+# `7MM"""Yb.                  `7MM
+#   MM    `Yb.                  MM
+#   MM     `Mb  ,pW"Wq.    ,M""bMM  .P"Ybmmm .gP"Ya `7Mb,od8
+#   MM      MM 6W'   `Wb ,AP    MM :MI  I8  ,M'   Yb  MM' "'
+#   MM     ,MP 8M     M8 8MI    MM  WmmmP"  8M""""""  MM
+#   MM    ,dP' YA.   ,A9 `Mb    MM 8M       YM.    ,  MM
+# .JMMmmmdP'    `Ybmd9'   `Wbmd"MML.YMMMMMb  `Mbmmd'.JMML.
+#                                  6'     dP
+#                                  Ybmmmd'
+
+
 class sushi(pygame.sprite.Sprite):
     def __init__(self, sop):
         super().__init__()
@@ -128,16 +140,18 @@ class sushi(pygame.sprite.Sprite):
     def update(self,d_xy):
         # Makes Maze
         self.d = d_xy
-        self.z = (d_xy[0],d_xy[1])
+        self.z = [d_xy[0],d_xy[1]]
         for x in range(15):
             self.z[0] += 1
-            self.z_copy = z
-            self.d.append(z)
+            self.z[0] // 1
+            self.z_copy = self.z
+            self.d.append(self.z)
             for y in range(3):
                 self.z[1] += 1
-                self.d.append(z)
+                self.z[0] // 1
+                self.d.append(self.z)
             print(self.d)
-            self.z = z_copy
+            self.z = self.z_copy
         self.maze = []
         self.add = []
         for a in range(256):
@@ -145,27 +159,39 @@ class sushi(pygame.sprite.Sprite):
                 if b <= 0:
                     for vle in self.d:
                         if (b,a) == vle:
-                            add.append(1,)
+                            self.add.append(1,)
                         else:
-                            add.append(0,)
+                            if vle == len(self.d):
+                                self.add.append(0,)
+                            else:
+                                pass
                 elif b >= 255:
                     for vle in self.d:
                         if (b,a) == vle:
-                            add.append(1)
+                            self.add.append(1)
                         else:
-                            add.append(0)
+                            if vle == len(self.d):
+                                self.add.append(0)
+                            else:
+                                pass
                     if a < 255:
-                        maze.append(add,)
+                        self.maze.append(self.add,)
                     else:
-                        maze.append(add)
-                    add = []
+                        self.maze.append(self.add)
+                    self.add = []
                 else:
                     for vle in self.d:
                         if (b,a) == vle:
-                            add.append(1,)
+                            self.add.append(1,)
                         else:
-                            add.append(0,)
-        self.end = (d_xy[0] = 16, d_xy[1] -= 8) # edit this
+                            if vle == len(self.d):
+                                self.add.append(0,)
+                            else:
+                                pass
+        print(self.maze)
+        self.endx = (int(d_xy[0]) - 16)
+        self.endy = (int(d_xy[1]) - 8)
+        self.end = (self.endx, self.endy) # edit this
         self.move = a_star_main(self.maze,self.sop,self.end)
 
 
@@ -194,13 +220,21 @@ def main():
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
-        pstn = ddger_group.where_am_i()
+        pstn = ddger.where_am_i()
         sshi_group.update(pstn)
 initi()
 main()
 
+#
+#       db                    mm
+#      ;MM:                   MM
+#     ,V^MM.        ,pP"Ybd mmMMmm  ,6"Yb.  `7Mb,od8
+#    ,M  `MM        8I   `"   MM   8)   MM    MM' "'
+#    AbmmmqMA       `YMMMa.   MM    ,pm9MM    MM
+#   A'     VML      L.   I8   MM   8M   MM    MM
+# .AMA.   .AMMA.    M9mmmP'   `Mbmo`Moo9^Yo..JMML.
 
-# A_star
+
 class Node():
     # """A node class for A* Pathfinding"""
 
