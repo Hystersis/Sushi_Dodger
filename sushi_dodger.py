@@ -26,7 +26,7 @@ def initi():
     # sushi setup code
     sshi_group = pygame.sprite.Group()
     for a in range(11):
-        sshi = sushi((random.randrange(256),random.randrange(256)))
+        sshi = sushi([random.randrange(256),random.randrange(256)])
         sshi_group.add(sshi)
 
 
@@ -108,9 +108,9 @@ class dodger(pygame.sprite.Sprite):
 
 
 class sushi(pygame.sprite.Sprite):
-    sop = [0,0]
     def __init__(self, sop):
         super().__init__()
+        self.sop = [0,0]
         self.sop[0] = sop[0]
         self.sop[1] = sop[1]
         self.dirny = self.dirnx = 0
@@ -162,7 +162,7 @@ def main():
         ddger_group.draw(screen)
         ddger_group.update()
         pstn = ddger.where_am_i()
-        print(pstn)
+        print('Where is dodger:',pstn)
         sshi_group.update(pstn[0],pstn[1])
 initi()
 main()
