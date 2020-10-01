@@ -101,14 +101,15 @@ class dodger(pygame.sprite.Sprite):
         # update self.position
         self.rect.topleft = self.pos
     def get_posx(self):
-        return int(self.pos[0])
+        self.rposx = self.pos[0] // 1
+        return int(self.rposx)
     def get_posy(self):
-        return int(self.pos[1])
+        self.rposy = self.pos[1] // 1
+        return int(self.rposy)
 
 
 
 class sushi(pygame.sprite.Sprite):
-    pos = (0,0)
     def __init__(self, ranpos):
         super().__init__()
         self.rt = pygame.image.load('sushi_template.png')
@@ -122,24 +123,7 @@ class sushi(pygame.sprite.Sprite):
         self.rect = ranpos
         self.pos = ranpos
     def update(self):
-        pf = path_finder(self.pos[0],self.pos[1])
-        x_movement = pf.xmove()
-        y_movement = pf.ymove()
-        for
-
-class path_finder(pygame.sprite.Sprite):
-    X = 0
-    Y = 0
-    XY = []
-    def __init__(self, x, y):
-        X = int(x)
-        Y = int(y)
-        XY.append(X)
-        XY.append(Y)
-        neighbours = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1]]
-        for neighbour in neighbours:
-            ncell_pos = gr.get_grid_values()
-
+        self.move =
 
 
 
@@ -271,25 +255,12 @@ def astar(maze, start, end):
             open_list.append(child)
 
 
-def a_star_main():
+def a_star_main(mazze,sttart, ennd):
 
-    maze = [[0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    maze = mazze
 
-    start = (0, 0)
-    end = (7, 6)
+    start = sttart
+    end = ennd
 
     path = astar(maze, start, end)
-    print(path)
-
-
-if __name__ == '__main__':
-    a_star_main()
+    return path
