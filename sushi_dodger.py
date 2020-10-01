@@ -108,11 +108,13 @@ class dodger(pygame.sprite.Sprite):
 
 
 class sushi(pygame.sprite.Sprite):
-    sop = []
+    sop = [0,0]
     def __init__(self, sop):
         super().__init__()
-        self.sop.append(sop[0])
-        self.sop.append(sop[1])
+        self.sop[0] = sop[0]
+        self.sop[1] = sop[1]
+        self.dirny = self.dirnx = 0
+        print(self.sop)
         self.rt = pygame.image.load('sushi_template.png')
         self.directory = 'sushi_center_'
         self.ran = random.randrange(2)
@@ -121,19 +123,19 @@ class sushi(pygame.sprite.Sprite):
         self.image = self.rt.copy()
         self.image.blit(self.center, (0,0))
         self.rect = self.image.get_rect()
-        self.rect.topLeft = self.sop
+        self.rect.topleft = self.sop
     def update(self,d_x,d_y):
-        if self.sop[0] < d_x:
+        if self.sop[0] < d_x and self.sop[0] <= 0:
             self.dirnx = random.randrange(2) - random.uniform(0.6,1.2)
-        elif self.sop[0] > d_x:
+        elif self.sop[0] > d_x and self.sop[0] >= 240:
             self.dirnx = random.randrange(2) - random.uniform(0.8,1.4)
-        if self.sop[1] < d_y:
+        if self.sop[1] < d_y and self.sop[1] <= 0:
             self.dirny = random.randrange(2) - random.uniform(0.6,1.2)
-        elif self.sop[1] > d_y:
+        elif self.sop[1] > d_y and self.sop[1] >= 240:
             self.dirny = random.randrange(2) - random.uniform(0.8,1.4)
         self.sop[0] += self.dirnx
         self.sop[1] += self.dirny
-        self.rect.topLeft = self.sop
+        self.rect.topleft = self.sop
 
 
 
