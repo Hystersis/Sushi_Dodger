@@ -127,29 +127,46 @@ class sushi(pygame.sprite.Sprite):
         self.rect.topleft = self.sop
     def update(self,d_xy):
         # Makes Maze
-        d = [d_xy]
-        z = (d_xy[0],d_xy[1])
+        self.d = d_xy
+        self.z = (d_xy[0],d_xy[1])
         for x in range(15):
-            z[0] += 1
-            d.append(z)
-            print(d)
-        maze = []
-        add = []
+            self.z[0] += 1
+            self.z_copy = z
+            self.d.append(z)
+            for y in range(3):
+                self.z[1] += 1
+                self.d.append(z)
+            print(self.d)
+            self.z = z_copy
+        self.maze = []
+        self.add = []
         for a in range(256):
             for b in range(256):
                 if b <= 0:
-                    if ()
-                    add.append(0,)
+                    for vle in self.d:
+                        if (b,a) == vle:
+                            add.append(1,)
+                        else:
+                            add.append(0,)
                 elif b >= 255:
-                    add.append(0)
+                    for vle in self.d:
+                        if (b,a) == vle:
+                            add.append(1)
+                        else:
+                            add.append(0)
                     if a < 255:
                         maze.append(add,)
                     else:
                         maze.append(add)
                     add = []
                 else:
-                    add.append(0,)
-        self.move = a_star_main(maze,self.sop,)
+                    for vle in self.d:
+                        if (b,a) == vle:
+                            add.append(1,)
+                        else:
+                            add.append(0,)
+        self.end = (d_xy[0] = 16, d_xy[1] -= 8) # edit this
+        self.move = a_star_main(self.maze,self.sop,self.end)
 
 
 
