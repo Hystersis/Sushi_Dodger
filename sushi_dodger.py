@@ -52,6 +52,18 @@ class Level:
 
 
 
+#                               ,,
+# `7MM"""Yb.                  `7MM
+#   MM    `Yb.                  MM
+#   MM     `Mb  ,pW"Wq.    ,M""bMM  .P"Ybmmm .gP"Ya `7Mb,od8
+#   MM      MM 6W'   `Wb ,AP    MM :MI  I8  ,M'   Yb  MM' "'
+#   MM     ,MP 8M     M8 8MI    MM  WmmmP"  8M""""""  MM
+#   MM    ,dP' YA.   ,A9 `Mb    MM 8M       YM.    ,  MM
+# .JMMmmmdP'    `Ybmd9'   `Wbmd"MML.YMMMMMb  `Mbmmd'.JMML.
+#                                  6'     dP
+#                                  Ybmmmd'
+
+
 class dodger(pygame.sprite.Sprite):
     pos = [128,16]
     dirnx = 0
@@ -109,16 +121,17 @@ class dodger(pygame.sprite.Sprite):
 
 
 
-#                               ,,
-# `7MM"""Yb.                  `7MM
-#   MM    `Yb.                  MM
-#   MM     `Mb  ,pW"Wq.    ,M""bMM  .P"Ybmmm .gP"Ya `7Mb,od8
-#   MM      MM 6W'   `Wb ,AP    MM :MI  I8  ,M'   Yb  MM' "'
-#   MM     ,MP 8M     M8 8MI    MM  WmmmP"  8M""""""  MM
-#   MM    ,dP' YA.   ,A9 `Mb    MM 8M       YM.    ,  MM
-# .JMMmmmdP'    `Ybmd9'   `Wbmd"MML.YMMMMMb  `Mbmmd'.JMML.
-#                                  6'     dP
-#                                  Ybmmmd'
+#                              ,,          ,,
+#  .M"""bgd                  `7MM          db
+# ,MI    "Y                    MM
+# `MMb.   `7MM  `7MM  ,pP"Ybd  MMpMMMb.  `7MM
+#   `YMMNq. MM    MM  8I   `"  MM    MM    MM
+# .     `MM MM    MM  `YMMMa.  MM    MM    MM
+# Mb     dM MM    MM  L.   I8  MM    MM    MM
+# P"Ybmmd"  `Mbod"YML.M9mmmP'.JMML  JMML..JMML.
+
+
+
 
 
 class sushi(pygame.sprite.Sprite):
@@ -139,63 +152,34 @@ class sushi(pygame.sprite.Sprite):
         self.rect.topleft = self.sop
     def update(self,d_xy):
         # Makes Maze
-        self.d = d_xy
-        self.z = [d_xy[0],d_xy[1]]
+        self.d = []
+        self.z = [round(d_xy[0]),round(d_xy[1])]
         for x in range(15):
-            self.z[0] += 1
-            self.z[0] // 1
             self.z_copy = self.z
+            self.z[0] += 1
             self.d.append(self.z)
             for y in range(3):
                 self.z[1] += 1
-                self.z[0] // 1
                 self.d.append(self.z)
-            print(self.d)
             self.z = self.z_copy
         self.maze = []
         self.add = []
+        print(self.d)
         for a in range(256):
             for b in range(256):
-                if b <= 0:
-                    for vle in self.d:
-                        if (b,a) == vle:
-                            self.add.append(1,)
-                        else:
-                            if vle == len(self.d):
-                                self.add.append(0,)
-                            else:
-                                pass
-                elif b >= 255:
-                    for vle in self.d:
-                        if (b,a) == vle:
-                            self.add.append(1)
-                        else:
-                            if vle == len(self.d):
-                                self.add.append(0)
-                            else:
-                                pass
-                    if a < 255:
-                        self.maze.append(self.add,)
+                for vle in self.d:
+                    if (int(b), int(a)) == vle:
+                        self.add.append(1)
                     else:
-                        self.maze.append(self.add)
-                    self.add = []
-                else:
-                    for vle in self.d:
-                        if (b,a) == vle:
-                            self.add.append(1,)
+                        if self.d.index(vle) == len(self.d):
+                            self.add.append(0)
                         else:
-                            if vle == len(self.d):
-                                self.add.append(0,)
-                            else:
-                                pass
+                            pass
         print(self.maze)
         self.endx = (int(d_xy[0]) - 16)
         self.endy = (int(d_xy[1]) - 8)
         self.end = (self.endx, self.endy) # edit this
         self.move = a_star_main(self.maze,self.sop,self.end)
-
-
-
 
 
 def next_Lvl():
@@ -207,6 +191,17 @@ def next_Lvl():
         sshi = sushi((random.randrange(256),random.randrange(256)))
         sshi_group.add(sshi)
 
+
+
+
+#                            ,,
+# `7MMM.     ,MMF'           db
+#   MMMb    dPMM
+#   M YM   ,M MM   ,6"Yb.  `7MM  `7MMpMMMb.
+#   M  Mb  M' MM  8)   MM    MM    MM    MM
+#   M  YM.P'  MM   ,pm9MM    MM    MM    MM
+#   M  `YM'   MM  8M   MM    MM    MM    MM
+# .JML. `'  .JMML.`Moo9^Yo..JMML..JMML  JMML.
 
 
 def main():
