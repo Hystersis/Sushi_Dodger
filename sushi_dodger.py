@@ -154,17 +154,16 @@ class sushi(pygame.sprite.Sprite):
         # Makes Maze
         self.d = []
         self.z = [round(d_xy[0]),round(d_xy[1])]
-        for x in range(15):
-            self.z_copy = self.z
-            self.z[0] += 1
+        for xac in range(18):
+            self.z_copy = [self.z[0] + 1, self.z[1]]
             self.d.append(self.z)
-            for y in range(3):
-                self.z[1] += 1
-                self.d.append(self.z)
+            for yio in range(3):
+                self.d.append([self.z[0],self.z[1] - (yio + 1)])
             self.z = self.z_copy
+
+
         self.maze = []
         self.add = []
-        print(self.d)
         for a in range(256):
             for b in range(256):
                 for vle in self.d:
@@ -217,8 +216,8 @@ def main():
         ddger_group.update()
         pstn = ddger.where_am_i()
         sshi_group.update(pstn)
-initi()
-main()
+
+
 
 #
 #       db                    mm
@@ -331,3 +330,19 @@ def astar(maze, start, end):
 def a_star_main(maze,start, end):
     path = astar(maze, start, end)
     return path
+
+
+
+#                               ,,
+# `7MM"""YMM                  `7MM
+#   MM    `7                    MM
+#   MM   d    `7MMpMMMb.   ,M""bMM
+#   MMmmMM      MM    MM ,AP    MM
+#   MM   Y  ,   MM    MM 8MI    MM
+#   MM     ,M   MM    MM `Mb    MM
+# .JMMmmmmMMM .JMML  JMML.`Wbmd"MML.
+
+
+
+initi()
+main()
