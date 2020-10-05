@@ -9,6 +9,19 @@ import grid_values as gr
 from tkinter import messagebox
 
 
+
+#                                                 ,,         ,,
+# MMP""MM""YMM                     db           `7MM       `7MM
+# P'   MM   `7                    ;MM:            MM         MM
+#      MM       ,pW"Wq.          ,V^MM.      ,M""bMM    ,M""bMM
+#      MM      6W'   `Wb        ,M  `MM    ,AP    MM  ,AP    MM
+#      MM      8M     M8        AbmmmqMA   8MI    MM  8MI    MM
+#      MM      YA.   ,A9       A'     VML  `Mb    MM  `Mb    MM
+#    .JMML.     `Ybmd9'      .AMA.   .AMMA. `Wbmd"MML. `Wbmd"MML.
+
+# Add checking in Line 168 for negtives
+
+
 pygame.init()
 
 def initi():
@@ -151,7 +164,7 @@ class sushi(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = self.sop
     def update(self,d_xy):
-        # Makes Maze
+        # Makes Maze's 'walls'
         self.d = []
         self.z = [round(d_xy[0]),round(d_xy[1])]
         for xac in range(18):
@@ -161,20 +174,24 @@ class sushi(pygame.sprite.Sprite):
                 self.d.append([self.z[0],self.z[1] - (yio + 1)])
             self.z = self.z_copy
 
-
+        # Makes maze
         self.maze = []
         self.add = []
-        for a in range(256):
-            for b in range(256):
-                for vle in self.d:
-                    if (int(b), int(a)) == vle:
+        # for ce in self.d:
+        #     print(ce,'\t',self.d.index(ce),'\t',len(self.d))
+        for aoe in range(256):
+            for bve in range(256):
+                for value in self.d:
+                    if value == [bve,aoe]:
                         self.add.append(1)
-                    else:
-                        if self.d.index(vle) == len(self.d):
-                            self.add.append(0)
-                        else:
-                            pass
-        print(self.maze)
+                        break
+                else:
+                    self.add.append(0)
+
+                if bve >= 255:
+                    self.maze.append(self.add)
+                    self.add = []
+        print('\n',self.maze)
         self.endx = (int(d_xy[0]) - 16)
         self.endy = (int(d_xy[1]) - 8)
         self.end = (self.endx, self.endy) # edit this
