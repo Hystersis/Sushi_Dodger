@@ -173,11 +173,14 @@ class sushi(pygame.sprite.Sprite):
                 self.d.append([self.z[0],self.z[1] - (yio + 1)])
             self.z = self.z_copy
         print(self.d)
-        for value in self.d:
-            for v in value:
-                self.neg = check_negative(v, False)
-                if self.neg:
-                    self.d.remove(value)
+        # Checking if any are negative
+        for unit in self.d:
+            self.neg = []
+            for v in unit:
+                self.neg.append(check_negative(v, False))
+            if (self.neg[0] or self.neg[1]):
+                self.d.remove(unit)
+                print(unit,'was negative')
 
         # Makes maze
         self.maze = []
@@ -358,7 +361,7 @@ def check_negative(num, retrun_num):
         if retrun_num:
             return 0
         else:
-            return False
+            return True
     else:
         if retrun_num:
             if num.is_integer():
@@ -366,7 +369,7 @@ def check_negative(num, retrun_num):
             else:
                 return num
         else:
-            return True
+            return False
 #                               ,,
 # `7MM"""YMM                  `7MM
 #   MM    `7                    MM
