@@ -4,9 +4,8 @@
 import math
 import random
 import pygame
-import tkinter as tk
-import grid_values as gr
-from tkinter import messagebox
+
+
 
 
 
@@ -173,12 +172,16 @@ class sushi(pygame.sprite.Sprite):
             for yio in range(3):
                 self.d.append([self.z[0],self.z[1] - (yio + 1)])
             self.z = self.z_copy
+        print(self.d)
+        for value in self.d:
+            for v in value:
+                self.neg = check_negative(v, False)
+                if self.neg:
+                    self.d.remove(value)
 
         # Makes maze
         self.maze = []
         self.add = []
-        # for ce in self.d:
-        #     print(ce,'\t',self.d.index(ce),'\t',len(self.d))
         for aoe in range(256):
             for bve in range(256):
                 for value in self.d:
@@ -191,12 +194,13 @@ class sushi(pygame.sprite.Sprite):
                 if bve >= 255:
                     self.maze.append(self.add)
                     self.add = []
-        print('\n',self.maze)
         self.endx = (int(d_xy[0]) - 16)
         self.endy = (int(d_xy[1]) - 8)
         self.end = (self.endx, self.endy) # edit this
         self.move = a_star_main(self.maze,self.sop,self.end)
-
+        for loc in self.move:
+            print(loc,'\t',self.sop,'\t',self.end)
+            self.rect.topleft = loc
 
 def next_Lvl():
     global ddger, ddger_group, sshi_group
@@ -348,8 +352,21 @@ def a_star_main(maze,start, end):
     path = astar(maze, start, end)
     return path
 
-
-
+def check_negative(num, retrun_num):
+    num = float(num)
+    if num < 0:
+        if retrun_num:
+            return 0
+        else:
+            return False
+    else:
+        if retrun_num:
+            if num.is_integer():
+                return int(num)
+            else:
+                return num
+        else:
+            return True
 #                               ,,
 # `7MM"""YMM                  `7MM
 #   MM    `7                    MM
