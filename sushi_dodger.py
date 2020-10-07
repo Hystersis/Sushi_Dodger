@@ -172,7 +172,6 @@ class sushi(pygame.sprite.Sprite):
             for yio in range(3):
                 self.d.append([self.z[0],self.z[1] - (yio + 1)])
             self.z = self.z_copy
-        print(self.d)
         # Checking if any are negative
         for unit in self.d:
             self.neg = []
@@ -197,13 +196,12 @@ class sushi(pygame.sprite.Sprite):
                 if bve >= 255:
                     self.maze.append(self.add)
                     self.add = []
-        self.endx = (int(d_xy[0]) - 16)
-        self.endy = (int(d_xy[1]) - 8)
-        self.end = (self.endx, self.endy) # edit this
-        self.move = a_star_main(self.maze,self.sop,self.end)
-        for loc in self.move:
-            print(loc,'\t',self.sop,'\t',self.end)
-            self.rect.topleft = loc
+        self.endx = (int(d_xy[0]) + 16)
+        self.endy = (int(d_xy[1]) + 8)
+        self.end = (self.endx, self.endy)
+        self.move = a_star_main(self.maze,self.rect.topleft,self.end)
+        self.rect.topleft = self.move[0]
+        self.move.pop(0)
 
 def next_Lvl():
     global ddger, ddger_group, sshi_group
