@@ -1,11 +1,14 @@
 # Sushi Dodger
 # Created by Marcus W, 2020
 # Screen size = 256*256
-import math
-import random
-import pygame
-
-
+# import math
+try:
+    import random
+    import pygame
+    from copy import deepcopy
+    import ctypes
+except ImportError:
+    raise ImportError("Import Error")
 
 
 
@@ -28,7 +31,14 @@ def initi():
     flag = True
     # Game Screen
     screen_width = 256
+    icon = pygame.image.load("dodger_icon.png")
+    pygame.display.set_icon(icon)
+    myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    # flags = pygame.SCALED add in pygame.display.setmode(screen,flags!)
     screen = pygame.display.set_mode((screen_width,screen_width))
+    display_info = pygame.display.Info()
+    print("display info:",dir(display_info))
     pygame.display.set_caption("Sushi Dodger")
     pygame.mouse.set_visible(False)
     # Level and dodger initilization
@@ -123,7 +133,7 @@ class dodger(pygame.sprite.Sprite):
         if 240 > self.pos[1] and self.dirny >= 0:
             self.pos[1] += self.dirny
         # update self.position
-        self.rect.topleft = self.pos
+        self.rect.topleft = (int(self.pos[0]),int(self.pos[1]))
     def where_am_i(self):
         poses = []
         poses.append(self.pos[0])
@@ -162,46 +172,22 @@ class sushi(pygame.sprite.Sprite):
         self.image.blit(self.center, (0,0))
         self.rect = self.image.get_rect()
         self.rect.topleft = self.sop
+        self.d = [0,0]
     def update(self,d_xy):
         # Makes Maze's 'walls'
-        self.d = []
         self.z = [round(d_xy[0]),round(d_xy[1])]
-        for xac in range(18):
-            self.z_copy = [self.z[0] + 1, self.z[1]]
-            self.d.append(self.z)
-            for yio in range(3):
-                self.d.append([self.z[0],self.z[1] - (yio + 1)])
-            self.z = self.z_copy
-        # Checking if any are negative
-        for unit in self.d:
-            self.neg = []
-            for v in unit:
-                self.neg.append(check_negative(v, False))
-            if (self.neg[0] or self.neg[1]):
-                self.d.remove(unit)
-                print(unit,'was negative')
-
-        # Makes maze
-        self.maze = []
-        self.add = []
-        for aoe in range(256):
-            for bve in range(256):
-                for value in self.d:
-                    if value == [bve,aoe]:
-                        self.add.append(1)
-                        break
-                else:
-                    self.add.append(0)
-
-                if bve >= 255:
-                    self.maze.append(self.add)
-                    self.add = []
-        self.endx = (int(d_xy[0]) + 16)
-        self.endy = (int(d_xy[1]) + 8)
-        self.end = (self.endx, self.endy)
-        self.move = a_star_main(self.maze,self.rect.topleft,self.end)
-        self.rect.topleft = self.move[0]
-        self.move.pop(0)
+        if self.rect.topleft[0] >= self.z[0]:
+            self.d[0] += random.randrange(2) - random.uniform(0.6,1.2)
+        else:
+            self.d[0] += random.randrange(2) - random.uniform(0.8,1.4)
+        if self.rect.topleft[1] >= self.z[1]:
+            self.d[1] += random.randrange(2) - random.uniform(0.6,1.2)
+        else:
+            self.d[1] += random.randrange(2) - random.uniform(0.8,1.4)
+        self.rect.topleft[0] += self.d[0]
+        self.rect.topleft[1] += self.d[1]
+        self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
+        print(self.check_hit)
 
 def next_Lvl():
     global ddger, ddger_group, sshi_group
@@ -252,7 +238,7 @@ def main():
 
 
 class Node():
-    # """A node class for A* Pathfinding"""
+    """A node class for A* Pathfinding"""
 
     def __init__(self, parent=None, position=None):
         self.parent = parent
@@ -267,7 +253,7 @@ class Node():
 
 
 def astar(maze, start, end):
-    # """Returns a list of tuples as a path from the given start to the given end in the given maze"""
+    """Returns a list of tuples as a path from the given start to the given end in the given maze"""
 
     # Create start and end node
     start_node = Node(None, start)
@@ -349,8 +335,9 @@ def astar(maze, start, end):
             open_list.append(child)
 
 
-def a_star_main(maze,start, end):
+def a_star_main(maze,start,end):
     path = astar(maze, start, end)
+    print(path)
     return path
 
 def check_negative(num, retrun_num):
