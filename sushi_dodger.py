@@ -159,9 +159,8 @@ class dodger(pygame.sprite.Sprite):
 class sushi(pygame.sprite.Sprite):
     def __init__(self, sop):
         super().__init__()
-        self.sop = [0,0]
-        self.sop[0] = sop[0]
-        self.sop[1] = sop[1]
+        self.sop = list(sop)
+        print(self.sop)
         self.dirny = self.dirnx = 0
         self.rt = pygame.image.load('sushi_template.png')
         self.directory = 'sushi_center_'
@@ -184,8 +183,10 @@ class sushi(pygame.sprite.Sprite):
             self.d[1] += random.randrange(2) - random.uniform(0.6,1.2)
         else:
             self.d[1] += random.randrange(2) - random.uniform(0.8,1.4)
-        self.rect.topleft[0] += self.d[0]
-        self.rect.topleft[1] += self.d[1]
+        self.sop = list(deepcopy(self.rect.topleft))
+        self.sop[0] += min(self.sop[0] + self.d[0], 256)
+        self.sop[1] += min(self.sop[1] + self.d[1], 256)
+        self.rect.topleft = self.sop
         self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
         print(self.check_hit)
 
