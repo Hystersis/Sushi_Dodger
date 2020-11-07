@@ -27,7 +27,7 @@ except ImportError:
 pygame.init()
 
 def initi():
-    global flag, screen_width, screen, ddger_group, sshi_group, lvel, ddger
+    global flag, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score
     flag = True
     # Game Screen
     screen_width = 256
@@ -41,6 +41,7 @@ def initi():
     print("display info:",dir(display_info))
     pygame.display.set_caption("Sushi Dodger")
     pygame.mouse.set_visible(False)
+    score = 0
     # Level and dodger initilization
     lvel = Level()
     ddger = dodger("dodger_1.png")
@@ -48,8 +49,8 @@ def initi():
     ddger_group.add(ddger)
     # sushi setup code
     sshi_group = pygame.sprite.Group()
-    for a in range(11):
-        sshi = sushi([random.randrange(256),random.randrange(256)])
+    for a in range(10):
+        sshi = sushi([random.randrange(240),random.randrange(240)])
         sshi_group.add(sshi)
 
 
@@ -107,19 +108,15 @@ class dodger(pygame.sprite.Sprite):
             for key in keys:
                 if keys[pygame.K_LEFT]:
                     self.dirnx = -1
-                    print('Going left',self.dirnx,self.dirny)
                 elif keys[pygame.K_RIGHT]:
                     self.dirnx = 1
-                    print('Going right',self.dirnx,self.dirny)
                 else:
                     self.dirnx = 0
 
                 if keys[pygame.K_UP]:
                     self.dirny = -1
-                    print('Going up',self.dirnx,self.dirny)
                 elif keys[pygame.K_DOWN]:
                     self.dirny = 1
-                    print('Going down',self.dirnx,self.dirny)
                 else:
                     self.dirny = 0
 
@@ -136,8 +133,8 @@ class dodger(pygame.sprite.Sprite):
         self.rect.topleft = (int(self.pos[0]),int(self.pos[1]))
     def where_am_i(self):
         poses = []
-        poses.append(self.pos[0])
-        poses.append(self.pos[1])
+        poses.append(round(self.pos[0]))
+        poses.append(round(self.pos[1]))
         return poses
 
 
@@ -160,7 +157,6 @@ class sushi(pygame.sprite.Sprite):
     def __init__(self, sop):
         super().__init__()
         self.sop = list(sop)
-        print(self.sop)
         self.dirny = self.dirnx = 0
         self.rt = pygame.image.load('sushi_template.png')
         self.directory = 'sushi_center_'
@@ -171,24 +167,24 @@ class sushi(pygame.sprite.Sprite):
         self.image.blit(self.center, (0,0))
         self.rect = self.image.get_rect()
         self.rect.topleft = self.sop
-        self.d = [0,0]
     def update(self,d_xy):
-        # Makes Maze's 'walls'
-        self.z = [round(d_xy[0]),round(d_xy[1])]
-        if self.rect.topleft[0] >= self.z[0]:
-            self.d[0] += random.randrange(2) - random.uniform(0.6,1.2)
-        else:
-            self.d[0] += random.randrange(2) - random.uniform(0.8,1.4)
-        if self.rect.topleft[1] >= self.z[1]:
-            self.d[1] += random.randrange(2) - random.uniform(0.6,1.2)
-        else:
-            self.d[1] += random.randrange(2) - random.uniform(0.8,1.4)
+        global score
+        self.d = [0,0]
+        if self.sop[0] <= d_xy[0]:
+            self.d[0] += random.uniform(0.6,1.4)
+        if self.sop[0] > d_xy[0]:
+            self.d[0] -= random.uniform(0.6,1.4)
+        if self.sop[1] <= d_xy[1]:
+            self.d[1] += random.uniform(0.6,1.4)
+        if self.sop[1] > d_xy[1]:
+            self.d[1] -= random.uniform(0.6,1.4)
         self.sop = list(deepcopy(self.rect.topleft))
-        self.sop[0] += min(self.sop[0] + self.d[0], 256)
-        self.sop[1] += min(self.sop[1] + self.d[1], 256)
+        self.sop[0] = minmax(0,self.sop[0] + self.d[0],240)
+        self.sop[1] = minmax(0,self.sop[1] + self.d[1],240)
         self.rect.topleft = self.sop
-        self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
-        print(self.check_hit)
+        self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,True)
+        for hit in self.check_hit:
+            score += 1
 
 def next_Lvl():
     global ddger, ddger_group, sshi_group
@@ -225,7 +221,12 @@ def main():
         ddger_group.update()
         pstn = ddger.where_am_i()
         sshi_group.update(pstn)
+        print('Score:',score)
 
+def minmax(a,b,c):
+    d = [a,b,c]
+    d = sorted(d)
+    return d[1]
 
 
 #
@@ -338,7 +339,6 @@ def astar(maze, start, end):
 
 def a_star_main(maze,start,end):
     path = astar(maze, start, end)
-    print(path)
     return path
 
 def check_negative(num, retrun_num):
