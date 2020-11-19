@@ -49,7 +49,7 @@ def initi():
     # sushi setup code
     sshi_group = pygame.sprite.Group()
     for a in range(10):
-        sshi = sushi([random.randrange(240),random.randrange(240)])
+        sshi = sushi([random.randrange(240),random.randrange(240)],[128,16]) # Change [128,16] if starting pos of ddger is changed
         sshi_group.add(sshi)
 
 class Level:
@@ -97,23 +97,21 @@ class dodger(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = self.pos
     def update(self):
-        for event in pygame.event.get():
-            keys = pygame.key.get_pressed()
+        keys = pygame.key.get_pressed()
+        for key in keys:
+            if keys[pygame.K_LEFT]:
+                self.dirnx = -1
+            elif keys[pygame.K_RIGHT]:
+                self.dirnx = 1
+            else:
+                self.dirnx = 0
 
-            for key in keys:
-                if keys[pygame.K_LEFT]:
-                    self.dirnx = -1
-                elif keys[pygame.K_RIGHT]:
-                    self.dirnx = 1
-                else:
-                    self.dirnx = 0
-
-                if keys[pygame.K_UP]:
-                    self.dirny = -1
-                elif keys[pygame.K_DOWN]:
-                    self.dirny = 1
-                else:
-                    self.dirny = 0
+            if keys[pygame.K_UP]:
+                self.dirny = -1
+            elif keys[pygame.K_DOWN]:
+                self.dirny = 1
+            else:
+                self.dirny = 0
 
         self.dirny += 0.025
         if 0 < self.pos[0] and self.dirnx <= 0:
@@ -127,10 +125,18 @@ class dodger(pygame.sprite.Sprite):
         # update self.position
         self.rect.topleft = (int(self.pos[0]),int(self.pos[1]))
     def where_am_i(self):
-        poses = []
-        poses.append(round(self.pos[0]))
-        poses.append(round(self.pos[1]))
-        return poses
+        if len(ddger_group) > 0:
+            poses = []
+            poses.append(round(self.pos[0]))
+            poses.append(round(self.pos[1]))
+            return poses
+
+    def killed(self):
+        print(ddger_group)
+        self.kill()
+        print(ddger_group)
+        print('You died!, press Y to start again')
+        died = 
 
 
 
@@ -149,9 +155,11 @@ class dodger(pygame.sprite.Sprite):
 
 
 class sushi(pygame.sprite.Sprite):
-    def __init__(self, sop):
+    def __init__(self, sop,d_xy):
         super().__init__()
-        self.sop = list(sop)
+        self.relation_x = round(sop[0]) - round(d_xy[0])
+        self.relation_y = round(sop[1]) - round(d_xy[1])
+        self.sop = [poscheck(sop[0],d_xy[0]),poscheck(sop[1],d_xy[1])]
         self.dirny = self.dirnx = 0
         self.rt = pygame.image.load('sushi_template.png')
         self.directory = 'sushi_center_'
@@ -186,12 +194,16 @@ class sushi(pygame.sprite.Sprite):
             if self.relation_y > -16 and self.relation_y < 16 and self.relation_x > -16 and self.relation_x < 16:
                 if self.relation_y > 6:
                     self.image = pygame.image.load('True_hit.png')
+                    ddger.killed()
                 else:
                     self.image = self.image_copy
                     score += 1
                     self.kill()
-                self.rect = self.image.get_rect()
-                self.rect.topleft = self.sop
+            else:
+                self.image = self.image_copy
+
+            self.rect = self.image.get_rect()
+        self.rect.topleft = self.sop
 
 
 def next_Lvl():
@@ -218,9 +230,11 @@ def next_Lvl():
 
 def main():
     global ddger_group, sshi_group
-    clock = pygame.time.Clock()
     q = True
     while q:
+        clock = pygame.time.Clock()
+        pygame.time.delay(100)
+        clock.tick(60)
         act = pygame.key.get_focused()
         flag = act
         for event in pygame.event.get():
@@ -228,10 +242,8 @@ def main():
                 pygame.quit()
                 exit()
         if pygame.key.get_pressed()[pygame.K_F5]:
-            initi()
+                initi()
         if flag:
-            pygame.time.delay(60)
-            clock.tick(100)
             pygame.display.flip()
             screen.fill((0,0,0))
             sshi_group.draw(screen)
@@ -240,6 +252,8 @@ def main():
             pstn = ddger.where_am_i()
             sshi_group.update(pstn)
             print('Score:',score)
+            fps = clock.get_fps()
+            print("FPS:", fps)
 
 
 
@@ -247,6 +261,21 @@ def minmax(a,b,c):
     d = [a,b,c]
     d = sorted(d)
     return d[1]
+
+def poscheck(proposed,noarea):
+    proposed_table = []
+    for e in range(20):
+        f = max(proposed - e, 0)
+        g = min(proposed + e, 255)
+        proposed_table.append(f), proposed_table.append(g)
+    for u in proposed_table:
+        if u == noarea:
+            proposed = poscheck(random.randrange(0,255),noarea)
+            return proposed
+            break
+    else:
+        return proposed
+
 
 
 #
