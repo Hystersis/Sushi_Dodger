@@ -27,7 +27,7 @@ except ImportError:
 pygame.init()
 
 def initi():
-    global flag, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score
+    global flag, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score, kill_map
     flag = True
     # Game Screen
     screen_width = 256
@@ -52,7 +52,6 @@ def initi():
     for a in range(10):
         sshi = sushi([random.randrange(240),random.randrange(240)])
         sshi_group.add(sshi)
-
 
 class Level:
     lev = 1
@@ -165,6 +164,7 @@ class sushi(pygame.sprite.Sprite):
         self.center = pygame.image.load(str(self.directory))
         self.image = self.rt.copy()
         self.image.blit(self.center, (0,0))
+        self.image_copy = self.image.copy()
         self.rect = self.image.get_rect()
         self.rect.topleft = self.sop
     def update(self,d_xy):
@@ -182,9 +182,21 @@ class sushi(pygame.sprite.Sprite):
         self.sop[0] = minmax(0,self.sop[0] + self.d[0],240)
         self.sop[1] = minmax(0,self.sop[1] + self.d[1],240)
         self.rect.topleft = self.sop
-        self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,True)
-        for hit in self.check_hit:
-            score += 1
+        self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
+        self.sop_copy = deepcopy(self.sop)
+        if len(self.check_hit) >= 1:
+            self.relation_x = round(self.sop[0]) - round(d_xy[0])
+            self.relation_y = round(self.sop[1]) - round(d_xy[1])
+            if self.relation_y > -16 and self.relation_y < 16 and self.relation_x > -16 and self.relation_x < 16:
+                if self.relation_y > 6:
+                    self.image = pygame.image.load('True_hit.png')
+                else:
+                    self.image = self.image_copy
+                    score += 1
+                    self.kill()
+                self.rect = self.image.get_rect()
+                self.rect.topleft = self.sop
+
 
 def next_Lvl():
     global ddger, ddger_group, sshi_group
@@ -212,8 +224,8 @@ def main():
     clock = pygame.time.Clock()
     while flag:
         global ddger_group, sshi_group
-        pygame.time.delay(300)
-        clock.tick(60)
+        pygame.time.delay(60)
+        clock.tick(100)
         pygame.display.flip()
         screen.fill((0,0,0))
         sshi_group.draw(screen)
