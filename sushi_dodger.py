@@ -24,9 +24,8 @@ except ImportError:
 # Add checking in Line 168 for negtives
 
 
-pygame.init()
-
 def initi():
+    pygame.init()
     global flag, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score, kill_map
     flag = True
     # Game Screen
@@ -36,7 +35,7 @@ def initi():
     myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     # flags = pygame.SCALED add in pygame.display.setmode(screen,flags!)
-    screen = pygame.display.set_mode((screen_width,screen_width))
+    screen = pygame.display.set_mode((screen_width,screen_width)) # add pygame.RESIZABLE to make it resize
     display_info = pygame.display.Info()
     print("display info:",dir(display_info))
     pygame.display.set_caption("Sushi Dodger")
@@ -99,9 +98,6 @@ class dodger(pygame.sprite.Sprite):
         self.rect.topleft = self.pos
     def update(self):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
             keys = pygame.key.get_pressed()
 
             for key in keys:
@@ -122,11 +118,11 @@ class dodger(pygame.sprite.Sprite):
         self.dirny += 0.025
         if 0 < self.pos[0] and self.dirnx <= 0:
             self.pos[0] += self.dirnx
-        elif 240 > self.pos[0] and self.dirnx >= 0:
+        elif 239 > self.pos[0] and self.dirnx >= 0:
             self.pos[0] += self.dirnx
         if 0 < self.pos[1] and self.dirny <= 0:
             self.pos[1] += self.dirny
-        if 240 > self.pos[1] and self.dirny >= 0:
+        if 239 > self.pos[1] and self.dirny >= 0:
             self.pos[1] += self.dirny
         # update self.position
         self.rect.topleft = (int(self.pos[0]),int(self.pos[1]))
@@ -221,19 +217,31 @@ def next_Lvl():
 
 
 def main():
+    global ddger_group, sshi_group
     clock = pygame.time.Clock()
-    while flag:
-        global ddger_group, sshi_group
-        pygame.time.delay(60)
-        clock.tick(100)
-        pygame.display.flip()
-        screen.fill((0,0,0))
-        sshi_group.draw(screen)
-        ddger_group.draw(screen)
-        ddger_group.update()
-        pstn = ddger.where_am_i()
-        sshi_group.update(pstn)
-        print('Score:',score)
+    q = True
+    while q:
+        act = pygame.key.get_focused()
+        flag = act
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+        if pygame.key.get_pressed()[pygame.K_F5]:
+            initi()
+        if flag:
+            pygame.time.delay(60)
+            clock.tick(100)
+            pygame.display.flip()
+            screen.fill((0,0,0))
+            sshi_group.draw(screen)
+            ddger_group.draw(screen)
+            ddger_group.update()
+            pstn = ddger.where_am_i()
+            sshi_group.update(pstn)
+            print('Score:',score)
+
+
 
 def minmax(a,b,c):
     d = [a,b,c]
