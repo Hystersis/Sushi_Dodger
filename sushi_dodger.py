@@ -7,6 +7,7 @@ try:
     import pygame
     from copy import deepcopy
     import ctypes
+    import astar, astar256
 except ImportError:
     raise ImportError("Import Error")
 
@@ -26,10 +27,10 @@ except ImportError:
 
 def initi():
     pygame.init()
-    global flag, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score, kill_map
-    flag = True
+    global gm, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score, kill_map
     # Game Screen
     screen_width = 256
+    gm = 'Active'
     icon = pygame.image.load("dodger_icon.png")
     pygame.display.set_icon(icon)
     myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
@@ -46,10 +47,11 @@ def initi():
     ddger = dodger("dodger_1.png")
     ddger_group = pygame.sprite.Group()
     ddger_group.add(ddger)
+    pstn = ddger.where_am_i()
     # sushi setup code
     sshi_group = pygame.sprite.Group()
     for a in range(10):
-        sshi = sushi([random.randrange(240),random.randrange(240)],[128,16]) # Change [128,16] if starting pos of ddger is changed
+        sshi = sushi([random.randrange(240),random.randrange(240)],pstn) # Change [128,16] if starting pos of ddger is changed
         sshi_group.add(sshi)
 
 class Level:
@@ -125,19 +127,18 @@ class dodger(pygame.sprite.Sprite):
         # update self.position
         self.rect.topleft = (int(self.pos[0]),int(self.pos[1]))
     def where_am_i(self):
-        if len(ddger_group) > 0:
-            poses = []
-            poses.append(round(self.pos[0]))
-            poses.append(round(self.pos[1]))
-            return poses
+        poses = []
+        poses.append(round(self.pos[0]))
+        poses.append(round(self.pos[1]))
+        return poses
 
     def killed(self):
+        global gm
+        gm = 'Died'
         print(ddger_group)
         self.kill()
         print(ddger_group)
-        print('You died!, press Y to start again')
-        died = 
-
+        print('You died!, press \'X\' to start again')
 
 
 
@@ -173,37 +174,38 @@ class sushi(pygame.sprite.Sprite):
         self.rect.topleft = self.sop
     def update(self,d_xy):
         global score
-        self.d = [0,0]
-        if self.sop[0] <= d_xy[0]:
-            self.d[0] += random.uniform(0.6,1.4)
-        if self.sop[0] > d_xy[0]:
-            self.d[0] -= random.uniform(0.6,1.4)
-        if self.sop[1] <= d_xy[1]:
-            self.d[1] += random.uniform(0.6,1.4)
-        if self.sop[1] > d_xy[1]:
-            self.d[1] -= random.uniform(0.6,1.4)
-        self.sop = list(deepcopy(self.rect.topleft))
-        self.sop[0] = minmax(0,self.sop[0] + self.d[0],240)
-        self.sop[1] = minmax(0,self.sop[1] + self.d[1],240)
-        self.rect.topleft = self.sop
-        self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
-        self.sop_copy = deepcopy(self.sop)
-        if len(self.check_hit) >= 1:
-            self.relation_x = round(self.sop[0]) - round(d_xy[0])
-            self.relation_y = round(self.sop[1]) - round(d_xy[1])
-            if self.relation_y > -16 and self.relation_y < 16 and self.relation_x > -16 and self.relation_x < 16:
-                if self.relation_y > 6:
-                    self.image = pygame.image.load('True_hit.png')
-                    ddger.killed()
+        if len(ddger_group) > 0:
+            self.d = [0,0]
+            if self.sop[0] <= d_xy[0]:
+                self.d[0] += random.uniform(0.6,1.4)
+            if self.sop[0] > d_xy[0]:
+                self.d[0] -= random.uniform(0.6,1.4)
+            if self.sop[1] <= d_xy[1]:
+                self.d[1] += random.uniform(0.6,1.4)
+            if self.sop[1] > d_xy[1]:
+                self.d[1] -= random.uniform(0.6,1.4)
+            self.sop = list(deepcopy(self.rect.topleft))
+            self.sop[0] = minmax(0,self.sop[0] + self.d[0],240)
+            self.sop[1] = minmax(0,self.sop[1] + self.d[1],240)
+            self.rect.topleft = self.sop
+            self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
+            self.sop_copy = deepcopy(self.sop)
+            if len(self.check_hit) >= 1:
+                self.relation_x = round(self.sop[0]) - round(d_xy[0])
+                self.relation_y = round(self.sop[1]) - round(d_xy[1])
+                if self.relation_y > -16 and self.relation_y < 16 and self.relation_x > -16 and self.relation_x < 16:
+                    if self.relation_y > 6:
+                        self.image = pygame.image.load('True_hit.png')
+                        ddger.killed()
+                    else:
+                        self.image = self.image_copy
+                        score += 1
+                        self.kill()
                 else:
                     self.image = self.image_copy
-                    score += 1
-                    self.kill()
-            else:
-                self.image = self.image_copy
 
-            self.rect = self.image.get_rect()
-        self.rect.topleft = self.sop
+                self.rect = self.image.get_rect()
+            self.rect.topleft = self.sop
 
 
 def next_Lvl():
@@ -229,21 +231,25 @@ def next_Lvl():
 
 
 def main():
-    global ddger_group, sshi_group
-    q = True
-    while q:
+    global ddger_group, sshi_group, gm
+    while len(gm) >= 0:
+        print('Gamemode:',gm,end='')
         clock = pygame.time.Clock()
         pygame.time.delay(100)
         clock.tick(60)
         act = pygame.key.get_focused()
-        flag = act
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
+        if act and gm != 'Died':
+            print('Active',act,'\t',gm)
+            gm = 'Active'
+        elif not act and gm != 'Died':
+            gm = 'Paused'
+
+        get_code()
+
         if pygame.key.get_pressed()[pygame.K_F5]:
                 initi()
-        if flag:
+
+        if gm == 'Active':
             pygame.display.flip()
             screen.fill((0,0,0))
             sshi_group.draw(screen)
@@ -255,6 +261,18 @@ def main():
             fps = clock.get_fps()
             print("FPS:", fps)
 
+        if gm == 'Died':
+            die_screen(ddger.where_am_i())
+
+
+#                   ,,
+# `7MMM.     ,MMF'  db
+#   MMMb    dPMM
+#   M YM   ,M MM  `7MM  ,pP"Ybd  ,p6"bo
+#   M  Mb  M' MM    MM  8I   `" 6M'  OO
+#   M  YM.P'  MM    MM  `YMMMa. 8M
+#   M  `YM'   MM    MM  L.   I8 YM.    ,
+# .JML. `'  .JMML..JMML.M9mmmP'  YMbmd'
 
 
 def minmax(a,b,c):
@@ -276,135 +294,34 @@ def poscheck(proposed,noarea):
     else:
         return proposed
 
+def die_screen(dxy):
+    print('dxy:', dxy)
+    path = calculate(dxy)
+    helmet = pygame.image.load('dodger_helment.png')
+    if pygame.key.get_pressed()[pygame.K_x]:
+        pygame.time.delay(2000) #Change to incorporate the movement of the helment
+        initi()
+        calculate.has_run = False
 
+def get_code():
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT or (pygame.key.get_pressed()[pygame.KMOD_CTRL] and pygame.key.get_pressed()[pygame.K_c]):
+            pygame.quit()
+            exit()
+def calculate(dxy):
+    a = astar256.a_star_main(dxy,[126,16])
+    calculate.__code__ = (lambda:None).__code__
+    return a
 
-#
-#       db                    mm
-#      ;MM:                   MM
-#     ,V^MM.        ,pP"Ybd mmMMmm  ,6"Yb.  `7Mb,od8
-#    ,M  `MM        8I   `"   MM   8)   MM    MM' "'
-#    AbmmmqMA       `YMMMa.   MM    ,pm9MM    MM
-#   A'     VML      L.   I8   MM   8M   MM    MM
-# .AMA.   .AMMA.    M9mmmP'   `Mbmo`Moo9^Yo..JMML.
+def run_once(f):
+    def wrapper(*args, **kwargs):
+        if not wrapper.has_run:
+            wrapper.has_run = True
+            print('ran')
+            return f(*args, **kwargs)
+    wrapper.has_run = False
+    return wrapper
 
-
-class Node():
-    """A node class for A* Pathfinding"""
-
-    def __init__(self, parent=None, position=None):
-        self.parent = parent
-        self.position = position
-
-        self.g = 0
-        self.h = 0
-        self.f = 0
-
-    def __eq__(self, other):
-        return self.position == other.position
-
-
-def astar(maze, start, end):
-    """Returns a list of tuples as a path from the given start to the given end in the given maze"""
-
-    # Create start and end node
-    start_node = Node(None, start)
-    start_node.g = start_node.h = start_node.f = 0
-    end_node = Node(None, end)
-    end_node.g = end_node.h = end_node.f = 0
-
-    # Initialize both open and closed list
-    open_list = []
-    closed_list = []
-
-    # Add the start node
-    open_list.append(start_node)
-
-    # Loop until you find the end
-    while len(open_list) > 0:
-
-        # Get the current node
-        current_node = open_list[0]
-        current_index = 0
-        for index, item in enumerate(open_list):
-            if item.f < current_node.f:
-                current_node = item
-                current_index = index
-
-        # Pop current off open list, add to closed list
-        open_list.pop(current_index)
-        closed_list.append(current_node)
-
-        # Found the goal
-        if current_node == end_node:
-            path = []
-            current = current_node
-            while current is not None:
-                path.append(current.position)
-                current = current.parent
-            return path[::-1] # Return reversed path
-
-        # Generate children
-        children = []
-        for new_position in [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]: # Adjacent squares
-
-            # Get node position
-            node_position = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
-
-            # Make sure within range
-            if node_position[0] > (len(maze) - 1) or node_position[0] < 0 or node_position[1] > (len(maze[len(maze)-1]) -1) or node_position[1] < 0:
-                continue
-
-            # Make sure walkable terrain
-            if maze[node_position[0]][node_position[1]] != 0:
-                continue
-
-            # Create new node
-            new_node = Node(current_node, node_position)
-
-            # Append
-            children.append(new_node)
-
-        # Loop through children
-        for child in children:
-
-            # Child is on the closed list
-            for closed_child in closed_list:
-                if child == closed_child:
-                    continue
-
-            # Create the f, g, and h values
-            child.g = current_node.g + 1
-            child.h = ((child.position[0] - end_node.position[0]) ** 2) + ((child.position[1] - end_node.position[1]) ** 2)
-            child.f = child.g + child.h
-
-            # Child is already in the open list
-            for open_node in open_list:
-                if child == open_node and child.g > open_node.g:
-                    continue
-
-            # Add the child to the open list
-            open_list.append(child)
-
-
-def a_star_main(maze,start,end):
-    path = astar(maze, start, end)
-    return path
-
-def check_negative(num, retrun_num):
-    num = float(num)
-    if num < 0:
-        if retrun_num:
-            return 0
-        else:
-            return True
-    else:
-        if retrun_num:
-            if num.is_integer():
-                return int(num)
-            else:
-                return num
-        else:
-            return False
 #                               ,,
 # `7MM"""YMM                  `7MM
 #   MM    `7                    MM
@@ -418,3 +335,19 @@ def check_negative(num, retrun_num):
 
 initi()
 main()
+
+# def check_negative(num, retrun_num):
+#     num = float(num)
+#     if num < 0:
+#         if retrun_num:
+#             return 0
+#         else:
+#             return True
+#     else:
+#         if retrun_num:
+#             if num.is_integer():
+#                 return int(num)
+#             else:
+#                 return num
+#         else:
+#             return False
