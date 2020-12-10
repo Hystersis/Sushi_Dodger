@@ -295,32 +295,16 @@ def poscheck(proposed,noarea):
         return proposed
 
 def die_screen(dxy):
-    print('dxy:', dxy)
-    path = calculate(dxy)
-    helmet = pygame.image.load('dodger_helment.png')
     if pygame.key.get_pressed()[pygame.K_x]:
         pygame.time.delay(2000) #Change to incorporate the movement of the helment
         initi()
-        calculate.has_run = False
 
 def get_code():
     for event in pygame.event.get():
         if event.type == pygame.QUIT or (pygame.key.get_pressed()[pygame.KMOD_CTRL] and pygame.key.get_pressed()[pygame.K_c]):
             pygame.quit()
             exit()
-def calculate(dxy):
-    a = astar256.a_star_main(dxy,[126,16])
-    calculate.__code__ = (lambda:None).__code__
-    return a
 
-def run_once(f):
-    def wrapper(*args, **kwargs):
-        if not wrapper.has_run:
-            wrapper.has_run = True
-            print('ran')
-            return f(*args, **kwargs)
-    wrapper.has_run = False
-    return wrapper
 
 #                               ,,
 # `7MM"""YMM                  `7MM
