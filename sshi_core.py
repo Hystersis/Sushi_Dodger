@@ -34,7 +34,7 @@ def initi():
     gm = 'Active'
     icon = pygame.image.load("dodger_icon.png")
     pygame.display.set_icon(icon)
-    myappid = 'mycompany.myproduct.subproduct.version' # arbitrary string
+    myappid = 'mycompany.myproduct.subproduct.version' # allows for taskbar icon to be changed
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     # flags = pygame.SCALED add in pygame.display.setmode(screen,flags!)
     screen = pygame.display.set_mode((screen_width,screen_width)) # add pygame.RESIZABLE to make it resize
