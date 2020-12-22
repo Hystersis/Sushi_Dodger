@@ -2,15 +2,13 @@
 # Created by Hystersis W, 2020
 # Screen size = 256*256
 # import math
-try:
-    import random
-    import pygame
-    from copy import deepcopy
-    import ctypes
-    import astar, astar256
-    import sshi_graphics as grph
-except ImportError:
-    raise ImportError("Import Error")
+
+import random
+import pygame
+from copy import deepcopy
+import ctypes
+import astar, astar256
+import sshi_graphics as grph
 
 
 
@@ -230,13 +228,13 @@ def next_Lvl():
 #                               MM
 #                             .JMML.
 
-def graphics_call(pygame.sprite.Sprite):
-    def __init__(num):
-        self.num = copy(num)
-        self.image = grph.image(num)
-        self.rect = self.image.get_rect()
-    def update():
-        self.rect.topleft = grph.get_cor(self.num)
+# def graphics_call(pygame.sprite.Sprite):
+#     def __init__(num):
+#         self.num = copy(num)
+#         self.image = grph.image(num)
+#         self.rect = self.image.get_rect()
+#     def update():
+#         self.rect.topleft = grph.get_cor(self.num)
 
 #                            ,,
 # `7MMM.     ,MMF'           db
@@ -268,11 +266,6 @@ def main():
                 initi()
 
         if gm == 'Active':
-            pygame.display.flip()
-            screen.fill((0,0,0))
-            sshi_group.draw(screen)
-            ddger_group.draw(screen)
-            ddger_group.update()
             pstn = ddger.where_am_i()
             sshi_group.update(pstn)
             print('Score:',score)
@@ -281,6 +274,14 @@ def main():
 
         if gm == 'Died':
             die_screen(ddger.where_am_i())
+
+        grph.main()
+        pygame.display.flip()
+        screen.fill((0,0,0))
+        sshi_group.draw(screen)
+        ddger_group.draw(screen)
+        ddger_group.update()
+        screen.blit(grph.screen)
 
 
 #                   ,,
