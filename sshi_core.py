@@ -26,7 +26,7 @@ import sshi_graphics as grph
 
 def initi():
     pygame.init()
-    global gm, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score, kill_map
+    global gm, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score, kill_map, offset
     # Game Screen
     screen_width = 256
     gm = 'Active'
@@ -49,6 +49,7 @@ def initi():
     pstn = ddger.where_am_i()
     # sushi setup code
     sshi_group = pygame.sprite.Group()
+    offset = 0
     for a in range(10):
         sshi = sushi([random.randrange(240),random.randrange(240)],pstn) # Change [128,16] if starting pos of ddger is changed
         sshi_group.add(sshi)
@@ -281,7 +282,7 @@ def main():
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
-        screen.blit(grph.screen)
+        screen.blit(grph.screen())
 
 
 #                   ,,
@@ -324,6 +325,14 @@ def get_code():
             pygame.quit()
             exit()
 
+def screen_shake(screen):
+    fade = 0.95
+    offset_x, offset_y = random.randint(-16,16), random.randint(-16,16)
+    offset_x *= offset
+    offset_y *= offset
+    screen.scroll(offset_x,offset_y)
+    offset *= fade
+    offset = 0 if offset <= 0.5 else offset
 
 #                               ,,
 # `7MM"""YMM                  `7MM
