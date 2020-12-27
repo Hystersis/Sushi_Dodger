@@ -21,16 +21,12 @@ class mv_prtcl(pygame.sprite.Sprite):
         self.rect.topleft = strt
         print(self.path)
     def update(self):
-        if len(self.path) <= 1:
+        if len(self.path) < 1:
             # Add any animations for end here
             self.kill()
         else:
             self.rect.topleft = self.path.pop(0)
 
-pr = mv_prtcl([0,0],[256,256],"dodger_1.png")
-ddger_group = pygame.sprite.Group()
-ddger_group.add(pr)
-
-while len(ddger_group) > 0:
-    ddger_group.update()
-    print("ran")
+def screen():
+    screen = 
+    return
