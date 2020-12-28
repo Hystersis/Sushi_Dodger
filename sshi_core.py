@@ -7,7 +7,6 @@ import random
 import pygame
 from copy import deepcopy
 import ctypes
-import astar, astar256
 import sshi_graphics as grph
 
 
@@ -135,9 +134,9 @@ class dodger(pygame.sprite.Sprite):
     def killed(self):
         global gm
         gm = 'Died'
-        print(ddger_group)
+        # print(ddger_group)
         self.kill()
-        print(ddger_group)
+        # print(ddger_group)
         print('You died!, press \'X\' to start again')
 
 
@@ -229,14 +228,6 @@ def next_Lvl():
 #                               MM
 #                             .JMML.
 
-# def graphics_call(pygame.sprite.Sprite):
-#     def __init__(num):
-#         self.num = copy(num)
-#         self.image = grph.image(num)
-#         self.rect = self.image.get_rect()
-#     def update():
-#         self.rect.topleft = grph.get_cor(self.num)
-
 #                            ,,
 # `7MMM.     ,MMF'           db
 #   MMMb    dPMM
@@ -261,7 +252,7 @@ def main():
         elif not act and gm != 'Died':
             gm = 'Paused'
 
-        get_code()
+        events()
 
         if pygame.key.get_pressed()[pygame.K_F5]:
                 initi()
@@ -276,7 +267,6 @@ def main():
         if gm == 'Died':
             die_screen(ddger.where_am_i())
 
-        grph.main()
         pygame.display.flip()
         screen.fill((0,0,0))
         screen.blit(grph.screenLow(screen))
@@ -320,11 +310,14 @@ def die_screen(dxy):
         pygame.time.delay(2000) #Change to incorporate the movement of the helment
         initi()
 
-def get_code():
+def events():
     for event in pygame.event.get():
-        if event.type == pygame.QUIT or (pygame.key.get_pressed()[pygame.KMOD_CTRL] and pygame.key.get_pressed()[pygame.K_c]):
+        if event.type == pygame.QUIT:
             pygame.quit()
             exit()
+        if event.type == pygame.WINDOWEVENT_FOCUS_GAINED:
+            print('Focus gained.')
+
 
 def screen_shake(screen):
     fade = 0.95
