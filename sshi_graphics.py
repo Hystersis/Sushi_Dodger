@@ -1,7 +1,7 @@
 # Graphics for Game
 import random
 import pygame
-import sshi_InDrw as ld
+import sshi_LnDrw as ld
 import numpy as np
 
 global maze, particles
@@ -48,6 +48,6 @@ def scaling(screen):
     nscreen = np.zeros((uw,uh))
     for y in enumerate(screen):
         for x in enumerate(y[1]):
-            nscreen[(x[0]:x[0]+r,y[0]:y[0]+r)] = x[1] #Change the pixels on the nscreen to the original value
+            nscreen[x[0]:x[0]+r,y[0]:y[0]+r] = x[1] #Change the pixels on the nscreen to the original value
     screen = pygame.surfarray.make_surface(nscreen)
     return screen
