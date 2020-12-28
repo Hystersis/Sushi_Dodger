@@ -36,3 +36,18 @@ def particle(mode,image,map = None,startC = None, endC = None,pr = None,inplace 
     pr = mv_prtcl(startC,endC,image) if mode == 0 else pr
     # pr = /Add next particle/
     particles.add(pr)
+
+def scaling(screen):
+    screen = pygame.surfarray.array2d(screen)
+    screen = np.array(screen)
+    info = pygame.display.Info()
+    sw,sh = info.current_w, info.current_h
+    mrx, mry = int(np.floor(sw / 256)), int(np.floor(sh / 256))
+    r = min(mrx,mry)
+    uw, uh = w * r, w * r
+    nscreen = np.zeros((uw,uh))
+    for y in enumerate(screen):
+        for x in enumerate(y[1]):
+            nscreen[(x[0]:x[0]+r,y[0]:y[0]+r)] = x[1] #Change the pixels on the nscreen to the original value
+    screen = pygame.surfarray.make_surface(nscreen)
+    return screen
