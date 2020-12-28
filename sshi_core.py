@@ -279,10 +279,11 @@ def main():
         grph.main()
         pygame.display.flip()
         screen.fill((0,0,0))
+        screen.blit(grph.screenLow(screen))
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
-        screen.blit(grph.screen())
+        screen.blit(grph.screenHigh(screen))
 
 
 #                   ,,
