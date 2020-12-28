@@ -9,18 +9,16 @@ from copy import deepcopy
 import ctypes
 import sshi_graphics as grph
 
+#                     ,,
+# `7MMF'              db   mm
+#   MM                     MM
+#   MM  `7MMpMMMb.  `7MM mmMMmm
+#   MM    MM    MM    MM   MM
+#   MM    MM    MM    MM   MM
+#   MM    MM    MM    MM   MM
+# .JMML..JMML  JMML..JMML. `Mbmo
 
 
-#                                                 ,,         ,,
-# MMP""MM""YMM                     db           `7MM       `7MM
-# P'   MM   `7                    ;MM:            MM         MM
-#      MM       ,pW"Wq.          ,V^MM.      ,M""bMM    ,M""bMM
-#      MM      6W'   `Wb        ,M  `MM    ,AP    MM  ,AP    MM
-#      MM      8M     M8        AbmmmqMA   8MI    MM  8MI    MM
-#      MM      YA.   ,A9       A'     VML  `Mb    MM  `Mb    MM
-#    .JMML.     `Ybmd9'      .AMA.   .AMMA. `Wbmd"MML. `Wbmd"MML.
-
-# Add checking in Line 168 for negtives
 
 
 def initi():
@@ -34,7 +32,7 @@ def initi():
     myappid = 'mycompany.myproduct.subproduct.version' # allows for taskbar icon to be changed
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     # flags = pygame.SCALED add in pygame.display.setmode(screen,flags!)
-    screen = pygame.display.set_mode((screen_width,screen_width)) # add pygame.RESIZABLE to make it resize
+    screen = pygame.display.set_mode((screen_width,screen_width),flags=pygame.RESIZABLE) # add pygame.RESIZABLE to make it resize
     display_info = pygame.display.Info()
     print("display info:",dir(display_info))
     pygame.display.set_caption("Sushi Dodger")
@@ -269,11 +267,11 @@ def main():
 
         pygame.display.flip()
         screen.fill((0,0,0))
-        screen.blit(grph.screenLow(screen))
+        # screen.blit(grph.screenLow(screen))
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
-        screen.blit(grph.screenHigh(screen))
+        # screen.blit(grph.screenHigh(screen))
 
 
 #                   ,,
@@ -315,9 +313,10 @@ def events():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-        if event.type == pygame.WINDOWEVENT_FOCUS_GAINED:
-            print('Focus gained.')
-
+        if event.type == pygame.WINDOWMINIMIZED:
+            print(event)
+        if event.type == pygame.WINDOWMAXIMIZED:
+            print(event)
 
 def screen_shake(screen):
     fade = 0.95
