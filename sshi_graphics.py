@@ -46,7 +46,7 @@ def scaling(screen):
     w, h = screen.shape[0], screen.shape[1]
     info = pygame.display.Info()
     sw,sh = info.current_w, info.current_h
-    mrx, mry = int(np.floor(sw / w)), int(np.floor(sh / h)) #Fixed error, dividing by 256, gave 0
+    mrx, mry = int(np.floor(sw / w)), int(np.floor(sh / h))
     r = min(mrx,mry)
     print('r',r)
     uw, uh = w * r, h * r
@@ -58,11 +58,6 @@ def scaling(screen):
             fy = m(y[0],r)
             print(x[1],"\'s x value:",x[0],"\tFx value:",fx,"\tFy value:",fy)
             nscreen[y[0]+fy:y[0]+r+fy,x[0] + fx:x[0]+r+fx] = x[1]
-            # fx moves the x values to stop conflict with the upscaled pixel neighbours to the left
-            # fy moves the y values to stop conflict with the upscaled pixel neighbours above
-            # y[0] is the y coordinate for the pixel, x[0] is the x coordinate for the pixel
-            # x[1] is the value for the pixel
-            # y[1] is the row of the data
     screen = pygame.surfarray.make_surface(nscreen)
     return screen
 
