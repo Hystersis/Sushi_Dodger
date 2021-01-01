@@ -227,9 +227,9 @@ def next_Lvl():
 
 def main():
     global ddger_group, sshi_group, gm
+    clock = pygame.time.Clock()
     while len(gm) >= 0:
         print('Gamemode:',gm,end='')
-        clock = pygame.time.Clock()
         pygame.time.delay(100)
         clock.tick(60)
         act = pygame.key.get_focused()
@@ -307,8 +307,10 @@ def events():
             pygame.quit()
             exit()
         if event.type == pygame.WINDOWMINIMIZED:
+            # pygame.display.toggle_fullscreen()
             print(event)
         if event.type == pygame.WINDOWMAXIMIZED:
+            # pygame.display.toggle_fullscreen()
             print(event)
 
 def screen_shake(screen):
