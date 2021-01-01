@@ -37,17 +37,34 @@ def particle(mode,image,map = None,startC = None, endC = None,pr = None,inplace 
     # pr = /Add next particle/
     particles.add(pr)
 
+
 def scaling(screen):
+    import numpy as np
+    # Details form https://tanalin.com/en/articles/integer-scaling/#h-algorithm
     screen = pygame.surfarray.array2d(screen)
     screen = np.array(screen)
+    w, h = screen.shape[0], screen.shape[1]
     info = pygame.display.Info()
     sw,sh = info.current_w, info.current_h
-    mrx, mry = int(np.floor(sw / 256)), int(np.floor(sh / 256))
+    mrx, mry = int(np.floor(sw / w)), int(np.floor(sh / h)) #Fixed error, dividing by 256, gave 0
     r = min(mrx,mry)
-    uw, uh = w * r, w * r
+    print('r',r)
+    uw, uh = w * r, h * r
     nscreen = np.zeros((uw,uh))
     for y in enumerate(screen):
+        print('Y:',y[1],y[0])
         for x in enumerate(y[1]):
-            nscreen[x[0]:x[0]+r,y[0]:y[0]+r] = x[1] #Change the pixels on the nscreen to the original value
+            fx = m(x[0],r)
+            fy = m(y[0],r)
+            print(x[1],"\'s x value:",x[0],"\tFx value:",fx,"\tFy value:",fy)
+            nscreen[y[0]+fy:y[0]+r+fy,x[0] + fx:x[0]+r+fx] = x[1]
+            # fx moves the x values to stop conflict with the upscaled pixel neighbours to the left
+            # fy moves the y values to stop conflict with the upscaled pixel neighbours above
+            # y[0] is the y coordinate for the pixel, x[0] is the x coordinate for the pixel
+            # x[1] is the value for the pixel
+            # y[1] is the row of the data
     screen = pygame.surfarray.make_surface(nscreen)
     return screen
+
+def m(xy,r):
+    return r -1  if xy > 0 else 0
