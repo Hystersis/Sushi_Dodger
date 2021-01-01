@@ -215,17 +215,6 @@ def next_Lvl():
         sshi_group.add(sshi)
 
 
-#                                        ,,          ,,
-#   .g8"""bgd                          `7MM          db
-# .dP'     `M                            MM
-# dM'       ` `7Mb,od8 ,6"Yb. `7MMpdMAo. MMpMMMb.  `7MM  ,p6"bo  ,pP"Ybd
-# MM            MM' "'8)   MM   MM   `Wb MM    MM    MM 6M'  OO  8I   `"
-# MM.    `7MMF' MM     ,pm9MM   MM    M8 MM    MM    MM 8M       `YMMMa.
-# `Mb.     MM   MM    8M   MM   MM   ,AP MM    MM    MM YM.    , L.   I8
-#   `"bmmmdPY .JMML.  `Moo9^Yo. MMbmmd'.JMML  JMML..JMML.YMbmd'  M9mmmP'
-#                               MM
-#                             .JMML.
-
 #                            ,,
 # `7MMM.     ,MMF'           db
 #   MMMb    dPMM
@@ -265,13 +254,17 @@ def main():
         if gm == 'Died':
             die_screen(ddger.where_am_i())
 
+        if gm == 'Won':
+            # Add win code for each level here
+            pass
+
         pygame.display.flip()
         screen.fill((0,0,0))
-        # screen.blit(grph.screenLow(screen))
+        screen.blit(grph.screenLow(screen),[0,0])
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
-        # screen.blit(grph.screenHigh(screen))
+        screen.blit(grph.screenHigh(screen),[0,0])
 
 
 #                   ,,
@@ -319,6 +312,7 @@ def events():
             print(event)
 
 def screen_shake(screen):
+    # Fix this screen shake
     fade = 0.95
     offset_x, offset_y = random.randint(-16,16), random.randint(-16,16)
     offset_x *= offset
