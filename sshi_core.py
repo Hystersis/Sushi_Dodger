@@ -229,7 +229,7 @@ def main():
     global ddger_group, sshi_group, gm
     clock = pygame.time.Clock()
     while len(gm) >= 0:
-        print('Gamemode:',gm,end='')
+        print('Gamemode:\t',gm)
         pygame.time.delay(100)
         clock.tick(60)
         act = pygame.key.get_focused()
@@ -265,6 +265,9 @@ def main():
         ddger_group.draw(screen)
         ddger_group.update()
         screen.blit(grph.screenHigh(screen),[0,0])
+        # nscreen = grph.scaling(screen)
+        print("Window size:",pygame.display.get_window_size())
+        testscreen()
 
 
 #                   ,,
@@ -276,6 +279,13 @@ def main():
 #   M  `YM'   MM    MM  L.   I8 YM.    ,
 # .JML. `'  .JMML..JMML.M9mmmP'  YMbmd'
 
+def testscreen():
+    nscreen = pygame.display.set_mode((1080,1080),flags=pygame.RESIZABLE) # add pygame.RESIZABLE to make it resize
+    pygame.display.set_caption("Test screen")
+    pygame.mouse.set_visible(False)
+    screen.fill((0,0,0))
+    image = pygame.image.load("background_res2.png")
+    nscreen.blit(grph.scaling(image,1080,1080),[0,0])
 
 def minmax(a,b,c):
     d = [a,b,c]
@@ -307,10 +317,10 @@ def events():
             pygame.quit()
             exit()
         if event.type == pygame.WINDOWMINIMIZED:
-            # pygame.display.toggle_fullscreen()
+            pygame.display.toggle_fullscreen()
             print(event)
         if event.type == pygame.WINDOWMAXIMIZED:
-            # pygame.display.toggle_fullscreen()
+            pygame.display.toggle_fullscreen()
             print(event)
 
 def screen_shake(screen):
