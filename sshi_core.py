@@ -32,7 +32,7 @@ def initi():
     myappid = 'mycompany.myproduct.subproduct.version' # allows for taskbar icon to be changed
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
     # flags = pygame.SCALED add in pygame.display.setmode(screen,flags!)
-    screen = pygame.display.set_mode((screen_width,screen_width),flags=pygame.RESIZABLE) # add pygame.RESIZABLE to make it resize
+    screen = pygame.display.set_mode((screen_width,screen_width),flags=pygame.RESIZABLE | pygame.SCALED) # add pygame.RESIZABLE to make it resize
     display_info = pygame.display.Info()
     print("display info:",dir(display_info))
     pygame.display.set_caption("Sushi Dodger")
@@ -267,7 +267,6 @@ def main():
         screen.blit(grph.screenHigh(screen),[0,0])
         # nscreen = grph.scaling(screen)
         print("Window size:",pygame.display.get_window_size())
-        testscreen()
 
 
 #                   ,,
@@ -279,13 +278,6 @@ def main():
 #   M  `YM'   MM    MM  L.   I8 YM.    ,
 # .JML. `'  .JMML..JMML.M9mmmP'  YMbmd'
 
-def testscreen():
-    nscreen = pygame.display.set_mode((1080,1080),flags=pygame.RESIZABLE) # add pygame.RESIZABLE to make it resize
-    pygame.display.set_caption("Test screen")
-    pygame.mouse.set_visible(False)
-    screen.fill((0,0,0))
-    image = pygame.image.load("background_res2.png")
-    nscreen.blit(grph.scaling(image,1080,1080),[0,0])
 
 def minmax(a,b,c):
     d = [a,b,c]
@@ -316,11 +308,14 @@ def events():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-        if event.type == pygame.WINDOWMINIMIZED:
+        if event.type == pygame.WINDOWMINIMIZED or event.key == pygame.K_ESCAPE if event.type == pygame.KEYUP else False:
             pygame.display.toggle_fullscreen()
             print(event)
         if event.type == pygame.WINDOWMAXIMIZED:
             pygame.display.toggle_fullscreen()
+            print(event)
+        if pygame.key.get_pressed()[pygame.K_ESCAPE]:
+            print('ESCAPE pressed')
             print(event)
 
 def screen_shake(screen):
