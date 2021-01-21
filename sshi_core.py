@@ -229,12 +229,12 @@ def main():
     global ddger_group, sshi_group, gm
     clock = pygame.time.Clock()
     while len(gm) >= 0:
-        print('Gamemode:\t',gm)
+        # print('Gamemode:\t',gm)
         pygame.time.delay(100)
         clock.tick(60)
         act = pygame.key.get_focused()
         if act and gm != 'Died':
-            print('Active',act,'\t',gm)
+            # print('Active',act,'\t',gm)
             gm = 'Active'
         elif not act and gm != 'Died':
             gm = 'Paused'
@@ -247,9 +247,9 @@ def main():
         if gm == 'Active':
             pstn = ddger.where_am_i()
             sshi_group.update(pstn)
-            print('Score:',score)
+            # print('Score:',score)
             fps = clock.get_fps()
-            print("FPS:", fps)
+            # print("FPS:", fps)
 
         if gm == 'Died':
             die_screen(ddger.where_am_i())
@@ -266,7 +266,7 @@ def main():
         ddger_group.update()
         screen.blit(grph.screenHigh(screen),[0,0])
         # nscreen = grph.scaling(screen)
-        print("Window size:",pygame.display.get_window_size())
+        # print("Window size:",pygame.display.get_window_size())
 
 
 #                   ,,
@@ -308,14 +308,8 @@ def events():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-        if event.type == pygame.WINDOWMINIMIZED or event.key == pygame.K_ESCAPE if event.type == pygame.KEYUP else False:
+        if pygame.key.get_pressed()[pygame.K_F11]:
             pygame.display.toggle_fullscreen()
-            print(event)
-        if event.type == pygame.WINDOWMAXIMIZED:
-            pygame.display.toggle_fullscreen()
-            print(event)
-        if pygame.key.get_pressed()[pygame.K_ESCAPE]:
-            print('ESCAPE pressed')
             print(event)
 
 def screen_shake(screen):
