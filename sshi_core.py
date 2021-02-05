@@ -4,7 +4,7 @@
 # import math
 
 import random
-import pygame
+import pygame, pygame.freetype
 from copy import deepcopy
 import ctypes
 import sshi_graphics as grph
@@ -264,7 +264,9 @@ def main():
         sshi_group.draw(screen)
         ddger_group.draw(screen)
         ddger_group.update()
-        screen.blit(grph.screenHigh(screen),[0,0])
+        screen.blit(grph.screenHigh(screen,gm),[0,0])
+        print('Default Font:',pygame.freetype.get_default_font())
+        grph.word_wrap(screen,'Test',pygame.freetype.Font('8-bit Arcade In.ttf',48),color = (255,255,255))
         # nscreen = grph.scaling(screen)
         # print("Window size:",pygame.display.get_window_size())
 
