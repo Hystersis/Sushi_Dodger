@@ -46,6 +46,7 @@ class transition:
         if image != None:
             self.image = pygame.image.load(image)
             self.rect = self.image.get_rect()
+            self.text = text_eight(screenHigh.screen,'Test',(84,128))
     def draw(self):
         return self.image
 
@@ -54,21 +55,25 @@ def screenLow(screen):
     return screen
 
 def screenHigh(screen,gm):
-    screen = screen.copy()
+    screenHigh.screen = screen.copy()
     particles.update()
-    particles.draw(screen)
-    tr.update(litr[gm])
-    screen.blit(tr.draw(),[42,0]) if tr.draw() != None else None
-    return screen
+    particles.draw(screenHigh.screen)
+    screenHigh.screen.blit(tr.draw(),[42,0]) if tr.draw() != None else None
+    tr.update(litr[gm]) # Remeber to change this back to litr[gm]
+    return screenHigh.screen
 
 tr = transition()
 
-def word_wrap(surf, text, font, color=(0, 0, 0)):
+def text_eight(surf,text,yx = (0,0),colour=(0,0,0)):
+    word_wrap(surf,text,pygame.freetype.Font('8-bit Arcade In.ttf',48),xy = yx)
+    word_wrap(surf,text,pygame.freetype.Font('8-bit Arcade Out.ttf',48),colour = (200,200,201),xy = yx)
+
+def word_wrap(surf, text, font, colour=(255, 255, 255),xy=(0,0)):
     font.origin = True
     words = text.split(' ')
     width, height = surf.get_size()
     line_spacing = font.get_sized_height() + 2
-    x, y = 0, line_spacing
+    x, y = 0 + xy[0], line_spacing - 14 + xy[1]
     space = font.get_rect(' ')
     for word in words:
         bounds = font.get_rect(word)
@@ -78,6 +83,6 @@ def word_wrap(surf, text, font, color=(0, 0, 0)):
             raise ValueError("word too wide for the surface")
         if y + bounds.height - bounds.y >= height:
             raise ValueError("text to long for the surface")
-        font.render_to(surf, (x, y), None, color)
+        font.render_to(surf, (x, y), None, colour)
         x += bounds.width + space.width
     return x, y
