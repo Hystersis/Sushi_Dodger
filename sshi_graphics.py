@@ -43,10 +43,9 @@ class transition:
         if transition.count > 1:
             raise ValueError('The amount of transition is over threshold.')
     def update(self,image):
-        if image != None:
-            self.image = pygame.image.load(image)
-            self.rect = self.image.get_rect()
-            self.text = text_eight(screenHigh.screen,'Test',(84,128))
+        self.image = pygame.image.load(image) if image != None else None
+        self.rect = self.image.get_rect() if image != None else None
+        self.text = text_eight(screenHigh.screen,'Score:',(84,128)) if image != None else None
     def draw(self):
         return self.image
 
