@@ -9,6 +9,8 @@ from pygame.freetype import *
 from copy import deepcopy
 import ctypes
 import sshi_graphics as grph
+# import numpy as np
+import dis
 
 #                     ,,
 # `7MMF'              db   mm
@@ -96,6 +98,7 @@ class dodger(pygame.sprite.Sprite):
         self.image.set_colorkey((255,255,255))
         self.rect = self.image.get_rect()
         self.rect.topleft = self.pos
+        self.dirncy = 0
     def update(self):
         keys = pygame.key.get_pressed()
         for key in keys:
@@ -113,16 +116,21 @@ class dodger(pygame.sprite.Sprite):
             else:
                 self.dirny = 0
 
-        self.dirny += 0.025
-        if 0 < self.pos[0] and self.dirnx <= 0:
-            self.pos[0] += self.dirnx
-        elif 239 > self.pos[0] and self.dirnx >= 0:
-            self.pos[0] += self.dirnx
-        if 0 < self.pos[1] and self.dirny <= 0:
-            self.pos[1] += self.dirny
-        if 239 > self.pos[1] and self.dirny >= 0:
-            self.pos[1] += self.dirny
-        # update self.position
+        self.grav = (self.dirncy if self.dirny == 0 else 0) + 0.025 # This is the expoential gravity function
+        self.dirncy = self.grav if self.dirncy < 2 else self.dirncy
+        self.dirny += self.grav
+
+        self.pos[0] += self.dirnx if 0 < (self.pos[0] + self.dirnx) < 239 else 0
+        self.pos[1] += self.dirny if 0 < (self.pos[1] + self.dirny) < 239 else 0
+        # if 0 < self.pos[0] and self.dirnx <= 0:
+        #     self.pos[0] += self.dirnx
+        # elif 239 > self.pos[0] and self.dirnx >= 0:
+        #     self.pos[0] += self.dirnx
+        # if 0 < self.pos[1] and self.dirny <= 0:
+        #     self.pos[1] += self.dirny
+        # if 239 > self.pos[1] and self.dirny >= 0:
+        #     self.pos[1] += self.dirny
+        # # update self.position
         self.rect.topleft = (int(self.pos[0]),int(self.pos[1]))
     def where_am_i(self):
         poses = []
@@ -170,40 +178,48 @@ class sushi(pygame.sprite.Sprite):
         self.image_copy = self.image.copy()
         self.rect = self.image.get_rect()
         self.rect.topleft = self.sop
+        print(self.rect.topleft)
     def update(self,d_xy):
         global score
         if len(ddger_group) > 0:
             self.d = [0,0]
-            if self.sop[0] <= d_xy[0]:
-                self.d[0] += random.uniform(0.6,1.4)
-            if self.sop[0] > d_xy[0]:
-                self.d[0] -= random.uniform(0.6,1.4)
-            if self.sop[1] <= d_xy[1]:
-                self.d[1] += random.uniform(0.6,1.4)
-            if self.sop[1] > d_xy[1]:
-                self.d[1] -= random.uniform(0.6,1.4)
-            self.sop = list(deepcopy(self.rect.topleft))
-            self.sop[0] = minmax(0,self.sop[0] + self.d[0],240)
-            self.sop[1] = minmax(0,self.sop[1] + self.d[1],240)
-            self.rect.topleft = self.sop
+            ran = lambda y : round(random.uniform(0.6,1.4),2)
+            self.d[0] += (ran(1) if self.sop[0] <= d_xy[0] else -ran(1))
+            self.d[1] += (ran(1) if self.sop[1] <= d_xy[1] else -ran(1))
+            print("d:",self.d)
+            # if self.sop[0] <= d_xy[0]:
+            #     self.d[0] += random.uniform(0.6,1.4)
+            # if self.sop[0] > d_xy[0]:
+            #     self.d[0] -= random.uniform(0.6,1.4)
+            # if self.sop[1] <= d_xy[1]:
+            #     self.d[1] += random.uniform(0.6,1.4)
+            # if self.sop[1] > d_xy[1]:
+            #     self.d[1] -= random.uniform(0.6,1.4)
+            # self.sop = list(deepcopy(self.rect.topleft))
+            self.sop = tuple(map(lambda x,y:minmax(0,x+y,240),self.rect.topleft,self.d))
+            # self.sop[0] = minmax(0,self.sop[0] + self.d[0],240)
+            # self.sop[1] = minmax(0,self.sop[1] + self.d[1],240)
+            print('Sop:',self.sop,'\t',tuple(self.sop),'\t',self.rect.topleft)
             self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
-            self.sop_copy = deepcopy(self.sop)
+            self.sop_copy = deepcopy(self.sop) # WHy iS tHis LinE heRe?
             if len(self.check_hit) >= 1:
-                self.relation_x = round(self.sop[0]) - round(d_xy[0])
-                self.relation_y = round(self.sop[1]) - round(d_xy[1])
-                if self.relation_y > -16 and self.relation_y < 16 and self.relation_x > -16 and self.relation_x < 16:
-                    if self.relation_y > 6:
-                        self.image = pygame.image.load('True_hit.png')
-                        ddger.killed()
-                    else:
-                        self.image = self.image_copy
-                        score += 1
-                        self.kill()
-                else:
-                    self.image = self.image_copy
+                ddger.killed() if map(lambda sop,dxy:-16<(sop-dxy)<16,self.sop,d_xy) and (self.sop[1] - d_xy[1]) > 6 else self.kill()
 
-                self.rect = self.image.get_rect()
-            self.rect.topleft = self.sop
+                # self.relation_x = round(self.sop[0]) - round(d_xy[0])
+                # self.relation_y = round(self.sop[1]) - round(d_xy[1])
+                # if self.relation_y > -16 and self.relation_y < 16 and self.relation_x > -16 and self.relation_x < 16:
+                #     if self.relation_y > 6:
+                #         self.image = pygame.image.load('True_hit.png')
+                #         ddger.killed()
+                #     else:
+                #         self.image = self.image_copy
+                #         score += 1
+                #         self.kill()
+                # else:
+                #     self.image = self.image_copy
+
+                # self.rect = self.image.get_rect()
+            self.rect.topleft = tuple(self.sop)
 
 
 def next_Lvl():
@@ -214,6 +230,11 @@ def next_Lvl():
     for sushi in range(lvel.get_num()):
         sshi = sushi((random.randrange(256),random.randrange(256)))
         sshi_group.add(sshi)
+
+# class background(pygame.sprite.Sprite):
+#     def __init__(self):
+#
+#     def state(self):
 
 
 #                            ,,
@@ -281,9 +302,7 @@ def main():
 
 
 def minmax(a,b,c):
-    d = [a,b,c]
-    d = sorted(d)
-    return d[1]
+    return (lambda x: sorted(x)[1])([a,b,c])
 
 def poscheck(proposed,noarea):
     proposed_table = []
@@ -336,19 +355,3 @@ def screen_shake(screen):
 
 initi()
 main()
-
-# def check_negative(num, retrun_num):
-#     num = float(num)
-#     if num < 0:
-#         if retrun_num:
-#             return 0
-#         else:
-#             return True
-#     else:
-#         if retrun_num:
-#             if num.is_integer():
-#                 return int(num)
-#             else:
-#                 return num
-#         else:
-#             return False
