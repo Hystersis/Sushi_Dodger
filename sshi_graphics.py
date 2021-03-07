@@ -1,7 +1,7 @@
 # Graphics for Game
 import random
 import pygame
-import sshi_LnDrw as ld
+import sshi_msci as msci
 import numpy as np
 
 global maze, particles, litr
@@ -16,7 +16,7 @@ particles = pygame.sprite.Group()
 
 class mv_prtcl(pygame.sprite.Sprite):
     def __init__(self,strt,end,imge):
-        self.path = ld.draw_line(np.zeros((256,256)),strt[0],strt[1],end[0],end[1])
+        self.path = msci.pthfnd(np.zeros((256,256)),strt[0],strt[1],end[0],end[1])
         self.image = pygame.image.load(imge)
         self.rect = self.image.get_rect()
         self.rect.topleft = strt

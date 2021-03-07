@@ -9,8 +9,9 @@ from pygame.freetype import *
 from copy import deepcopy
 import ctypes
 import sshi_graphics as grph
+import sshi_msci as msci
+import math
 # import numpy as np
-import dis
 
 #                     ,,
 # `7MMF'              db   mm
@@ -116,9 +117,10 @@ class dodger(pygame.sprite.Sprite):
             else:
                 self.dirny = 0
 
-        self.grav = (self.dirncy if self.dirny == 0 else 0) + 0.025 # This is the expoential gravity function
-        self.dirncy = self.grav if self.dirncy < 2 else self.dirncy
-        self.dirny += self.grav
+        if gm == 'Active':
+            self.grav = (self.dirncy if self.dirny == 0 else 0) + 0.025 # This is the expoential gravity function
+            self.dirncy = self.grav if self.dirncy < 2 else self.dirncy
+            self.dirny += self.grav
 
         self.pos[0] += self.dirnx if 0 < (self.pos[0] + self.dirnx) < 239 else 0
         self.pos[1] += self.dirny if 0 < (self.pos[1] + self.dirny) < 239 else 0
@@ -180,15 +182,12 @@ class sushi(pygame.sprite.Sprite):
         self.rect.topleft = self.sop
         print(self.rect.topleft)
     def update(self,d_xy):
-        global score
         if len(ddger_group) > 0:
             self.d = [0,0]
             ran = lambda y : round(random.uniform(0.6,1.4),2)
             self.d[0] += (ran(1) if self.sop[0] <= d_xy[0] else -ran(1))
             self.d[1] += (ran(1) if self.sop[1] <= d_xy[1] else -ran(1))
-            print("d:",self.d)
-            # if self.sop[0] <= d_xy[0]:
-            #     self.d[0] += random.uniform(0.6,1.4)
+             #     self.d[0] += random.uniform(0.6,1.4)
             # if self.sop[0] > d_xy[0]:
             #     self.d[0] -= random.uniform(0.6,1.4)
             # if self.sop[1] <= d_xy[1]:
@@ -199,11 +198,11 @@ class sushi(pygame.sprite.Sprite):
             self.sop = tuple(map(lambda x,y:minmax(0,x+y,240),self.rect.topleft,self.d))
             # self.sop[0] = minmax(0,self.sop[0] + self.d[0],240)
             # self.sop[1] = minmax(0,self.sop[1] + self.d[1],240)
-            print('Sop:',self.sop,'\t',tuple(self.sop),'\t',self.rect.topleft)
             self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
             self.sop_copy = deepcopy(self.sop) # WHy iS tHis LinE heRe?
-            if len(self.check_hit) >= 1:
-                ddger.killed() if map(lambda sop,dxy:-16<(sop-dxy)<16,self.sop,d_xy) and (self.sop[1] - d_xy[1]) > 6 else self.kill()
+            if len(self.check_hit) >= 1 and (lambda x: x[0] and x[1])(list(map(lambda sop,dxy:-16<(sop-dxy)<16,self.sop,d_xy))):
+                ddger.killed() if (self.sop[1] - d_xy[1]) >= 0 else self.killed()
+                # killed() if map(lambda sop,dxy:-16<(sop-dxy)<16,sop,d_xy) and (sop[1] - d_xy[1]) > 6 else kill()
 
                 # self.relation_x = round(self.sop[0]) - round(d_xy[0])
                 # self.relation_y = round(self.sop[1]) - round(d_xy[1])
@@ -220,6 +219,11 @@ class sushi(pygame.sprite.Sprite):
 
                 # self.rect = self.image.get_rect()
             self.rect.topleft = tuple(self.sop)
+    def killed(self):
+        global score
+        print('Killed!')
+        score += 1
+        self.kill()
 
 
 def next_Lvl():
@@ -287,6 +291,8 @@ def main():
         ddger_group.draw(screen)
         ddger_group.update()
         screen.blit(grph.screenHigh(screen,gm),[0,0])
+        # screen.current_w, screen.screen_h = screen_shake(1), screen_shake(1)
+
         # nscreen = grph.scaling(screen)
         # print("Window size:",pygame.display.get_window_size())
 
@@ -332,15 +338,11 @@ def events():
             pygame.display.toggle_fullscreen()
             print(event)
 
-def screen_shake(screen):
-    # Fix this screen shake
-    fade = 0.95
-    offset_x, offset_y = random.randint(-16,16), random.randint(-16,16)
-    offset_x *= offset
-    offset_y *= offset
-    screen.scroll(offset_x,offset_y)
-    offset *= fade
-    offset = 0 if offset <= 0.5 else offset
+def screen_shake(len):
+    equ = lambda t, sev: round(math.e ** -t * math.cos(2*math.pi*t) * sev,2)
+    strength = [equ(t,len) for t in range(24)]
+    return strength.pop()
+
 
 #                               ,,
 # `7MM"""YMM                  `7MM
