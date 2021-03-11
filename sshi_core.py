@@ -8,6 +8,7 @@ import pygame
 from pygame.freetype import * # Errors lead to this line, having to be here
 import ctypes
 import math
+from itertools import repeat
 
 # This importing the other modules into core
 import sshi_graphics as grph
@@ -54,18 +55,11 @@ def initi():
         sshi_group.add(sshi)
 
 class flags:
-    def __init__():
+    def __init__(self):
         flags.is_endless = False
-        flags.offset = repeat((0,0))
+        flags.offset = repeat((0, 0))
 
-# class flags:
-#     # class for values of the game
-#     def __init__():
-#         flags.is_endless = False
-#         flags.offset = repeat((0,0))
-#         # To add with menu
-
- fl = flags()
+fl = flags()
 
 class Level:
     lev = 1
@@ -204,7 +198,7 @@ class sushi(pygame.sprite.Sprite):
             # self.sop_copy = deepcopy(self.sop) # WHy iS tHis LinE heRe?
             if len(self.check_hit) >= 1 and (lambda x: x[0] and x[1])(list(map(lambda sop,dxy:-16<(sop-dxy)<16,self.sop,d_xy))):
                 ddger.killed() if (self.sop[1] - d_xy[1]) >= 0 else self.killed()
-                fl.offest = shake()
+                fl.offset = shake()
             self.rect.topleft = tuple(self.sop)
     def killed(self):
         global score
