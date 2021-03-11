@@ -1,17 +1,18 @@
 # Sushi Dodger
-# Created by Marcus W, 2020
+# Created by Marcus W, 2020 - 2021
 # Screen size = 256*256
-# import math
 
+# All these modules
 import random
 import pygame
-from pygame.freetype import *
-from copy import deepcopy
+from pygame.freetype import * # Errors lead to this line, having to be here
 import ctypes
+import math
+
+# This importing the other modules into core
 import sshi_graphics as grph
 import sshi_msci as msci
-import math
-# import numpy as np
+
 
 #                     ,,
 # `7MMF'              db   mm
@@ -35,12 +36,9 @@ def initi():
     pygame.display.set_icon(icon)
     myappid = 'mycompany.myproduct.subproduct.version' # allows for taskbar icon to be changed
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-    # flags = pygame.SCALED add in pygame.display.setmode(screen,flags!)
-    screen = pygame.display.set_mode((screen_width,screen_width),flags=pygame.RESIZABLE | pygame.SCALED) # add pygame.RESIZABLE to make it resize
-    display_info = pygame.display.Info()
-    print("display info:",dir(display_info))
+    screen = pygame.display.set_mode((screen_width,screen_width),flags=pygame.RESIZABLE | pygame.SCALED) # This allows the screen to be bigger that it was
     pygame.display.set_caption("Sushi Dodger")
-    pygame.mouse.set_visible(False)
+    pygame.mouse.set_visible(False) # So the cursor isn't shown
     score = 0
     # Level and dodger initilization
     lvel = Level()
@@ -55,6 +53,20 @@ def initi():
         sshi = sushi([random.randrange(240),random.randrange(240)],pstn) # Change [128,16] if starting pos of ddger is changed
         sshi_group.add(sshi)
 
+class flags:
+    def __init__():
+        flags.is_endless = False
+        flags.offset = repeat((0,0))
+
+# class flags:
+#     # class for values of the game
+#     def __init__():
+#         flags.is_endless = False
+#         flags.offset = repeat((0,0))
+#         # To add with menu
+
+ fl = flags()
+
 class Level:
     lev = 1
     def __init__(self):
@@ -67,7 +79,7 @@ class Level:
         return int(num_sshi)
     def get_lev(self):
         return int(self.lev)
-    def next_lev(self, is_endless = False):
+    def next_lev(self):
         if self.lev < 5 or is_endless:
             self.lev += 1
             next_Lvl()
@@ -104,16 +116,16 @@ class dodger(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         for key in keys:
             if keys[pygame.K_LEFT]:
-                self.dirnx = -1
+                self.dirnx = -1.5
             elif keys[pygame.K_RIGHT]:
-                self.dirnx = 1
+                self.dirnx = 1.5
             else:
                 self.dirnx = 0
 
             if keys[pygame.K_UP]:
-                self.dirny = -1
+                self.dirny = -1.5
             elif keys[pygame.K_DOWN]:
-                self.dirny = 1
+                self.dirny = 1.5
             else:
                 self.dirny = 0
 
@@ -184,40 +196,15 @@ class sushi(pygame.sprite.Sprite):
     def update(self,d_xy):
         if len(ddger_group) > 0:
             self.d = [0,0]
-            ran = lambda y : round(random.uniform(0.6,1.4),2)
-            self.d[0] += (ran(1) if self.sop[0] <= d_xy[0] else -ran(1))
-            self.d[1] += (ran(1) if self.sop[1] <= d_xy[1] else -ran(1))
-             #     self.d[0] += random.uniform(0.6,1.4)
-            # if self.sop[0] > d_xy[0]:
-            #     self.d[0] -= random.uniform(0.6,1.4)
-            # if self.sop[1] <= d_xy[1]:
-            #     self.d[1] += random.uniform(0.6,1.4)
-            # if self.sop[1] > d_xy[1]:
-            #     self.d[1] -= random.uniform(0.6,1.4)
-            # self.sop = list(deepcopy(self.rect.topleft))
+            ran = lambda : round(random.uniform(0.6,1.4),2)
+            self.d[0] += (ran() if self.sop[0] <= d_xy[0] else -ran())
+            self.d[1] += (ran() if self.sop[1] <= d_xy[1] else -ran())
             self.sop = tuple(map(lambda x,y:minmax(0,x+y,240),self.rect.topleft,self.d))
-            # self.sop[0] = minmax(0,self.sop[0] + self.d[0],240)
-            # self.sop[1] = minmax(0,self.sop[1] + self.d[1],240)
             self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
-            self.sop_copy = deepcopy(self.sop) # WHy iS tHis LinE heRe?
+            # self.sop_copy = deepcopy(self.sop) # WHy iS tHis LinE heRe?
             if len(self.check_hit) >= 1 and (lambda x: x[0] and x[1])(list(map(lambda sop,dxy:-16<(sop-dxy)<16,self.sop,d_xy))):
                 ddger.killed() if (self.sop[1] - d_xy[1]) >= 0 else self.killed()
-                # killed() if map(lambda sop,dxy:-16<(sop-dxy)<16,sop,d_xy) and (sop[1] - d_xy[1]) > 6 else kill()
-
-                # self.relation_x = round(self.sop[0]) - round(d_xy[0])
-                # self.relation_y = round(self.sop[1]) - round(d_xy[1])
-                # if self.relation_y > -16 and self.relation_y < 16 and self.relation_x > -16 and self.relation_x < 16:
-                #     if self.relation_y > 6:
-                #         self.image = pygame.image.load('True_hit.png')
-                #         ddger.killed()
-                #     else:
-                #         self.image = self.image_copy
-                #         score += 1
-                #         self.kill()
-                # else:
-                #     self.image = self.image_copy
-
-                # self.rect = self.image.get_rect()
+                fl.offest = shake()
             self.rect.topleft = tuple(self.sop)
     def killed(self):
         global score
@@ -250,11 +237,11 @@ def next_Lvl():
 #   M  `YM'   MM  8M   MM    MM    MM    MM
 # .JML. `'  .JMML.`Moo9^Yo..JMML..JMML  JMML.
 
-
 def main():
     global ddger_group, sshi_group, gm
     clock = pygame.time.Clock()
     while len(gm) >= 0:
+        move_screen = screen.copy()
         # print('Gamemode:\t',gm)
         pygame.time.delay(100)
         clock.tick(60)
@@ -285,12 +272,14 @@ def main():
             pass
 
         pygame.display.flip()
-        screen.fill((0,0,0))
-        screen.blit(grph.screenLow(screen),[0,0])
-        sshi_group.draw(screen)
-        ddger_group.draw(screen)
+        move_screen.fill((0,0,0))
+        move_screen.blit(grph.screenLow(move_screen),[0,0])
+        sshi_group.draw(move_screen)
+        ddger_group.draw(move_screen)
         ddger_group.update()
-        screen.blit(grph.screenHigh(screen,gm),[0,0])
+        move_screen.blit(grph.screenHigh(move_screen,gm),[0,0])
+        print('Screen shake:',next(fl.offset))
+        screen.blit(move_screen,next(fl.offset))
         # screen.current_w, screen.screen_h = screen_shake(1), screen_shake(1)
 
         # nscreen = grph.scaling(screen)
@@ -338,10 +327,28 @@ def events():
             pygame.display.toggle_fullscreen()
             print(event)
 
-def screen_shake(len):
-    equ = lambda t, sev: round(math.e ** -t * math.cos(2*math.pi*t) * sev,2)
-    strength = [equ(t,len) for t in range(24)]
-    return strength.pop()
+# https://stackoverflow.com/questions/23633339/pygame-shaking-window-when-loosing-lifes
+def shake():
+    equ = lambda t: round(math.e ** (-t // 10) * math.cos(2*math.pi*t)*random.uniform(1.1,5.2),2)
+    for x in range(0, 20):
+        yield (equ(x),equ(x))
+    for x in range(20, 0):
+        yield (equ(x),equ(x))
+    while True:
+        yield (0, 0)
+
+class screen_shake:
+    def __init__(self):
+        self.sr_num = []
+        self.strength = ()
+    def shake(self):
+        equ = lambda t: round(math.e ** (-t // 10) * math.cos(2*math.pi*t)*random.uniform(1.1,5.2),2)
+        self.sr_num = [equ(t) for t in range(-6,4)]
+        self.strength = ((lambda x,y: (x,y))) ((equ(t) for t in range(-6,4)), (equ(t) for t in range(-6,4)))
+    def ye(self):
+        return self.strength.pop(0) if len(self.strength) > 0 else (0,0)
+
+scsh = screen_shake()
 
 
 #                               ,,
