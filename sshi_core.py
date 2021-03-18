@@ -8,6 +8,7 @@ import pygame
 from pygame.freetype import * # Errors lead to this line, having to be here
 import ctypes
 import math
+import sys, os
 from itertools import repeat
 
 # This importing the other modules into core
@@ -24,8 +25,7 @@ import sshi_msci as msci
 #   MM    MM    MM    MM   MM
 # .JMML..JMML  JMML..JMML. `Mbmo
 
-
-
+offset = repeat((0, 0))
 
 def initi():
     pygame.init()
@@ -33,7 +33,7 @@ def initi():
     # Game Screen
     screen_width = 256
     gm = 'Active'
-    icon = pygame.image.load("dodger_icon.png")
+    icon = pygame.image.load(os.path.join("Assets/","dodger_icon.png"))
     pygame.display.set_icon(icon)
     myappid = 'mycompany.myproduct.subproduct.version' # allows for taskbar icon to be changed
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
@@ -43,13 +43,12 @@ def initi():
     score = 0
     # Level and dodger initilization
     lvel = Level()
-    ddger = dodger("dodger_1.png")
+    ddger = dodger(os.path.join("Assets/","dodger_1.png"))
     ddger_group = pygame.sprite.Group()
     ddger_group.add(ddger)
     pstn = ddger.where_am_i()
     # sushi setup code
     sshi_group = pygame.sprite.Group()
-    offset = 0
     for a in range(10):
         sshi = sushi([random.randrange(240),random.randrange(240)],pstn) # Change [128,16] if starting pos of ddger is changed
         sshi_group.add(sshi)
@@ -176,10 +175,10 @@ class sushi(pygame.sprite.Sprite):
         self.relation_y = round(sop[1]) - round(d_xy[1])
         self.sop = [poscheck(sop[0],d_xy[0]),poscheck(sop[1],d_xy[1])]
         self.dirny = self.dirnx = 0
-        self.rt = pygame.image.load('sushi_template.png')
+        self.rt = pygame.image.load(os.path.join("Assets/",'sushi_template.png'))
         self.directory = 'sushi_center_'
         self.ran = random.randrange(2)
-        self.directory = self.directory + str(self.ran) + '.png'
+        self.directory = os.path.join("Assets/",self.directory + str(self.ran) + '.png')
         self.center = pygame.image.load(str(self.directory))
         self.image = self.rt.copy()
         self.image.blit(self.center, (0,0))
@@ -199,6 +198,7 @@ class sushi(pygame.sprite.Sprite):
             if len(self.check_hit) >= 1 and (lambda x: x[0] and x[1])(list(map(lambda sop,dxy:-16<(sop-dxy)<16,self.sop,d_xy))):
                 ddger.killed() if (self.sop[1] - d_xy[1]) >= 0 else self.killed()
                 fl.offset = shake()
+                print('Offest:',str(offset))
             self.rect.topleft = tuple(self.sop)
     def killed(self):
         global score
@@ -272,7 +272,6 @@ def main():
         ddger_group.draw(move_screen)
         ddger_group.update()
         move_screen.blit(grph.screenHigh(move_screen,gm),[0,0])
-        print('Screen shake:',next(fl.offset))
         screen.blit(move_screen,next(fl.offset))
         # screen.current_w, screen.screen_h = screen_shake(1), screen_shake(1)
 
@@ -323,26 +322,26 @@ def events():
 
 # https://stackoverflow.com/questions/23633339/pygame-shaking-window-when-loosing-lifes
 def shake():
-    equ = lambda t: round(math.e ** (-t // 10) * math.cos(2*math.pi*t)*random.uniform(1.1,5.2),2)
-    for x in range(0, 20):
-        yield (equ(x),equ(x))
-    for x in range(20, 0):
-        yield (equ(x),equ(x))
+    equ = lambda t: round((math.e ** (-t // 5)) * math.cos(2*math.pi*t)*5,2)
+    sr = lambda : round(random.randrange(-1,2,2),0)
+    for _ in range(0, 2):
+        for x in range(1, 4,1):
+            yield (equ(x)*sr(), equ(x)*sr())
     while True:
         yield (0, 0)
 
-class screen_shake:
-    def __init__(self):
-        self.sr_num = []
-        self.strength = ()
-    def shake(self):
-        equ = lambda t: round(math.e ** (-t // 10) * math.cos(2*math.pi*t)*random.uniform(1.1,5.2),2)
-        self.sr_num = [equ(t) for t in range(-6,4)]
-        self.strength = ((lambda x,y: (x,y))) ((equ(t) for t in range(-6,4)), (equ(t) for t in range(-6,4)))
-    def ye(self):
-        return self.strength.pop(0) if len(self.strength) > 0 else (0,0)
-
-scsh = screen_shake()
+# class screen_shake:
+#     def __init__(self):
+#         self.sr_num = []
+#         self.strength = ()
+#     def shake(self):
+#         equ = lambda t: round(math.e ** (-t // 10) * math.cos(2*math.pi*t)*random.uniform(1.1,5.2),2)
+#         self.sr_num = [equ(t) for t in range(-6,4)]
+#         self.strength = ((lambda x,y: (x,y))) ((equ(t) for t in range(-6,4)), (equ(t) for t in range(-6,4)))
+#     def ye(self):
+#         return self.strength.pop(0) if len(self.strength) > 0 else (0,0)
+#
+# scsh = screen_shake()
 
 
 #                               ,,
