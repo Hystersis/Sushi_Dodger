@@ -3,6 +3,7 @@ import random
 import pygame
 import sshi_msci as msci
 import numpy as np
+import os
 
 global maze, particles, litr
 
@@ -17,7 +18,7 @@ particles = pygame.sprite.Group()
 class mv_prtcl(pygame.sprite.Sprite):
     def __init__(self,strt,end,imge):
         self.path = msci.pthfnd(np.zeros((256,256)),strt[0],strt[1],end[0],end[1])
-        self.image = pygame.image.load(imge)
+        self.image = pygame.image.load(os.path.join("Assets/",imge))
         self.rect = self.image.get_rect()
         self.rect.topleft = strt
         # add any animations for start here
@@ -43,7 +44,7 @@ class transition:
         if transition.count > 1:
             raise ValueError('The amount of transition is over threshold.')
     def update(self,image):
-        self.image = pygame.image.load(image) if image != None else None
+        self.image = pygame.image.load(os.path.join("Assets/",image)) if image != None else None
         self.rect = self.image.get_rect() if image != None else None
         self.text = text_eight(screenHigh.screen,'Score:',(84,128)) if image != None else None
     def draw(self):
@@ -64,8 +65,8 @@ def screenHigh(screen,gm):
 tr = transition()
 
 def text_eight(surf,text,yx = (0,0),colour=(0,0,0)):
-    word_wrap(surf,text,pygame.freetype.Font('8-bit Arcade In.ttf',48),xy = yx)
-    word_wrap(surf,text,pygame.freetype.Font('8-bit Arcade Out.ttf',48),colour = (200,200,201),xy = yx)
+    word_wrap(surf,text,pygame.freetype.Font(os.path.join("Assets/",'8-bit Arcade In.ttf'),48),xy = yx)
+    word_wrap(surf,text,pygame.freetype.Font(os.path.join("Assets/",'8-bit Arcade Out.ttf'),48),colour = (200,200,201),xy = yx)
 
 def word_wrap(surf, text, font, colour=(255, 255, 255),xy=(0,0)):
     font.origin = True
