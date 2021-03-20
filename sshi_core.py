@@ -25,8 +25,6 @@ import sshi_msci as msci
 #   MM    MM    MM    MM   MM
 # .JMML..JMML  JMML..JMML. `Mbmo
 
-offset = repeat((0, 0))
-
 def initi():
     pygame.init()
     global gm, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score, kill_map, offset
@@ -47,6 +45,7 @@ def initi():
     ddger_group = pygame.sprite.Group()
     ddger_group.add(ddger)
     pstn = ddger.where_am_i()
+    offset = repeat((0,0))
     # sushi setup code
     sshi_group = pygame.sprite.Group()
     for a in range(10):
@@ -56,7 +55,7 @@ def initi():
 class flags:
     def __init__(self):
         flags.is_endless = False
-        flags.offset = repeat((0, 0))
+        # flags.offset = repeat((0, 0))
 
 fl = flags()
 
@@ -196,16 +195,15 @@ class sushi(pygame.sprite.Sprite):
             self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
             # self.sop_copy = deepcopy(self.sop) # WHy iS tHis LinE heRe?
             if len(self.check_hit) >= 1 and (lambda x: x[0] and x[1])(list(map(lambda sop,dxy:-16<(sop-dxy)<16,self.sop,d_xy))):
+                global offset
+                offset = shake()
                 ddger.killed() if (self.sop[1] - d_xy[1]) >= 0 else self.killed()
-                fl.offset = shake()
-                print('Offest:',str(offset))
             self.rect.topleft = tuple(self.sop)
     def killed(self):
         global score
         print('Killed!')
         score += 1
         self.kill()
-
 
 def next_Lvl():
     global ddger, ddger_group, sshi_group
@@ -253,10 +251,10 @@ def main():
 
         if gm == 'Active':
             pstn = ddger.where_am_i()
-            sshi_group.update(pstn)
             # print('Score:',score)
             fps = clock.get_fps()
             # print("FPS:", fps)
+        sshi_group.update(pstn)
 
         if gm == 'Died':
             die_screen(ddger.where_am_i())
@@ -272,12 +270,11 @@ def main():
         ddger_group.draw(move_screen)
         ddger_group.update()
         move_screen.blit(grph.screenHigh(move_screen,gm),[0,0])
-        screen.blit(move_screen,next(fl.offset))
+        screen.blit(move_screen,next(offset))
         # screen.current_w, screen.screen_h = screen_shake(1), screen_shake(1)
 
         # nscreen = grph.scaling(screen)
         # print("Window size:",pygame.display.get_window_size())
-
 
 #                   ,,
 # `7MMM.     ,MMF'  db
@@ -325,7 +322,7 @@ def shake():
     equ = lambda t: round((math.e ** (-t // 5)) * math.cos(2*math.pi*t)*5,2)
     sr = lambda : round(random.randrange(-1,2,2),0)
     for _ in range(0, 2):
-        for x in range(1, 4,1):
+        for x in range(4, 1, -1):
             yield (equ(x)*sr(), equ(x)*sr())
     while True:
         yield (0, 0)
