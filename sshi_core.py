@@ -25,7 +25,7 @@ import sshi_msci as msci
 #   MM    MM    MM    MM   MM
 # .JMML..JMML  JMML..JMML. `Mbmo
 
-def initi():
+def initi(lvl = 1):
     pygame.init()
     global gm, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score, kill_map, offset
     # Game Screen
@@ -40,7 +40,7 @@ def initi():
     pygame.mouse.set_visible(False) # So the cursor isn't shown
     score = 0
     # Level and dodger initilization
-    lvel = Level()
+    lvel = Level(lvl)
     ddger = dodger(os.path.join("Assets/","dodger_1.png"))
     ddger_group = pygame.sprite.Group()
     ddger_group.add(ddger)
@@ -48,33 +48,18 @@ def initi():
     offset = repeat((0,0))
     # sushi setup code
     sshi_group = pygame.sprite.Group()
-    for a in range(10):
+    for a in range(lvel.get_num()):
         sshi = sushi([random.randrange(240),random.randrange(240)],pstn) # Change [128,16] if starting pos of ddger is changed
         sshi_group.add(sshi)
 
-class flags:
-    def __init__(self):
-        flags.is_endless = False
-        # flags.offset = repeat((0, 0))
-
-fl = flags()
-
 class Level:
     lev = 1
-    def __init__(self):
-        lev_num = self.lev
-    def get_num(self, num_sshi = 0):
-        if num_sshi >= 40:
-            num_sshi = 40
-        else:
-            num_sshi = self.lev * 2 + 14
-        return int(num_sshi)
-    def get_lev(self):
-        return int(self.lev)
-    def next_lev(self):
-        if self.lev < 5 or is_endless:
-            self.lev += 1
-            next_Lvl()
+    n = list(map(lambda y: y*2+12, range(2,15)))
+    n.insert(0,10)
+    def __init__(self, c_lvl):
+        Level.lev = c_lvl
+    def get_num(self):
+        return Level.n[Level.lev - 1 if Level.lev < 14 else 13]
 
 
 
@@ -200,10 +185,14 @@ class sushi(pygame.sprite.Sprite):
                 ddger.killed() if (self.sop[1] - d_xy[1]) >= 0 else self.killed()
             self.rect.topleft = tuple(self.sop)
     def killed(self):
-        global score
+        global score, gm
         print('Killed!')
         score += 1
         self.kill()
+        print('len:',len(sshi_group))
+        if len(sshi_group) == 0:
+            gm = 'Won'
+            print('Won',gm)
 
 def next_Lvl():
     global ddger, ddger_group, sshi_group
@@ -232,16 +221,16 @@ def next_Lvl():
 def main():
     global ddger_group, sshi_group, gm
     clock = pygame.time.Clock()
-    while len(gm) >= 0:
+    while True:
+        print(gm) if gm == 'Won' else None
         move_screen = screen.copy()
         # print('Gamemode:\t',gm)
         pygame.time.delay(100)
         clock.tick(60)
         act = pygame.key.get_focused()
-        if act and gm != 'Died':
-            # print('Active',act,'\t',gm)
+        if act and gm == 'Paused':
             gm = 'Active'
-        elif not act and gm != 'Died':
+        elif not act and gm == 'Active':
             gm = 'Paused'
 
         events()
@@ -254,17 +243,19 @@ def main():
             # print('Score:',score)
             fps = clock.get_fps()
             # print("FPS:", fps)
-        sshi_group.update(pstn)
+            sshi_group.update(pstn)
 
         if gm == 'Died':
             die_screen(ddger.where_am_i())
 
         if gm == 'Won':
-            # Add win code for each level here
-            pass
+            print('Won')
+            initi((lvel.lev + 1))
+
+        grph.data['score'] = lvel.get_num() - len(sshi_group)
 
         pygame.display.flip()
-        move_screen.fill((0,0,0))
+        move_screen.blit(pygame.image.load(os.path.join("Assets/",'background_res2.png')),[0,0])
         move_screen.blit(grph.screenLow(move_screen),[0,0])
         sshi_group.draw(move_screen)
         ddger_group.draw(move_screen)
