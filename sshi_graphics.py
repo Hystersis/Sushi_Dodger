@@ -13,6 +13,7 @@ litr = {'Active' : None,
         'Paused' : None,
         'Died' : "defeat_screen.png",
         'Won' : None} # Code must be added here in the future to list the .png for 'Won'
+data = {}
 particles = pygame.sprite.Group()
 
 class mv_prtcl(pygame.sprite.Sprite):
@@ -43,10 +44,10 @@ class transition:
         transition.count += 1
         if transition.count > 1:
             raise ValueError('The amount of transition is over threshold.')
-    def update(self,image):
+    def update(self,image,score):
         self.image = pygame.image.load(os.path.join("Assets/",image)) if image != None else None
         self.rect = self.image.get_rect() if image != None else None
-        self.text = text_eight(screenHigh.screen,'Score:',(84,128)) if image != None else None
+        self.text = text_eight(screenHigh.screen,(f'Score {data["score"]}'),(84,128)) if image != None else None
     def draw(self):
         return self.image
 
@@ -59,7 +60,7 @@ def screenHigh(screen,gm):
     particles.update()
     particles.draw(screenHigh.screen)
     screenHigh.screen.blit(tr.draw(),[42,0]) if tr.draw() != None else None
-    tr.update(litr[gm]) # Remeber to change this back to litr[gm]
+    tr.update(litr[gm],data['score']) # Remeber to change this back to litr[gm]
     return screenHigh.screen
 
 tr = transition()
