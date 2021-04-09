@@ -3,9 +3,8 @@
 # Screen size = 256*256
 
 # All these modules
-import random
 import pygame
-from pygame.freetype import * # Errors lead to this line, having to be here
+from pygame.freetype import * # Errors led to this line, having to be here
 import ctypes
 import math
 import sys, os
@@ -14,7 +13,6 @@ from itertools import repeat
 # This importing the other modules into core
 import sshi_graphics as grph
 import sshi_msci as msci
-
 
 #                     ,,
 # `7MMF'              db   mm
@@ -295,8 +293,9 @@ def poscheck(proposed,noarea):
         return proposed
 
 def die_screen(dxy):
+    te = grph.text_eight({'surf':None,'text':'yes'})
     if pygame.key.get_pressed()[pygame.K_x]:
-        pygame.time.delay(2000) #Change to incorporate the movement of the helment
+        #Change to incorporate the movement of the helment
         initi()
 
 def events():
@@ -317,6 +316,8 @@ def shake():
             yield (equ(x)*sr(), equ(x)*sr())
     while True:
         yield (0, 0)
+
+
 
 # class screen_shake:
 #     def __init__(self):
