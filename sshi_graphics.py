@@ -77,27 +77,31 @@ class fademove(pygame.sprite.Sprite):
 
 
 def screenLow(screen):
-    screen = screen.copy()
     return screen
+    # screen = screen.copy()
+    # return screen
 
 def screenHigh(screen,gm):
-    screenHigh.screen = screen.copy()
-    updateg.update()
-    updateg.draw(screenHigh.screen)
-    screenHigh.screen.blit(tr.draw(),[42,0]) if tr.draw() != None else None
-    # tr.update(litr[gm],data['score']) # Remeber to change this back to litr[gm]
-    return screenHigh.screen
+    return screen
+    # screenHigh.screen = screen.copy()
+    # updateg.update()
+    # updateg.draw(screenHigh.screen)
+    # screenHigh.screen.blit(tr.draw(),[42,0]) if tr.draw() != None else None
+    # # tr.update(litr[gm],data['score']) # Remeber to change this back to litr[gm]
+    # return screenHigh.screen
 
 class text_eight(pygame.sprite.Sprite):
-    def __init__(self,**kwags): # Required: surf, text; Opitional: xy, colour
-        for k, v in kwags.iteritems():
-            setattr(self, k, v)
-        if not xy in locals(): self.xy = (0,0)
-        if not colour in locals(): self.colour = (0,0,0)
-        print('Locals',locals())
+    def __init__(self,k,**kwags): # Required: surf, text; Opitional: xy, colour
+        # for k, v in kwags.iteritems():
+        #     setattr(self, k, v)
+        # if not xy in locals(): self.xy = (0,0)
+        # if not colour in locals(): self.colour = (0,0,0)
+        # print('Locals',locals())
+        pass
     def update(self):
-        word_wrap(surf,text,pygame.freetype.Font(os.path.join("Assets/",'8-bit Arcade Out.ttf'),48),colour = (200,200,201),xy = xy)
-        word_wrap(surf,text,pygame.freetype.Font(os.path.join("Assets/",'8-bit Arcade In.ttf'),48),xy = xy)
+        # word_wrap(surf,text,pygame.freetype.Font(os.path.join("Assets/",'8-bit Arcade Out.ttf'),48),colour = (200,200,201),xy = xy)
+        # word_wrap(surf,text,pygame.freetype.Font(os.path.join("Assets/",'8-bit Arcade In.ttf'),48),xy = xy)
+        pass
 
 def word_wrap(surf, text, font, colour=(255, 255, 255),xy=(0,0)):
     font.origin = True
@@ -121,8 +125,8 @@ def word_wrap(surf, text, font, colour=(255, 255, 255),xy=(0,0)):
 def add(func,grp,**kwags):
     z = func(kwags)
     updateg.add(z)
-    
-    if not grp in globals():
-        global grp
-        grb = pygame.sprite.Group()
-        grb.add(x)
+
+    # if not grp in globals():
+    #     global grp
+    #     grb = pygame.sprite.Group()
+    #     grb.add(x)

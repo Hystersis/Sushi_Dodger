@@ -9,6 +9,7 @@ import ctypes
 import math
 import sys, os
 from itertools import repeat
+import random
 
 # This importing the other modules into core
 import sshi_graphics as grph
@@ -22,42 +23,42 @@ import sshi_msci as msci
 #   MM    MM    MM    MM   MM
 #   MM    MM    MM    MM   MM
 # .JMML..JMML  JMML..JMML. `Mbmo
+class initi:
+    def __init__(self,lvl = 1):
+        pygame.init()
+        self.screen_width = 256
+        self.gm = 'Active'
+        self.icon = pygame.image.load(os.path.join("Assets/","dodger_icon.png"))
+        pygame.display.set_icon(self.icon)
+        self.myappid = 'mycompany.myproduct.subproduct.version' # allows for taskbar icon to be changed
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(self.myappid)
+        self.screen = pygame.display.set_mode((self.screen_width,self.screen_width),flags=pygame.RESIZABLE | pygame.SCALED) # This allows the screen to be bigger that it was
+        pygame.display.set_caption("Sushi Dodger")
+        pygame.mouse.set_visible(False) # So the cursor isn't shown
+        self.score = 0
+        # Level and dodger initilization
+        self.lvel = self.Level(lvl)
+        self.ddger = dodger(os.path.join("Assets/","dodger_1.png"))
+        self.ddger_group = pygame.sprite.Group()
+        self.ddger_group.add(self.ddger)
+        self.pstn = self.ddger.where_am_i()
+        self.offset = repeat((0,0))
+        # sushi setup code
+        self.sshi_group = pygame.sprite.Group()
+        for a in range(self.num):
+            self.sshi = sushi([random.randrange(240),random.randrange(240)],self.pstn) # Change [128,16] if starting pos of ddger is changed
+            self.sshi_group.add(self.sshi)
+    def Level(self,lvl):
+        self.lvl = lvl
+        self.n = list(map(lambda y: y*2+12, range(2,15)))
+        self.n.insert(0,10)
+        def get_num():
+            return self.n[self.lvl - 1 if self.lvl < 14 else 13]
+        self.num = get_num()
+    def __repr__(self):
+        return 'Initialization object'
 
-def initi(lvl = 1):
-    pygame.init()
-    global gm, screen_width, screen, ddger_group, sshi_group, lvel, ddger, score, kill_map, offset
-    # Game Screen
-    screen_width = 256
-    gm = 'Active'
-    icon = pygame.image.load(os.path.join("Assets/","dodger_icon.png"))
-    pygame.display.set_icon(icon)
-    myappid = 'mycompany.myproduct.subproduct.version' # allows for taskbar icon to be changed
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-    screen = pygame.display.set_mode((screen_width,screen_width),flags=pygame.RESIZABLE | pygame.SCALED) # This allows the screen to be bigger that it was
-    pygame.display.set_caption("Sushi Dodger")
-    pygame.mouse.set_visible(False) # So the cursor isn't shown
-    score = 0
-    # Level and dodger initilization
-    lvel = Level(lvl)
-    ddger = dodger(os.path.join("Assets/","dodger_1.png"))
-    ddger_group = pygame.sprite.Group()
-    ddger_group.add(ddger)
-    pstn = ddger.where_am_i()
-    offset = repeat((0,0))
-    # sushi setup code
-    sshi_group = pygame.sprite.Group()
-    for a in range(lvel.get_num()):
-        sshi = sushi([random.randrange(240),random.randrange(240)],pstn) # Change [128,16] if starting pos of ddger is changed
-        sshi_group.add(sshi)
 
-class Level:
-    lev = 1
-    n = list(map(lambda y: y*2+12, range(2,15)))
-    n.insert(0,10)
-    def __init__(self, c_lvl):
-        Level.lev = c_lvl
-    def get_num(self):
-        return Level.n[Level.lev - 1 if Level.lev < 14 else 13]
 
 
 
@@ -104,7 +105,7 @@ class dodger(pygame.sprite.Sprite):
             else:
                 self.dirny = 0
 
-        if gm == 'Active':
+        if i.gm == 'Active':
             self.grav = (self.dirncy if self.dirny == 0 else 0) + 0.025 # This is the expoential gravity function
             self.dirncy = self.grav if self.dirncy < 2 else self.dirncy
             self.dirny += self.grav
@@ -128,8 +129,7 @@ class dodger(pygame.sprite.Sprite):
         return poses
 
     def killed(self):
-        global gm
-        gm = 'Died'
+        i.gm = 'Died'
         # print(ddger_group)
         self.kill()
         # print(ddger_group)
@@ -169,28 +169,26 @@ class sushi(pygame.sprite.Sprite):
         self.rect.topleft = self.sop
         print(self.rect.topleft)
     def update(self,d_xy):
-        if len(ddger_group) > 0:
+        if len(i.ddger_group) > 0:
             self.d = [0,0]
             ran = lambda : round(random.uniform(0.6,1.4),2)
             self.d[0] += (ran() if self.sop[0] <= d_xy[0] else -ran())
             self.d[1] += (ran() if self.sop[1] <= d_xy[1] else -ran())
             self.sop = tuple(map(lambda x,y:minmax(0,x+y,240),self.rect.topleft,self.d))
-            self.check_hit = pygame.sprite.spritecollide(ddger,sshi_group,False)
+            self.check_hit = pygame.sprite.spritecollide(i.ddger,i.sshi_group,False)
             # self.sop_copy = deepcopy(self.sop) # WHy iS tHis LinE heRe?
             if len(self.check_hit) >= 1 and (lambda x: x[0] and x[1])(list(map(lambda sop,dxy:-16<(sop-dxy)<16,self.sop,d_xy))):
-                global offset
-                offset = shake()
-                ddger.killed() if (self.sop[1] - d_xy[1]) >= 0 else self.killed()
+                i.offset = shake()
+                i.ddger.killed() if (self.sop[1] - d_xy[1]) >= 0 else self.killed()
             self.rect.topleft = tuple(self.sop)
     def killed(self):
-        global score, gm
         print('Killed!')
-        score += 1
+        i.score += 1
         self.kill()
-        print('len:',len(sshi_group))
-        if len(sshi_group) == 0:
-            gm = 'Won'
-            print('Won',gm)
+        print('len:',len(i.sshi_group))
+        if len(i.sshi_group) == 0:
+            i.gm = 'Won'
+            print('Won',i.gm)
 
 def next_Lvl():
     global ddger, ddger_group, sshi_group
@@ -217,49 +215,50 @@ def next_Lvl():
 # .JML. `'  .JMML.`Moo9^Yo..JMML..JMML  JMML.
 
 def main():
-    global ddger_group, sshi_group, gm
     clock = pygame.time.Clock()
+    global i
+    print('I:',i)
     while True:
-        print(gm) if gm == 'Won' else None
-        move_screen = screen.copy()
+        print(i.gm) if i.gm == 'Won' else None
+        move_screen = i.screen.copy()
         # print('Gamemode:\t',gm)
         pygame.time.delay(100)
         clock.tick(60)
         act = pygame.key.get_focused()
-        if act and gm == 'Paused':
-            gm = 'Active'
-        elif not act and gm == 'Active':
-            gm = 'Paused'
+        if act and i.gm == 'Paused':
+            i.gm = 'Active'
+        elif not act and i.gm == 'Active':
+            i.gm = 'Paused'
 
         events()
 
         if pygame.key.get_pressed()[pygame.K_F5]:
-                initi()
+                i = initi(i.lvl)
 
-        if gm == 'Active':
-            pstn = ddger.where_am_i()
+        if i.gm == 'Active':
+            pstn = i.ddger.where_am_i()
             # print('Score:',score)
             fps = clock.get_fps()
             # print("FPS:", fps)
-            sshi_group.update(pstn)
+            i.sshi_group.update(pstn)
 
-        if gm == 'Died':
-            die_screen(ddger.where_am_i())
+        if i.gm == 'Died':
+            die_screen(i.ddger.where_am_i())
 
-        if gm == 'Won':
+        if i.gm == 'Won':
             print('Won')
-            initi((lvel.lev + 1))
+            i = initi((i.lvl + 1))
 
-        grph.data['score'] = lvel.get_num() - len(sshi_group)
+        grph.data['score'] = i.num - len(i.sshi_group)
 
         pygame.display.flip()
         move_screen.blit(pygame.image.load(os.path.join("Assets/",'background_res2.png')),[0,0])
         move_screen.blit(grph.screenLow(move_screen),[0,0])
-        sshi_group.draw(move_screen)
-        ddger_group.draw(move_screen)
-        ddger_group.update()
-        move_screen.blit(grph.screenHigh(move_screen,gm),[0,0])
-        screen.blit(move_screen,next(offset))
+        i.sshi_group.draw(move_screen)
+        i.ddger_group.draw(move_screen)
+        i.ddger_group.update()
+        move_screen.blit(grph.screenHigh(move_screen,i.gm),[0,0])
+        i.screen.blit(move_screen,next(i.offset))
         # screen.current_w, screen.screen_h = screen_shake(1), screen_shake(1)
 
         # nscreen = grph.scaling(screen)
@@ -296,7 +295,7 @@ def die_screen(dxy):
     te = grph.text_eight({'surf':None,'text':'yes'})
     if pygame.key.get_pressed()[pygame.K_x]:
         #Change to incorporate the movement of the helment
-        initi()
+        i = initi(i.lvl)
 
 def events():
     for event in pygame.event.get():
@@ -343,6 +342,8 @@ def shake():
 # .JMMmmmmMMM .JMML  JMML.`Wbmd"MML.
 
 
-
-initi()
-main()
+if __name__ == '__main__':
+    global i
+    i = initi()
+    print(i)
+    main()
