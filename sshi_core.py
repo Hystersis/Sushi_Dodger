@@ -10,6 +10,8 @@ import math
 import sys, os
 from itertools import repeat
 import random
+import numpy as np
+from operator import *
 
 # This importing the other modules into core
 import sshi_graphics as grph
@@ -23,7 +25,8 @@ import sshi_msci as msci
 #   MM    MM    MM    MM   MM
 #   MM    MM    MM    MM   MM
 # .JMML..JMML  JMML..JMML. `Mbmo
-class initi:
+class Initi:
+    screen = pygame.display.set_mode((256,256),flags=pygame.RESIZABLE | pygame.SCALED) # This allows the screen to be bigger that it was
     def __init__(self,lvl = 1):
         pygame.init()
         self.screen_width = 256
@@ -32,21 +35,19 @@ class initi:
         pygame.display.set_icon(self.icon)
         self.myappid = 'mycompany.myproduct.subproduct.version' # allows for taskbar icon to be changed
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(self.myappid)
-        self.screen = pygame.display.set_mode((self.screen_width,self.screen_width),flags=pygame.RESIZABLE | pygame.SCALED) # This allows the screen to be bigger that it was
         pygame.display.set_caption("Sushi Dodger")
         pygame.mouse.set_visible(False) # So the cursor isn't shown
         self.score = 0
         # Level and dodger initilization
         self.lvel = self.Level(lvl)
-        self.ddger = dodger(os.path.join("Assets/","dodger_1.png"))
+        self.ddger = Dodger(os.path.join("Assets/","dodger_1.png"))
         self.ddger_group = pygame.sprite.Group()
         self.ddger_group.add(self.ddger)
-        self.pstn = self.ddger.where_am_i()
         self.offset = repeat((0,0))
         # sushi setup code
         self.sshi_group = pygame.sprite.Group()
         for a in range(self.num):
-            self.sshi = sushi([random.randrange(240),random.randrange(240)],self.pstn) # Change [128,16] if starting pos of ddger is changed
+            self.sshi = Sushi(self.ddger) # Change [128,16] if starting pos of ddger is changed
             self.sshi_group.add(self.sshi)
     def Level(self,lvl):
         self.lvl = lvl
@@ -76,7 +77,7 @@ class initi:
 #                                  Ybmmmd'
 
 
-class dodger(pygame.sprite.Sprite):
+class Dodger(pygame.sprite.Sprite):
     pos = [128,16]
     dirnx = 0
     dirny = 0
@@ -122,11 +123,14 @@ class dodger(pygame.sprite.Sprite):
         #     self.pos[1] += self.dirny
         # # update self.position
         self.rect.topleft = (int(self.pos[0]),int(self.pos[1]))
-    def where_am_i(self):
-        poses = []
-        poses.append(round(self.pos[0]))
-        poses.append(round(self.pos[1]))
-        return poses
+    def where_am_i(self, area = False):
+        if area:
+            return [list(self.rect.topleft),list(self.rect.bottomright)]
+        else:
+            poses = []
+            poses.append(round(self.pos[0]))
+            poses.append(round(self.pos[1]))
+            return poses
 
     def killed(self):
         i.gm = 'Died'
@@ -150,37 +154,31 @@ class dodger(pygame.sprite.Sprite):
 
 
 
-class sushi(pygame.sprite.Sprite):
-    def __init__(self, sop,d_xy):
+class Sushi(pygame.sprite.Sprite):
+    def __init__(self,ddger):
         super().__init__()
-        self.relation_x = round(sop[0]) - round(d_xy[0])
-        self.relation_y = round(sop[1]) - round(d_xy[1])
-        self.sop = [poscheck(sop[0],d_xy[0]),poscheck(sop[1],d_xy[1])]
-        self.dirny = self.dirnx = 0
-        self.rt = pygame.image.load(os.path.join("Assets/",'sushi_template.png'))
-        self.directory = 'sushi_center_'
-        self.ran = random.randrange(2)
-        self.directory = os.path.join("Assets/",self.directory + str(self.ran) + '.png')
-        self.center = pygame.image.load(str(self.directory))
-        self.image = self.rt.copy()
-        self.image.blit(self.center, (0,0))
-        self.image_copy = self.image.copy()
+        self.create_centre()
         self.rect = self.image.get_rect()
-        self.rect.topleft = self.sop
-        print(self.rect.topleft)
-    def update(self,d_xy):
-        if len(i.ddger_group) > 0:
-            self.d = [0,0]
-            ran = lambda : round(random.uniform(0.6,1.4),2)
-            self.d[0] += (ran() if self.sop[0] <= d_xy[0] else -ran())
-            self.d[1] += (ran() if self.sop[1] <= d_xy[1] else -ran())
-            self.sop = tuple(map(lambda x,y:minmax(0,x+y,240),self.rect.topleft,self.d))
-            self.check_hit = pygame.sprite.spritecollide(i.ddger,i.sshi_group,False)
-            # self.sop_copy = deepcopy(self.sop) # WHy iS tHis LinE heRe?
-            if len(self.check_hit) >= 1 and (lambda x: x[0] and x[1])(list(map(lambda sop,dxy:-16<(sop-dxy)<16,self.sop,d_xy))):
-                i.offset = shake()
-                i.ddger.killed() if (self.sop[1] - d_xy[1]) >= 0 else self.killed()
-            self.rect.topleft = tuple(self.sop)
+        self.rect.topleft = self.poscheck(ddger)
+    def update(self):
+        self.delta = list(map(sub,i.ddger.where_am_i(),self.rect.topleft)) # This maps each coordinate of ddger and sshi; ddger - shhi
+        self.deltap = list(map(lambda z:z * random.uniform(0.8, 1.2) / abs(z) if z != 0 else 0,self.delta)) # This returns a -1, 0 or 1 (with a little bit of noise) depending on the delta
+        self.rect.topleft = tuple(map(minmax,[0,0],map(add,self.rect.topleft,self.deltap),[255,255])) # This adds the aforementioned -1, 0 or 1 to the current coordinates of sshi
+        self.checkhit()
+    def poscheck(self,ddger):
+        self.square = ddger.where_am_i(True)
+        xH, xL = self.square[0][0] - 20, self.square[1][0] + 20
+        yH, yL = self.square[0][1] - 20, self.square[1][1] + 20
+
+        while True:
+            x = random.randrange(0,255)
+            y = random.randrange(0,255)
+            if (x < xH or x > xL) and (y < yH or y > yL): #If the x,y coordinates are outside of ddger's AoE break out of the loop
+                break
+            else: #Else, reclaculate new x and y
+                continue
+        return (x,y)
+
     def killed(self):
         print('Killed!')
         i.score += 1
@@ -190,14 +188,20 @@ class sushi(pygame.sprite.Sprite):
             i.gm = 'Won'
             print('Won',i.gm)
 
-def next_Lvl():
-    global ddger, ddger_group, sshi_group
-    sshi_group.clear()
-    sshi_group = pygame.sprite.Group()
-    lvel.next_lev()
-    for sushi in range(lvel.get_num()):
-        sshi = sushi((random.randrange(256),random.randrange(256)))
-        sshi_group.add(sshi)
+    def create_centre(self):
+        self.rt = pygame.image.load(os.path.join("Assets/",'sushi_template.png'))
+        self.directory = 'sushi_center_'
+        self.ran = random.randrange(2)
+        self.directory = os.path.join("Assets/",self.directory + str(self.ran) + '.png')
+        self.center = pygame.image.load(str(self.directory))
+        self.image = self.rt.copy()
+        self.image.blit(self.center, (0,0))
+        self.image_copy = self.image.copy()
+
+    def checkhit(self):
+        if len(list(filter(lambda a: -16 < a < 16, self.delta))) == 2: #This sees if sshi is in AoE of the ddger
+            i.offset = shake() #This shakes the screen
+            i.ddger.killed() if self.delta[1] < 0 else self.killed() #This kills the ddger if it is bellow the sshi, and vice versa
 
 # class background(pygame.sprite.Sprite):
 #     def __init__(self):
@@ -220,7 +224,7 @@ def main():
     print('I:',i)
     while True:
         print(i.gm) if i.gm == 'Won' else None
-        move_screen = i.screen.copy()
+        move_screen = Initi.screen.copy()
         # print('Gamemode:\t',gm)
         pygame.time.delay(100)
         clock.tick(60)
@@ -233,21 +237,20 @@ def main():
         events()
 
         if pygame.key.get_pressed()[pygame.K_F5]:
-                i = initi(i.lvl)
+                i = Initi(i.lvl)
 
         if i.gm == 'Active':
-            pstn = i.ddger.where_am_i()
             # print('Score:',score)
             fps = clock.get_fps()
             # print("FPS:", fps)
-            i.sshi_group.update(pstn)
+            i.sshi_group.update()
 
         if i.gm == 'Died':
             die_screen(i.ddger.where_am_i())
 
         if i.gm == 'Won':
             print('Won')
-            i = initi((i.lvl + 1))
+            i = Initi(i.lvl + 1)
 
         grph.data['score'] = i.num - len(i.sshi_group)
 
@@ -258,7 +261,7 @@ def main():
         i.ddger_group.draw(move_screen)
         i.ddger_group.update()
         move_screen.blit(grph.screenHigh(move_screen,i.gm),[0,0])
-        i.screen.blit(move_screen,next(i.offset))
+        Initi.screen.blit(move_screen,next(i.offset))
         # screen.current_w, screen.screen_h = screen_shake(1), screen_shake(1)
 
         # nscreen = grph.scaling(screen)
@@ -277,25 +280,11 @@ def main():
 def minmax(a,b,c):
     return (lambda x: sorted(x)[1])([a,b,c])
 
-def poscheck(proposed,noarea):
-    proposed_table = []
-    for e in range(20):
-        f = max(proposed - e, 0)
-        g = min(proposed + e, 255)
-        proposed_table.append(f), proposed_table.append(g)
-    for u in proposed_table:
-        if u == noarea:
-            proposed = poscheck(random.randrange(0,255),noarea)
-            return proposed
-            break
-    else:
-        return proposed
-
 def die_screen(dxy):
     te = grph.text_eight({'surf':None,'text':'yes'})
     if pygame.key.get_pressed()[pygame.K_x]:
         #Change to incorporate the movement of the helment
-        i = initi(i.lvl)
+        i = Initi(i.lvl)
 
 def events():
     for event in pygame.event.get():
@@ -316,22 +305,6 @@ def shake():
     while True:
         yield (0, 0)
 
-
-
-# class screen_shake:
-#     def __init__(self):
-#         self.sr_num = []
-#         self.strength = ()
-#     def shake(self):
-#         equ = lambda t: round(math.e ** (-t // 10) * math.cos(2*math.pi*t)*random.uniform(1.1,5.2),2)
-#         self.sr_num = [equ(t) for t in range(-6,4)]
-#         self.strength = ((lambda x,y: (x,y))) ((equ(t) for t in range(-6,4)), (equ(t) for t in range(-6,4)))
-#     def ye(self):
-#         return self.strength.pop(0) if len(self.strength) > 0 else (0,0)
-#
-# scsh = screen_shake()
-
-
 #                               ,,
 # `7MM"""YMM                  `7MM
 #   MM    `7                    MM
@@ -341,9 +314,8 @@ def shake():
 #   MM     ,M   MM    MM `Mb    MM
 # .JMMmmmmMMM .JMML  JMML.`Wbmd"MML.
 
-
 if __name__ == '__main__':
     global i
-    i = initi()
+    i = Initi()
     print(i)
     main()
