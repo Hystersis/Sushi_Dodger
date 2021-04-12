@@ -6,18 +6,43 @@ import numpy as np
 import os
 import itertools
 
+class Flag:
+    flags = []
+    def add(self,flag):
+        flag = pygame.sprite.Group()
+        Flag.flags.append(flag)
+        return flag
+    @classmethod
+    def create(cls,flag):
+        if flag not in Flag.flags:
+            f = cls.add(flag)
+            return f
+        else:
+            return flag
+
+Flag.create('screenHigh')
+Flag.create('screenLow')
+Flag.create('all')
+
 class add:
     def __init__(self,flag,func,*args,**kwargs):
+        self.flag = Flag.create(flag)
         self.f = func(*args,**kwargs)
-        flag.add(self.f)
+        self.flag.add(self.f)
 
     def kill(self):
         self.f.kill()
     @staticmethod
     def update(flag):
         screen = pygame.Surface((256,256))
+        flag = flag.create(flag)
         flag.draw(screen)
         return screen
+    @staticmethod
+    def clear(flag):
+        flag = flag.create(flag)
+        flag.clear()
+
 
 
 class MvPrtcl(pygame.sprite.Sprite):
@@ -50,7 +75,7 @@ class FadeMove(pygame.sprite.Sprite):
 
 class Transition(pygame.sprite.Sprite):
     def __init__(self,imge,score,custom_txt = 'Score'):
-        self.image = imge
+        self.image = pygame.image.load(os.path.join("Assets",imge))
         self.rect = self.imge.get_rect()
         self.text = custom_txt + score
         word_wrap(self.image,self.text,pygame.freeetype.Font(os.path.join("Assets/",'8-bit Arcade Out.ttf'),48),colour=(200,200,201),xy = (84,128))

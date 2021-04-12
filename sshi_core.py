@@ -252,20 +252,17 @@ def main():
             print('Won')
             i = Initi(i.lvl + 1)
 
-        # grph.data['score'] = i.num - len(i.sshi_group)
+        i.score = i.num - len(i.sshi_group)
 
         pygame.display.flip()
         move_screen.blit(pygame.image.load(os.path.join("Assets",'background_res2.png')),[0,0])
-        # move_screen.blit(grph.screenLow(move_screen),[0,0])
+        move_screen.blit(GI.update(screenLow),[0,0])
         i.sshi_group.draw(move_screen)
         i.ddger_group.draw(move_screen)
         i.ddger_group.update()
-        # move_screen.blit(grph.screenHigh(move_screen,i.gm),[0,0])
+        move_screen.blit(GI.update(screenHigh),[0,0])
+        move_screen.blit(GI.update(all),[0,0])
         Initi.screen.blit(move_screen,next(i.offset))
-        # screen.current_w, screen.screen_h = screen_shake(1), screen_shake(1)
-
-        # nscreen = grph.scaling(screen)
-        # print("Window size:",pygame.display.get_window_size())
 
 #                   ,,
 # `7MMM.     ,MMF'  db
@@ -276,12 +273,21 @@ def main():
 #   M  `YM'   MM    MM  L.   I8 YM.    ,
 # .JML. `'  .JMML..JMML.M9mmmP'  YMbmd'
 
+class GI(grph.add): #Stands for Graphics Interface
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args,**kwargs) #This directally passes all variables to grph.add.__init__
+    def kill(self):
+        super().kill()
+    def update(flag):
+        self.screen = grph.add.update(flag)
+        return self.screen
 
 def minmax(a,b,c):
+    '''This function returns the middle variable between the min variable and the max variable.'''
     return (lambda x: sorted(x)[1])([a,b,c])
 
 def die_screen(dxy):
-    # te = grph.text_eight({'surf':None,'text':'yes'})
+    GI(all,Transition,"background_res2.png",i.score)
     if pygame.key.get_pressed()[pygame.K_x]:
         #Change to incorporate the movement of the helment
         i = Initi(i.lvl)
