@@ -4,104 +4,57 @@ import pygame
 import sshi_msci as msci
 import numpy as np
 import os
+import itertools
 
-global maze, updateg, litr
+class add:
+    def __init__(self,flag,func,*args,**kwargs):
+        self.f = func(*args,**kwargs)
+        flag.add(self.f)
 
-pygame.freetype.init(resolution=48)
+    def kill(self):
+        self.f.kill()
+    @staticmethod
+    def update(flag):
+        screen = pygame.Surface((256,256))
+        flag.draw(screen)
+        return screen
 
-litr = {'Active' : None,
-        'Paused' : None,
-        'Died' : "defeat_screen.png",
-        'Won' : None} # Code must be added here in the future to list the .png for 'Won'
-data = {}
-updateg = pygame.sprite.Group()
 
-class mv_prtcl(pygame.sprite.Sprite):
-    def __init__(self,**kwags):
-        self.path = msci.pthfnd(np.zeros((256,256)),kwags['strt'][0],kwags['strt'][1],kwags['end'][0],kwags['end'][1])
-        self.image = pygame.image.load(os.path.join("Assets/",kwags['imge']))
+class MvPrtcl(pygame.sprite.Sprite):
+    def __init__(self,strt,end,imge):
+        self.path = msci.pthfnd(np.zeros(256,256),*strt,*end)
+        self.image = pygame.image.load(os.path.join("Assets",imge))
         self.rect = self.image.get_rect()
-        self.rect.topleft = kwags['strt']
-        # add any animations for start here
+        self.rect.topleft = self.path.pop(0)
     def update(self):
-        if len(self.path) < 1:
-            # Add any animations for end here
-            self.kill()
-        else:
+        if len(self.path) > 0:
             self.rect.topleft = self.path.pop(0)
 
-class transition(pygame.sprite.Sprite):
-    """tr is transition"""
-    count = 0
-    def __init__(self):
-        self.image = None
-        transition.count += 1
-        if transition.count > 1:
-            raise ValueError('The amount of transition is over threshold.') from None
-    def update(self,image,score):
-        self.image = pygame.image.load(os.path.join("Assets/",image)) if image != None else None
-        self.rect = self.image.get_rect() if image != None else None
-        self.text = text_eight(screenHigh.screen,(f'Score {data["score"]}'),(84,128)) if image != None else None
-    def draw(self):
-        return self.image
+class Background(pygame.sprite.Sprite):
+    def __init__(self,bck_pth):
+        self.background = pygame.image.load(os.path.join("Assets",bck_pth))
 
-class fademove(pygame.sprite.Sprite):
-    def __init__(self,**kwags):
-        for k, v in kwags.iteritems():
-            setattr(self, k, v)
-        self.image = pygame.image.load(self.image)
-        self.move_x = iter(self.strtc[0] - self.endc[0])
-        self.move_y = iter(self.strtc[1] - self.endc[1])
-        self.rect = self.image.get_rect()
-        self.move = max(map(lambda s,e: s-e, self.strtc,self.endc))
-        self.fade = iter([x for x in range(255,-1, -(255 // self.move))])
-        self.surface = pygame.Suface(self.image.get_rect().size)
-        # self.image = pygame.image.load(kwags['image'])
-        # self.strt_c = kwags['strtc']
-        # self.end_c = kwags['endc']
-        # self.move_x = iter(kwags['strtc'][0] - kwags['endc'][0])
-        # self.move_y = iter(kwags['strtc'][1] - kwags['endc'][1])
-        # self.rect = self.ime.get_rect()
-        # self.rect.topleft = kwags['strtc']
-        # self.move = max(kwags['strtc'][0] - kwags['endc'][0],kwags['strtc'][1] - kwags['endc'][1])
-        # self.fade = iter([x for x in range(255,-1, -(255 // self.move))])
-        # self.surface = pygame.Suface(self.image.get_rect().size)
+class FadeMove(pygame.sprite.Sprite):
+    def __inti__(self,strt,end,imge):
+        self.image = pygame.image.load(os.path.join("Assets",imge))
+        self.surface = pygame.Surface((self.image.get_width(),self.image.get_width()))
+        self.path = msci.pthfnd(np.zeros(256,256),*strt,*end)
+        self.fade = iter([x for x in range(255, -1, -(255 / len(self.path)))]) #This creates an iterator of the transparency values; it starts at 0 and incriments up to 255, by the len of self.path
+        self.rect = self.surface.get_rect()
+        self.rect.topleft = self.path.pop(0)
+        self.surface.set_alpha(next(self.fade))
     def update(self):
-        if (c := next(self.move_x, 0)) != 0:
-            self.rect.topleft[0] - c
-        if (c := next(self.move_y, 0)) != 0:
-            self.rect.topleft[1] - c
-        if (c := next(self.fade, None)) != None:
-            self.surface.set_alpha(c)
-        self.image = self.surface
+        if len(self.path) > 0:
+            self.rect.topleft = self.path.pop()
+            self.surface.set_alpha(next(self.fade))
 
-
-def screenLow(screen):
-    return screen
-    # screen = screen.copy()
-    # return screen
-
-def screenHigh(screen,gm):
-    return screen
-    # screenHigh.screen = screen.copy()
-    # updateg.update()
-    # updateg.draw(screenHigh.screen)
-    # screenHigh.screen.blit(tr.draw(),[42,0]) if tr.draw() != None else None
-    # # tr.update(litr[gm],data['score']) # Remeber to change this back to litr[gm]
-    # return screenHigh.screen
-
-class text_eight(pygame.sprite.Sprite):
-    def __init__(self,k,**kwags): # Required: surf, text; Opitional: xy, colour
-        # for k, v in kwags.iteritems():
-        #     setattr(self, k, v)
-        # if not xy in locals(): self.xy = (0,0)
-        # if not colour in locals(): self.colour = (0,0,0)
-        # print('Locals',locals())
-        pass
-    def update(self):
-        # word_wrap(surf,text,pygame.freetype.Font(os.path.join("Assets/",'8-bit Arcade Out.ttf'),48),colour = (200,200,201),xy = xy)
-        # word_wrap(surf,text,pygame.freetype.Font(os.path.join("Assets/",'8-bit Arcade In.ttf'),48),xy = xy)
-        pass
+class Transition(pygame.sprite.Sprite):
+    def __init__(self,imge,score,custom_txt = 'Score'):
+        self.image = imge
+        self.rect = self.imge.get_rect()
+        self.text = custom_txt + score
+        word_wrap(self.image,self.text,pygame.freeetype.Font(os.path.join("Assets/",'8-bit Arcade Out.ttf'),48),colour=(200,200,201),xy = (84,128))
+        word_wrap(self.image,self.text,pygame.freeetype.Font(os.path.join("Assets/",'8-bit Arcade In.ttf'),48),xy = (84,128))
 
 def word_wrap(surf, text, font, colour=(255, 255, 255),xy=(0,0)):
     font.origin = True
@@ -122,11 +75,6 @@ def word_wrap(surf, text, font, colour=(255, 255, 255),xy=(0,0)):
         x += bounds.width + space.width
     return x, y
 
-def add(func,grp,**kwags):
-    z = func(kwags)
-    updateg.add(z)
-
-    # if not grp in globals():
-    #     global grp
-    #     grb = pygame.sprite.Group()
-    #     grb.add(x)
+if __name__ == '__main__':
+    screenHigh = pygame.sprite.Group()
+    screenLow = pygame.sprite.Group()
