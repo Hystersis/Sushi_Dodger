@@ -31,7 +31,7 @@ class Initi:
         pygame.init()
         self.screen_width = 256
         self.gm = 'Active'
-        self.icon = pygame.image.load(os.path.join("Assets/","dodger_icon.png"))
+        self.icon = pygame.image.load(os.path.join("Assets","dodger_icon.png"))
         pygame.display.set_icon(self.icon)
         self.myappid = 'mycompany.myproduct.subproduct.version' # allows for taskbar icon to be changed
         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(self.myappid)
@@ -40,7 +40,7 @@ class Initi:
         self.score = 0
         # Level and dodger initilization
         self.lvel = self.Level(lvl)
-        self.ddger = Dodger(os.path.join("Assets/","dodger_1.png"))
+        self.ddger = Dodger(os.path.join("Assets","dodger_1.png"))
         self.ddger_group = pygame.sprite.Group()
         self.ddger_group.add(self.ddger)
         self.offset = repeat((0,0))
@@ -189,10 +189,10 @@ class Sushi(pygame.sprite.Sprite):
             print('Won',i.gm)
 
     def create_centre(self):
-        self.rt = pygame.image.load(os.path.join("Assets/",'sushi_template.png'))
+        self.rt = pygame.image.load(os.path.join("Assets",'sushi_template.png'))
         self.directory = 'sushi_center_'
         self.ran = random.randrange(2)
-        self.directory = os.path.join("Assets/",self.directory + str(self.ran) + '.png')
+        self.directory = os.path.join("Assets",self.directory + str(self.ran) + '.png')
         self.center = pygame.image.load(str(self.directory))
         self.image = self.rt.copy()
         self.image.blit(self.center, (0,0))
@@ -252,15 +252,15 @@ def main():
             print('Won')
             i = Initi(i.lvl + 1)
 
-        grph.data['score'] = i.num - len(i.sshi_group)
+        # grph.data['score'] = i.num - len(i.sshi_group)
 
         pygame.display.flip()
-        move_screen.blit(pygame.image.load(os.path.join("Assets/",'background_res2.png')),[0,0])
-        move_screen.blit(grph.screenLow(move_screen),[0,0])
+        move_screen.blit(pygame.image.load(os.path.join("Assets",'background_res2.png')),[0,0])
+        # move_screen.blit(grph.screenLow(move_screen),[0,0])
         i.sshi_group.draw(move_screen)
         i.ddger_group.draw(move_screen)
         i.ddger_group.update()
-        move_screen.blit(grph.screenHigh(move_screen,i.gm),[0,0])
+        # move_screen.blit(grph.screenHigh(move_screen,i.gm),[0,0])
         Initi.screen.blit(move_screen,next(i.offset))
         # screen.current_w, screen.screen_h = screen_shake(1), screen_shake(1)
 
@@ -281,7 +281,7 @@ def minmax(a,b,c):
     return (lambda x: sorted(x)[1])([a,b,c])
 
 def die_screen(dxy):
-    te = grph.text_eight({'surf':None,'text':'yes'})
+    # te = grph.text_eight({'surf':None,'text':'yes'})
     if pygame.key.get_pressed()[pygame.K_x]:
         #Change to incorporate the movement of the helment
         i = Initi(i.lvl)
