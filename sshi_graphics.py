@@ -118,11 +118,11 @@ def word_wrap(surf, text, font, colour=(255, 255, 255),xy=(0,0)):
         x += bounds.width + space.width
     return x, y
 
-def add(func,grp,**kwags):
-    z = func(kwags)
-    updateg.add(z)
-    
-    if not grp in globals():
-        global grp
-        grb = pygame.sprite.Group()
-        grb.add(x)
+# def add(func,grp,**kwags):
+#     z = func(kwags)
+#     updateg.add(z)
+#
+#     if not grp in globals():
+#         global grp
+#         grb = pygame.sprite.Group()
+#         grb.add(x)

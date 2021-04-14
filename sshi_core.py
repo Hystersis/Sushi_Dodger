@@ -9,9 +9,10 @@ import ctypes
 import math
 import sys, os
 from itertools import repeat
+import random
 
 # This importing the other modules into core
-import sshi_graphics as grph
+# import sshi_graphics as grph
 import sshi_msci as msci
 
 #                     ,,
@@ -196,7 +197,7 @@ def next_Lvl():
     global ddger, ddger_group, sshi_group
     sshi_group.clear()
     sshi_group = pygame.sprite.Group()
-    lvel.next_lev()
+    # lvel.next_lev()
     for sushi in range(lvel.get_num()):
         sshi = sushi((random.randrange(256),random.randrange(256)))
         sshi_group.add(sshi)
@@ -250,15 +251,15 @@ def main():
             print('Won')
             initi((lvel.lev + 1))
 
-        grph.data['score'] = lvel.get_num() - len(sshi_group)
+        # grph.data['score'] = lvel.get_num() - len(sshi_group)
 
         pygame.display.flip()
         move_screen.blit(pygame.image.load(os.path.join("Assets/",'background_res2.png')),[0,0])
-        move_screen.blit(grph.screenLow(move_screen),[0,0])
+        # move_screen.blit(grph.screenLow(move_screen),[0,0])
         sshi_group.draw(move_screen)
         ddger_group.draw(move_screen)
         ddger_group.update()
-        move_screen.blit(grph.screenHigh(move_screen,gm),[0,0])
+        # move_screen.blit(grph.screenHigh(move_screen,gm),[0,0])
         screen.blit(move_screen,next(offset))
         # screen.current_w, screen.screen_h = screen_shake(1), screen_shake(1)
 
@@ -293,7 +294,7 @@ def poscheck(proposed,noarea):
         return proposed
 
 def die_screen(dxy):
-    te = grph.text_eight({'surf':None,'text':'yes'})
+    # te = grph.text_eight({'surf':None,'text':'yes'})
     if pygame.key.get_pressed()[pygame.K_x]:
         #Change to incorporate the movement of the helment
         initi()
