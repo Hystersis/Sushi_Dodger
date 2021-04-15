@@ -8,12 +8,12 @@ import pygame
 import ctypes
 import math
 import os
-from itertools import repeat
+from itertools import repeat, cycle
 import random
 from operator import sub, add
 
 # This importing the other modules into core
-# import sshi_graphics as grph
+import sshi_graphics as grph
 import sshi_msci as msci
 
 
@@ -26,6 +26,14 @@ import sshi_msci as msci
 #   MM    MM    MM    MM   MM
 # .JMML..JMML  JMML..JMML. `Mbmo
 class Initi:
+    # This code has to be up here to be able to be used even when
+    # Initi is called again
+    icon = pygame.image.load(os.path.join("Assets", "dodger_icon.png"))
+    pygame.display.set_icon(icon)
+    myappid = 'mycompany.myproduct.subproduct.version'
+    # allows for taskbar icon to be changed
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    pygame.display.set_caption("Sushi Dodger")
     screen = pygame.display.set_mode((256, 256), flags=pygame.RESIZABLE
                                      | pygame.SCALED)
     # This allows the screen to be bigger that it was
@@ -34,14 +42,6 @@ class Initi:
         pygame.init()
         self.screen_width = 256
         self.gm = 'Active'
-        self.icon = pygame.image.load(os.path.join("Assets",
-                                                   "dodger_icon.png"))
-        pygame.display.set_icon(self.icon)
-        self.myappid = 'mycompany.myproduct.subproduct.version'
-        # allows for taskbar icon to be changed
-        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(
-                                                                self.myappid)
-        pygame.display.set_caption("Sushi Dodger")
         pygame.mouse.set_visible(False)  # So the cursor isn't shown
         self.score = 0
         # Level and dodger initilization
@@ -56,6 +56,7 @@ class Initi:
             self.sshi = Sushi(self.ddger)
             # Change [128,16] if starting pos of ddger is changed
             self.sshi_group.add(self.sshi)
+        clear()
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -240,10 +241,9 @@ class Sushi(pygame.sprite.Sprite):
 def main():
     clock = pygame.time.Clock()
     global i
-    print('I:', i)
+    track_previous_gm = 'Active'
     while True:
-        print(i.gm) if i.gm == 'Won' else None
-        move_screen = Initi.screen.copy()
+        move_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
         # print('Gamemode:\t',gm)
         pygame.time.delay(100)
         clock.tick(60)
@@ -262,12 +262,18 @@ def main():
             # print('Score:',score)
             i.sshi_group.update()
 
-        if i.gm == 'Died':
-            die_screen(i.ddger.where_am_i())
+        if i.gm == 'Died' and track_previous_gm != 'Died':
+            d = die_screen()
+        elif i.gm == 'Died':
+            d()
+        elif i.gm != 'Died' and track_previous_gm == 'Died':
+            pass
 
-        if i.gm == 'Won':
+        if i.gm == 'Won' and track_previous_gm != 'Won':
             print('Won')
             i = Initi(i.lvl + 1)
+        elif i.gm == 'Won':
+            pass  # Add code here later
 
         i.score = i.num - len(i.sshi_group)
 
@@ -279,9 +285,12 @@ def main():
         i.sshi_group.draw(move_screen)
         i.ddger_group.draw(move_screen)
         i.ddger_group.update()
+        move_screen.blit(GI.NGupdate('screenEffects', move_screen), [0, 0])
         move_screen.blit(GI.update('screenHigh'), [0, 0])
         move_screen.blit(GI.update('all'), [0, 0])
         Initi.screen.blit(move_screen, next(i.offset))
+        track_previous_gm = i.gm
+        clear()
 
 #                   ,,
 # `7MMM.     ,MMF'  db
@@ -294,7 +303,9 @@ def main():
 
 
 class GI(grph.add):
-    # Stands for Graphics Interface, inherits from a grph function
+    '''Stands for Graphics Interface, inherits from a grph function'''
+    GRvalues = []
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # This directally passes all variables to grph.add.__init__
@@ -302,9 +313,22 @@ class GI(grph.add):
     def kill(self):
         super().kill()
 
+    def nongroup(func, *args, **kwargs):
+        print('func:\t', func)
+        f = func(*args, **kwargs)
+        GI.GRvalues.append(f)
+
     @staticmethod
-    def update(flag):
+    def update(flag, screen=None):
         screen = grph.add.update(flag)
+        return screen
+
+    @staticmethod
+    def NGupdate(flag, screen, *args, **kwargs):
+        for v in GI.GRvalues:
+            print('v\t', v)
+            a = v(screen, *args, **kwargs)
+            screen.blit(a, [0, 0])
         return screen
 
 
@@ -314,13 +338,34 @@ def minmax(a, b, c):
     return (lambda x: sorted(x)[1])([a, b, c])
 
 
-def die_screen(dxy):
-    global i
-    GI('all', grph.Transition, "background_res2.png", i.score)
-    if pygame.key.get_pressed()[pygame.K_x]:
-        # Change to incorporate the movement of the helment
-        i = Initi(i.lvl)
+class die_screen():
+    def __init__(self):
+        global i
+        self.YPpos = [add(x, i.ddger.where_am_i()[1]) for x in [0, 1, 2, 3, 4,
+                                                                3, 2, 1]]
+        self.Ppos = cycle(zip(repeat(i.ddger.where_am_i()[0]),
+                              self.YPpos))
+        print('self.Ppos\t', self.Ppos, i.ddger.where_am_i())
+        # The expression above zips together the x coordinate of ddger
+        # This x coordinate is repeated, so it just keeps on
+        # yelling the same value,  while the Y pos is from the
+        # addition mapping above that takes in the y pos, and maps 0,1,2 ...
+        # To it.
+        # GI('all',)S
 
+    def __call__(self):
+        global i
+        GI('screenHigh', grph.Transition, "defeat_screen.png", i.score)
+        GI('all', grph.Prtcl, next(self.Ppos), "dodger_helment.png")
+        GI.nongroup(grph.Blur, 0.25)
+        if pygame.key.get_pressed()[pygame.K_x]:
+            # Change to incorporate the movement of the helment
+            i = Initi(i.lvl)
+
+
+# class win_screen():
+#     def __inti__(self):
+#
 
 def events():
     for event in pygame.event.get():
@@ -332,18 +377,31 @@ def events():
             print(event)
 
 
+def clear():
+    GI.GRvalues = []
+    for flag in grph.Flag.flags.values():
+        flag.empty()
+
 # https://stackoverflow.com/questions/23633339/pygame-shaking-window-when-loosing-lifes
 
 
 def shake():
-    equ = lambda t: round((math.e ** (-t // 5)) * math.cos(2*math.pi*t)*5,2)
-    sr = lambda: round(random.randrange(-1, 2, 2), 0)
     for _ in range(0, 2):
         for x in range(4, 1, -1):
             yield (equ(x)*sr(), equ(x)*sr())
     while True:
         yield (0, 0)
 
+
+def equ(x):
+    '''This function is a dampered osilation based off:
+    https://deutsch.physics.ucsc.edu/6A/book/harmonic/node18.html'''
+    return round((math.e ** (-x//5)) * math.cos(2*math.pi*x)*5, 2)
+
+
+def sr():
+    '''This randomly returns a positive or negative 1'''
+    return random.randrange(-1, 2, 2)
 #                               ,,
 # `7MM"""YMM                  `7MM
 #   MM    `7                    MM
@@ -357,5 +415,4 @@ def shake():
 if __name__ == '__main__':
     global i
     i = Initi()
-    print(i)
     main()
