@@ -3,6 +3,9 @@ import pygame
 import sshi_msci as msci
 import numpy as np
 import os
+from pygame.freetype import Font
+from itertools import repeat
+from PIL import Image, ImageFilter
 
 
 class Flag:
@@ -22,16 +25,12 @@ class Flag:
             return Flag.flags[flag]
 
 
-Flag.create('screenHigh')
-Flag.create('screenLow')
-Flag.create('all')
-
-
 class add:
     def __init__(self, flag, func, *args, **kwargs):
         self.flag = Flag.create(flag)
         self.f = func(*args, **kwargs)
         self.flag.add(self.f)
+        print(self.flag)
 
     def kill(self):
         self.f.kill()
@@ -49,8 +48,32 @@ class add:
         flag.clear()
 
 
+class Blur:
+    '''Allows for blurring of screen'''
+    def __init__(self, blur_amount):
+        super().__init__()
+        self.bAmt = blur_amount
+
+    def __call__(self, surface):
+        surf = pygame.image.tostring(surface, 'RGBA')
+        blurred = Image.frombytes('RGBA', surface.get_size(), surf).filter(ImageFilter.GaussianBlur(radius=3))
+        surf = pygame.image.fromstring(blurred.tobytes('raw', 'RGBA'), surface.get_size(), 'RGBA')
+        return surf
+
+
+class Prtcl(pygame.sprite.Sprite):
+    '''Classic Prtcl, just ment to display something on a certain layer'''
+    def __init__(self, pos, imge):
+        super().__init__()
+        print('pos\t', pos)
+        self.image = pygame.image.load(os.path.join("Assets", imge))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
+
+
 class MvPrtcl(pygame.sprite.Sprite):
     def __init__(self, strt, end, imge):
+        super().__init__()
         self.path = msci.pthfnd(np.zeros(256, 256), *strt, *end)
         self.image = pygame.image.load(os.path.join("Assets", imge))
         self.rect = self.image.get_rect()
@@ -63,11 +86,13 @@ class MvPrtcl(pygame.sprite.Sprite):
 
 class Background(pygame.sprite.Sprite):
     def __init__(self, bck_pth):
+        super().__init__()
         self.background = pygame.image.load(os.path.join("Assets", bck_pth))
 
 
 class FadeMove(pygame.sprite.Sprite):
     def __inti__(self, strt, end, imge):
+        super().__init__()
         self.image = pygame.image.load(os.path.join("Assets", imge))
         self.surface = pygame.Surface((self.image.get_width(),
                                       self.image.get_width()))
@@ -87,15 +112,20 @@ class FadeMove(pygame.sprite.Sprite):
 
 class Transition(pygame.sprite.Sprite):
     def __init__(self, imge, score, custom_txt='Score'):
+        super().__init__()
         self.image = pygame.image.load(os.path.join("Assets", imge))
         self.rect = self.image.get_rect()
-        self.text = custom_txt + score
-        word_wrap(self.image, self.text, pygame.freeetype.Font(
+        self.rect.topleft = (43, 0)
+        self.text = custom_txt + ' ' + str(score)
+        word_wrap(self.image, self.text, Font(
+                os.path.join("Assets/", '8-bit Arcade In.ttf'), 48),
+                colour=(200, 200, 201), xy=(128, 84))
+        word_wrap(self.image, self.text, Font(
                 os.path.join("Assets/", '8-bit Arcade Out.ttf'), 48),
-                colour=(200, 200, 201), xy=(84, 128))
-        word_wrap(self.image, self.text, pygame.freeetype.Font(
-                os.path.join("Assets/", '8-bit Arcade Out.ttf'), 48),
-                xy=(84, 128))
+                xy=(128, 84))
+
+    def __repr__(self):
+        return 'Transition Class'
 
 
 def word_wrap(surf, text, font, colour=(255, 255, 255), xy=(0, 0)):
@@ -119,5 +149,7 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=(0, 0)):
 
 
 if __name__ == '__main__':
-    screenHigh = pygame.sprite.Group()
-    screenLow = pygame.sprite.Group()
+    Flag.create('screenHigh')
+    Flag.create('screenLow')
+    Flag.create('screenEffects')
+    Flag.create('all')
