@@ -15,6 +15,7 @@ from operator import sub, add
 # This importing the other modules into core
 import sshi_graphics as grph
 import sshi_msci as msci
+import sshi_score as sce
 
 
 #                     ,,
@@ -57,6 +58,7 @@ class Initi:
             # Change [128,16] if starting pos of ddger is changed
             self.sshi_group.add(self.sshi)
         clear()
+        self.board = sce.scoreboard()
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -130,13 +132,7 @@ class Dodger(pygame.sprite.Sprite):
         self.rect.topleft = (int(self.pos[0]), int(self.pos[1]))
 
     def where_am_i(self, area=False):
-        if area:
-            return [list(self.rect.topleft), list(self.rect.bottomright)]
-        else:
-            poses = []
-            poses.append(round(self.pos[0]))
-            poses.append(round(self.pos[1]))
-            return poses
+        return [list(self.rect.topleft), list(self.rect.bottomright)]
 
     def killed(self):
         i.gm = 'Died'
@@ -165,7 +161,7 @@ class Sushi(pygame.sprite.Sprite):
         self.rect.topleft = self.poscheck(ddger)
 
     def update(self):
-        self.delta = list(map(sub, i.ddger.where_am_i(), self.rect.topleft))
+        self.delta = list(map(sub, i.ddger.pos, self.rect.topleft))
         # This maps each coordinate of ddger and sshi; ddger - shhi
         self.deltap = list(map(lambda z: z * random.uniform(0.8, 1.2) / abs(z)
                                if z != 0 else 0, self.delta))
@@ -341,11 +337,11 @@ def minmax(a, b, c):
 class die_screen():
     def __init__(self):
         global i
-        self.YPpos = [add(x, i.ddger.where_am_i()[1]) for x in [0, 1, 2, 3, 4,
+        self.YPpos = [add(x, i.ddger.pos[1]) for x in [0, 1, 2, 3, 4,
                                                                 3, 2, 1]]
-        self.Ppos = cycle(zip(repeat(i.ddger.where_am_i()[0]),
+        self.Ppos = cycle(zip(repeat(i.ddger.pos[0]),
                               self.YPpos))
-        print('self.Ppos\t', self.Ppos, i.ddger.where_am_i())
+        print('self.Ppos\t', self.Ppos, i.ddger.pos)
         # The expression above zips together the x coordinate of ddger
         # This x coordinate is repeated, so it just keeps on
         # yelling the same value,  while the Y pos is from the
@@ -355,8 +351,9 @@ class die_screen():
 
     def __call__(self):
         global i
-        GI('screenHigh', grph.Transition, "defeat_screen.png", i.score)
+        GI('screenHigh', grph.Transition, "defeat_screenV2.png", i.score)
         GI('all', grph.Prtcl, next(self.Ppos), "dodger_helment.png")
+        GI('all', grph.scoreboard, (8, 8), i)
         GI.nongroup(grph.Blur, 0.25)
         if pygame.key.get_pressed()[pygame.K_x]:
             # Change to incorporate the movement of the helment
@@ -412,7 +409,7 @@ def sr():
 # .JMMmmmmMMM .JMML  JMML.`Wbmd"MML.
 
 
-if __name__ == '__main__':
+def start():
     global i
     i = Initi()
     main()

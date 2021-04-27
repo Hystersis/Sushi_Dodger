@@ -6,6 +6,8 @@ import os
 from pygame.freetype import Font
 from itertools import repeat
 from PIL import Image, ImageFilter
+import random
+import sshi_score as sce
 
 
 class Flag:
@@ -48,6 +50,23 @@ class add:
         flag.clear()
 
 
+# class Leaf(pygame.sprite.Sprite):
+#     shapes = [[[1, 0],
+#                [1, 1]],
+#               [[1, 1],
+#                [1, 0]],
+#               [[1, 1],
+#                [0, 1]],
+#               [[0, 1],
+#                [1, 1]]]
+#
+#     def __init__(self, pos):
+#         self.pos = pos
+#         self.ranSH = random.randint(0, 5)
+#         for x in Leaf.shapes
+#     def
+
+
 class Blur:
     '''Allows for blurring of screen'''
     def __init__(self, blur_amount):
@@ -56,7 +75,7 @@ class Blur:
 
     def __call__(self, surface):
         surf = pygame.image.tostring(surface, 'RGBA')
-        blurred = Image.frombytes('RGBA', surface.get_size(), surf).filter(ImageFilter.GaussianBlur(radius=3))
+        blurred = Image.frombytes('RGBA', surface.get_size(), surf).filter(ImageFilter.GaussianBlur(radius=5))
         surf = pygame.image.fromstring(blurred.tobytes('raw', 'RGBA'), surface.get_size(), 'RGBA')
         return surf
 
@@ -115,14 +134,14 @@ class Transition(pygame.sprite.Sprite):
         super().__init__()
         self.image = pygame.image.load(os.path.join("Assets", imge))
         self.rect = self.image.get_rect()
-        self.rect.topleft = (43, 0)
+        self.rect.topleft = (14, 0)
         self.text = custom_txt + ' ' + str(score)
-        word_wrap(self.image, self.text, Font(
-                os.path.join("Assets/", '8-bit Arcade In.ttf'), 48),
-                colour=(200, 200, 201), xy=(128, 84))
-        word_wrap(self.image, self.text, Font(
-                os.path.join("Assets/", '8-bit Arcade Out.ttf'), 48),
-                xy=(128, 84))
+        # word_wrap(self.image, self.text, Font(
+        #         os.path.join("Assets/", '8-bit Arcade In.ttf'), 48),
+        #         colour=(200, 200, 201), xy=(128, 84))
+        # word_wrap(self.image, self.text, Font(
+        #         os.path.join("Assets/", '8-bit Arcade Out.ttf'), 48),
+        #         xy=(128, 84))
 
     def __repr__(self):
         return 'Transition Class'
@@ -146,6 +165,22 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=(0, 0)):
         font.render_to(surf, (x, y), None, colour)
         x += bounds.width + space.width
     return x, y
+
+
+class scoreboard(pygame.sprite.Sprite):
+    def __init__(self, pos, i):
+        super().__init__()
+        # self.image = pygame.image.load(os.path.join("Assets",
+        #                                             "scoreboard.png"))
+        self.image = pygame.Surface((256, 256), pygame.SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
+        for rank, ns in enumerate(i.board.get()):
+            self.text = f'{rank} {ns[0]} {ns[1]}'
+            print(self.text)
+            word_wrap(self.image, self.text, Font(
+                    os.path.join("Assets/", '8-bit Arcade In.ttf'), 48),
+                    xy=(50, 52 + (16 * rank)), colour=(0, 0, 0))
 
 
 if __name__ == '__main__':
