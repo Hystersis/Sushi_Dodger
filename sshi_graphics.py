@@ -151,6 +151,11 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=(0, 0)):
     font.origin = True
     words = text.split(' ')
     width, height = surf.get_size()
+    if xy == 'center':
+        rect_b = font.get_rect(text)
+        xy = [0, 0]
+        xy[0] = (width - rect_b.width) // 2
+        xy[1] = int((height + font.get_sized_height() - rect_b.height) / 2)
     line_spacing = font.get_sized_height() + 2
     x, y = 0 + xy[0], line_spacing - 14 + xy[1]
     space = font.get_rect(' ')
