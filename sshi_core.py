@@ -401,6 +401,7 @@ def sr():
 
 
 def start(screen=None):
+    print(f'\n{screen}\n')
     global i
     i = Initi(screen=screen)
     main()
