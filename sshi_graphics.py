@@ -21,7 +21,7 @@ class Flag:
     @classmethod
     def create(cls, flag):
         if flag not in Flag.flags:
-            f = cls.add(1, flag)
+            f = cls().add(flag)
             return f
         else:
             return Flag.flags[flag]
