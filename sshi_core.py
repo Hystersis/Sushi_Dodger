@@ -27,19 +27,11 @@ import sshi_score as sce
 #   MM    MM    MM    MM   MM
 # .JMML..JMML  JMML..JMML. `Mbmo
 class Initi:
-    # This code has to be up here to be able to be used even when
-    # Initi is called again
-    icon = pygame.image.load(os.path.join("Assets", "dodger_icon.png"))
-    pygame.display.set_icon(icon)
-    myappid = 'mycompany.myproduct.subproduct.version'
-    # allows for taskbar icon to be changed
-    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-    pygame.display.set_caption("Sushi Dodger")
-    screen = pygame.display.set_mode((256, 256), flags=pygame.RESIZABLE
-                                     | pygame.SCALED)
-    # This allows the screen to be bigger that it was
+    screen = None
 
-    def __init__(self, lvl=1):
+    def __init__(self, lvl=1, screen=None):
+        print(screen)
+        if screen != None: Initi.screen = screen
         pygame.init()
         self.screen_width = 256
         self.gm = 'Active'
@@ -241,8 +233,7 @@ def main():
     while True:
         move_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
         # print('Gamemode:\t',gm)
-        pygame.time.delay(100)
-        clock.tick(60)
+        clock.tick(10)
         act = pygame.key.get_focused()
         if act and i.gm == 'Paused':
             i.gm = 'Active'
@@ -409,7 +400,7 @@ def sr():
 # .JMMmmmmMMM .JMML  JMML.`Wbmd"MML.
 
 
-def start():
+def start(screen=None):
     global i
-    i = Initi()
+    i = Initi(screen=screen)
     main()
