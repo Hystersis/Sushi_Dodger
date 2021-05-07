@@ -16,6 +16,7 @@ from operator import sub, add
 import sshi_graphics as grph
 import sshi_msci as msci
 import sshi_score as sce
+import time
 
 
 #                     ,,

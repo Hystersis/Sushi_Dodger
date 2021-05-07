@@ -38,30 +38,41 @@ class M_credits(M_page):
     def __init__(self):
         global m
         m(M_credits)
-        self.b1 = Button((0, 0), (256, 24), (0, 0, 0), '(c) Marcus Wishart', test, True)
-        self.b2 = Button((0, 24), (256, 24), (0, 0, 0), 'b', test, True)
-        self.b3 = Button((0, 48), (256, 24), (0, 0, 0), 'c', test, True)
+        self.b = []
+        self.b.append(Button((0, 0), (256, 24), (0, 0, 0), '(c) Marcus Wishart', test, True))
+        self.b.append(Button((0, 24), (256, 24), (0, 0, 0), 'Original idea', test, True))
+        self.b.append(Button((0, 48), (256, 24), (0, 0, 0), 'Original design in Lua', test, True))
+        self.b.append(Button((0, 72), (256, 24), (0, 0, 0), '=' * 15, test, True))
+        self.b.append(Button((0, 96), (256, 24), (0, 0, 0), 'Fonts from:', test, True))
+        self.b.append(Button((0, 120), (256, 24), (0, 0, 0), '8-bit Arcade In &', test, True))
+        self.b.append(Button((0, 144), (256, 24), (0, 0, 0), '8-bit Arcade Out', test, True))
+        self.b.append(Button((0, 168), (256, 24), (0, 0, 0), 'From Damien Gosset', test, True))
+        self.b.append(Button((0, 192), (256, 24), (0, 0, 0), '+' * 15, test, True))
+        self.b.append(Button((0, 216), (256, 24), (0, 0, 0), 'Manaspace', test, True))
+        self.b.append(Button((0, 240), (256, 24), (0, 0, 0), 'From codeman38', test, True))
+
         self.group = pygame.sprite.Group()
-        self.group.add(self.b1), self.group.add(self.b2)
-        self.group.add(self.b3)
+        for x in self.b:
+            self.group.add(x)
         self.scroll = 0
 
     def update(self, *args, **kwargs):
         self.group.update(*args, **kwargs)
         for event in pygame.event.get():
             if event.type == pygame.MOUSEWHEEL:
-                self.scroll = core.minmax(0, self.scroll - event.__dict__['y'] * 10, 1024)
-                print('changed')
+                self.scroll = core.minmax(0, self.scroll + event.__dict__['y'] * 10, 5)
+                print('changed', self.scroll)
             if event.type == pygame.QUIT:
                 pygame.quit()
                 exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                m(M_main)
 
     def draw(self):
         s_screen = pygame.Surface((256, 1024), pygame.SRCALPHA)
         t_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
-        print(self.scroll)
         self.group.draw(s_screen)
-        t_screen.blit(s_screen, (0, 0 + self.scroll))
+        t_screen.blit(s_screen, (0, 0 - self.scroll))
         return t_screen
 
 
@@ -94,7 +105,7 @@ class Button(pygame.sprite.Sprite):
             grph.word_wrap(self.image, self.txt, pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade In.ttf'), 16), (255, 255, 255), 'center')
         else:
             self.image.fill(self.colour)
-            grph.word_wrap(self.image, self.txt, pygame.freetype.SysFont('comic sans', 14), (255, 255, 255), 'center')
+            grph.word_wrap(self.image, self.txt, pygame.freetype.Font(os.path.join("Assets/", 'manaspace.regular.ttf'), 12), (255, 255, 255), 'center')
 
 
 def make_screen():
