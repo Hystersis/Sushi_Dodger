@@ -5,7 +5,6 @@
 # All these modules
 import pygame
 # from pygame.freetype import * # Errors led to this line, having to be here
-import ctypes
 import math
 import os
 from itertools import repeat, cycle
@@ -16,7 +15,7 @@ from operator import sub, add
 import sshi_graphics as grph
 import sshi_msci as msci
 import sshi_score as sce
-import time
+import itertools
 
 
 #                     ,,
@@ -31,7 +30,6 @@ class Initi:
     screen = None
 
     def __init__(self, lvl=1, screen=None):
-        print(screen)
         if screen != None: Initi.screen = screen
         pygame.init()
         self.screen_width = 256
@@ -266,16 +264,15 @@ def main():
         i.score = i.num - len(i.sshi_group)
 
         pygame.display.flip()
-        move_screen.blit(pygame.image.load(os.path.join("Assets"
-                                                        , 'background_res2.png'))
-                         , [0, 0])
-        move_screen.blit(GI.update('screenLow'), [0, 0])
+        move_screen.fill((0, 0, 0))
+        GI('screenLow', grph.Background, 'background_res2.png')
+        move_screen.blit(GI.draw('screenLow'), [0, 0])
         i.sshi_group.draw(move_screen)
         i.ddger_group.draw(move_screen)
         i.ddger_group.update()
         move_screen.blit(GI.NGupdate('screenEffects', move_screen), [0, 0])
-        move_screen.blit(GI.update('screenHigh'), [0, 0])
-        move_screen.blit(GI.update('all'), [0, 0])
+        move_screen.blit(GI.draw('screenHigh'), [0, 0])
+        move_screen.blit(GI.draw('all'), [0, 0])
         Initi.screen.blit(move_screen, next(i.offset))
         track_previous_gm = i.gm
         clear()
@@ -302,19 +299,17 @@ class GI(grph.add):
         super().kill()
 
     def nongroup(func, *args, **kwargs):
-        print('func:\t', func)
         f = func(*args, **kwargs)
         GI.GRvalues.append(f)
 
     @staticmethod
-    def update(flag, screen=None):
+    def draw(flag, screen=None):
         screen = grph.add.update(flag)
         return screen
 
     @staticmethod
     def NGupdate(flag, screen, *args, **kwargs):
         for v in GI.GRvalues:
-            print('v\t', v)
             a = v(screen, *args, **kwargs)
             screen.blit(a, [0, 0])
         return screen
@@ -333,7 +328,8 @@ class die_screen():
                                                                 3, 2, 1]]
         self.Ppos = cycle(zip(repeat(i.ddger.pos[0]),
                               self.YPpos))
-        print('self.Ppos\t', self.Ppos, i.ddger.pos)
+        self.GrLength = Lgenerator(64)
+        self.GrTransparency = Tgenerator(64)
         # The expression above zips together the x coordinate of ddger
         # This x coordinate is repeated, so it just keeps on
         # yelling the same value,  while the Y pos is from the
@@ -346,6 +342,12 @@ class die_screen():
         GI('screenHigh', grph.Transition, "defeat_screenV2.png", i.score)
         GI('all', grph.Prtcl, next(self.Ppos), "dodger_helment.png")
         GI('all', grph.scoreboard, (8, 8), i)
+        T = next(self.GrTransparency)
+        L = next(self.GrLength)
+        if L == None:
+            self.GrLength = Lgenerator(64)
+            self.GrTransparency = Tgenerator(64)
+        GI('screenHigh', grph.ripple, L, T)
         GI.nongroup(grph.Blur, 0.25)
         if pygame.key.get_pressed()[pygame.K_x]:
             # Change to incorporate the movement of the helment
@@ -391,6 +393,22 @@ def equ(x):
 def sr():
     '''This randomly returns a positive or negative 1'''
     return random.randrange(-1, 2, 2)
+
+
+def Lgenerator(length):
+    for i in range(length):
+        yield (128 // length) * i
+    while True:
+        return None
+
+
+def Tgenerator(length):
+    for i in range(length):
+        yield (255 // length) * (length - i)
+    while True:
+        return None
+
+
 #                               ,,
 # `7MM"""YMM                  `7MM
 #   MM    `7                    MM
@@ -402,7 +420,15 @@ def sr():
 
 
 def start(screen=None):
-    print(f'\n{screen}\n')
     global i
     i = Initi(screen=screen)
     main()
+
+
+if __name__ == '__main__':
+    icon = pygame.image.load(os.path.join("Assets", "dodger_icon.png"))
+    pygame.display.set_icon(icon)
+    pygame.display.set_caption("Sushi Dodger")
+    screen = pygame.display.set_mode((256, 256), flags=pygame.RESIZABLE
+                                     | pygame.SCALED)
+    start(screen)

@@ -32,7 +32,6 @@ class add:
         self.flag = Flag.create(flag)
         self.f = func(*args, **kwargs)
         self.flag.add(self.f)
-        print(self.flag)
 
     def kill(self):
         self.f.kill()
@@ -84,7 +83,6 @@ class Prtcl(pygame.sprite.Sprite):
     '''Classic Prtcl, just ment to display something on a certain layer'''
     def __init__(self, pos, imge):
         super().__init__()
-        print('pos\t', pos)
         self.image = pygame.image.load(os.path.join("Assets", imge))
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
@@ -106,7 +104,9 @@ class MvPrtcl(pygame.sprite.Sprite):
 class Background(pygame.sprite.Sprite):
     def __init__(self, bck_pth):
         super().__init__()
-        self.background = pygame.image.load(os.path.join("Assets", bck_pth))
+        self.image = pygame.image.load(os.path.join("Assets", bck_pth))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (0, 0)
 
 
 class FadeMove(pygame.sprite.Sprite):
@@ -182,10 +182,18 @@ class scoreboard(pygame.sprite.Sprite):
         self.rect.topleft = pos
         for rank, ns in enumerate(i.board.get()):
             self.text = f'{rank} {ns[0]} {ns[1]}'
-            print(self.text)
             word_wrap(self.image, self.text, Font(
                     os.path.join("Assets/", '8-bit Arcade In.ttf'), 48),
                     xy=(50, 52 + (16 * rank)), colour=(0, 0, 0))
+
+
+class ripple(pygame.sprite.Sprite):
+    def __init__(self, Glength, Gtransparency):
+        super().__init__()
+        self.image = pygame.Surface((256, 256), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (77, 101, 180, Gtransparency), (128, 128), Glength, width=2)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (0, 0)
 
 
 if __name__ == '__main__':
