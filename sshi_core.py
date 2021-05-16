@@ -16,6 +16,7 @@ import sshi_graphics as grph
 import sshi_msci as msci
 import sshi_score as sce
 import itertools
+from enum import IntEnum
 
 
 #                     ,,
@@ -39,8 +40,6 @@ class Initi:
         # Level and dodger initilization
         self.lvel = self.Level(lvl)
         self.ddger = Dodger(os.path.join("Assets", "dodger_1.png"))
-        self.ddger_group = pygame.sprite.Group()
-        self.ddger_group.add(self.ddger)
         self.offset = repeat((0, 0))
         # sushi setup code
         self.sshi_group = pygame.sprite.Group()
@@ -48,8 +47,20 @@ class Initi:
             self.sshi = Sushi(self.ddger)
             # Change [128,16] if starting pos of ddger is changed
             self.sshi_group.add(self.sshi)
-        clear()
+        self.layers = pygame.sprite.LayeredUpdates()
+        for num_of_layer in range(6):
+            '''Background = 0
+            screenLow = 1
+            sprites = 2
+            screenEffects = 3
+            screenHigh = 4
+            all = 5'''
+            self.layers.add(Placeholder(), layer=num_of_layer)
+        print(self.layers.layers())
         self.board = sce.scoreboard()
+        self.layers.add(self.ddger, self.sshi_group, layer=2)
+        self.background = Background('background_res2.png')
+        self.layers.add(self.background, layer=0)
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -64,9 +75,21 @@ class Initi:
         return 'Initialization object'
 
 
+class Placeholder(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((256, 256), pygame.SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (0, 0)
 
 
-
+class LayerN(IntEnum):
+    background = 0
+    screenLow = 1
+    sprites = 2
+    screenEffects = 3
+    screenHigh = 4
+    all = 5
 
 
 #                               ,,
@@ -253,7 +276,7 @@ def main():
         elif i.gm == 'Died':
             d()
         elif i.gm != 'Died' and track_previous_gm == 'Died':
-            pass
+            d.kill()
 
         if i.gm == 'Won' and track_previous_gm != 'Won':
             print('Won')
@@ -264,18 +287,20 @@ def main():
         i.score = i.num - len(i.sshi_group)
 
         pygame.display.flip()
-        move_screen.fill((0, 0, 0))
-        GI('screenLow', grph.Background, 'background_res2.png')
-        move_screen.blit(GI.draw('screenLow'), [0, 0])
-        i.sshi_group.draw(move_screen)
-        i.ddger_group.draw(move_screen)
-        i.ddger_group.update()
-        move_screen.blit(GI.NGupdate('screenEffects', move_screen), [0, 0])
-        move_screen.blit(GI.draw('screenHigh'), [0, 0])
-        move_screen.blit(GI.draw('all'), [0, 0])
+        move_screen.fill((0, 0, 0)), Initi.screen.fill((0, 0, 0))
+        i.background.draw(Initi.screen)
+        i.layers.draw(move_screen)
+        i.ddger.update()
+        # GI('screenLow', grph.Background, 'background_res2.png')
+        # move_screen.blit(GI.draw('screenLow'), [0, 0])
+        # i.sshi_group.draw(move_screen)
+        # i.ddger_group.draw(move_screen)
+        # i.ddger_group.update()
+        # move_screen.blit(GI.NGupdate('screenEffects', move_screen), [0, 0])
+        # move_screen.blit(GI.draw('screenHigh'), [0, 0])
+        # move_screen.blit(GI.draw('all'), [0, 0])
         Initi.screen.blit(move_screen, next(i.offset))
         track_previous_gm = i.gm
-        clear()
 
 #                   ,,
 # `7MMM.     ,MMF'  db
@@ -287,32 +312,32 @@ def main():
 # .JML. `'  .JMML..JMML.M9mmmP'  YMbmd'
 
 
-class GI(grph.add):
-    '''Stands for Graphics Interface, inherits from a grph function'''
-    GRvalues = []
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # This directally passes all variables to grph.add.__init__
-
-    def kill(self):
-        super().kill()
-
-    def nongroup(func, *args, **kwargs):
-        f = func(*args, **kwargs)
-        GI.GRvalues.append(f)
-
-    @staticmethod
-    def draw(flag, screen=None):
-        screen = grph.add.update(flag)
-        return screen
-
-    @staticmethod
-    def NGupdate(flag, screen, *args, **kwargs):
-        for v in GI.GRvalues:
-            a = v(screen, *args, **kwargs)
-            screen.blit(a, [0, 0])
-        return screen
+# class GI(grph.add):
+#     '''Stands for Graphics Interface, inherits from a grph function'''
+#     GRvalues = []
+#
+#     def __init__(self, *args, **kwargs):
+#         super().__init__(*args, **kwargs)
+#         # This directally passes all variables to grph.add.__init__
+#
+#     def kill(self):
+#         super().kill()
+#
+#     def nongroup(func, *args, **kwargs):
+#         f = func(*args, **kwargs)
+#         GI.GRvalues.append(f)
+#
+#     @staticmethod
+#     def draw(flag, screen=None):
+#         screen = grph.add.update(flag)
+#         return screen
+#
+#     @staticmethod
+#     def NGupdate(flag, screen, *args, **kwargs):
+#         for v in GI.GRvalues:
+#             a = v(screen, *args, **kwargs)
+#             screen.blit(a, [0, 0])
+#         return screen
 
 
 def minmax(a, b, c):
@@ -335,23 +360,44 @@ class die_screen():
         # yelling the same value,  while the Y pos is from the
         # addition mapping above that takes in the y pos, and maps 0,1,2 ...
         # To it.
-        # GI('all',)S
+        self.group = pygame.sprite.Group()
+        i.layers.remove(i.background)
+        i.background = Background("defeat_screenV2.png")
+        i.layers.add(i.background, layer=0)
 
     def __call__(self):
         global i
-        GI('screenHigh', grph.Transition, "defeat_screenV2.png", i.score)
-        GI('all', grph.Prtcl, next(self.Ppos), "dodger_helment.png")
-        GI('all', grph.scoreboard, (8, 8), i)
-        T = next(self.GrTransparency)
-        L = next(self.GrLength)
-        if L == None:
-            self.GrLength = Lgenerator(64)
-            self.GrTransparency = Tgenerator(64)
-        GI('screenHigh', grph.ripple, L, T)
-        GI.nongroup(grph.Blur, 0.25)
+        # GI('screenHigh', grph.Transition, "defeat_screenV2.png", i.score)
+        # GI('all', grph.Prtcl, next(self.Ppos), "dodger_helment.png")
+        # # GI('all', grph.scoreboard, (8, 8), i)
+        # T = next(self.GrTransparency)
+        # L = next(self.GrLength)
+        # if L == 'x':
+        #     self.GrLength = Lgenerator(64)
+        #     self.GrTransparency = Tgenerator(64)
+        #     T = next(self.GrTransparency)
+        #     L = next(self.GrLength)
+        # GI('screenHigh', grph.ripple, L, T)
+        # GI.nongroup(grph.Blur, 0.25)
         if pygame.key.get_pressed()[pygame.K_x]:
             # Change to incorporate the movement of the helment
             i = Initi(i.lvl)
+
+    def kill(self):
+        for sprite in self.group:
+            sprite.kill()
+
+
+class Background(pygame.sprite.Sprite):
+    def __init__(self, imge):
+        super().__init__()
+        self.image = pygame.image.load(os.path.join('Assets', imge))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (0, 0)
+    
+    def draw(self, surface):
+       surface.blit(self.image, (0, 0))
+
 
 
 # class win_screen():
@@ -363,15 +409,10 @@ def events():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-        if pygame.key.get_pressed()[pygame.K_F11]:
+        if event.type == pygame.K_F11:
             pygame.display.toggle_fullscreen()
             print(event)
 
-
-def clear():
-    GI.GRvalues = []
-    for flag in grph.Flag.flags.values():
-        flag.empty()
 
 # https://stackoverflow.com/questions/23633339/pygame-shaking-window-when-loosing-lifes
 
@@ -399,14 +440,14 @@ def Lgenerator(length):
     for i in range(length):
         yield (128 // length) * i
     while True:
-        return None
+        yield 'x'
 
 
 def Tgenerator(length):
     for i in range(length):
         yield (255 // length) * (length - i)
     while True:
-        return None
+        yield 'x'
 
 
 #                               ,,
