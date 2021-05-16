@@ -8,45 +8,27 @@ from itertools import repeat
 from PIL import Image, ImageFilter
 import random
 import sshi_score as sce
+from abc import ABC
 
 
-class Flag:
-    flags = {}
+class G(ABC):
+    def __init__(self):
+        pass
 
-    def add(self, flagN):
-        flag = pygame.sprite.Group()
-        Flag.flags[flagN] = flag
-        return flag
+    def update(self):
+        pass
+#
+# class Flag:
+#     def __init__(self, flag_name):
+#         self.flag = pygame.sprite.Group()
+#
+#     def add(self, to_add):
+#         self.flag.add(to_add)
+#
+#     def remove(self, to_remove):
+#         self.flag.remove(to_remove)
 
-    @classmethod
-    def create(cls, flag):
-        if flag not in Flag.flags:
-            f = cls().add(flag)
-            return f
-        else:
-            return Flag.flags[flag]
 
-
-class add:
-    def __init__(self, flag, func, *args, **kwargs):
-        self.flag = Flag.create(flag)
-        self.f = func(*args, **kwargs)
-        self.flag.add(self.f)
-
-    def kill(self):
-        self.f.kill()
-
-    @staticmethod
-    def update(flagN):
-        screen = pygame.Surface((256, 256), pygame.SRCALPHA)
-        flag = Flag.create(flagN)
-        flag.draw(screen)
-        return screen
-
-    @staticmethod
-    def clear(flag):
-        flag = flag.create(flag)
-        flag.clear()
 
 
 # class Leaf(pygame.sprite.Sprite):
@@ -79,7 +61,7 @@ class Blur:
         return surf
 
 
-class Prtcl(pygame.sprite.Sprite):
+class Prtcl(pygame.sprite.Sprite, G):
     '''Classic Prtcl, just ment to display something on a certain layer'''
     def __init__(self, pos, imge):
         super().__init__()
@@ -88,7 +70,7 @@ class Prtcl(pygame.sprite.Sprite):
         self.rect.topleft = pos
 
 
-class MvPrtcl(pygame.sprite.Sprite):
+class MvPrtcl(pygame.sprite.Sprite, G):
     def __init__(self, strt, end, imge):
         super().__init__()
         self.path = msci.pthfnd(np.zeros(256, 256), *strt, *end)
@@ -101,7 +83,7 @@ class MvPrtcl(pygame.sprite.Sprite):
             self.rect.topleft = self.path.pop(0)
 
 
-class Background(pygame.sprite.Sprite):
+class Background(pygame.sprite.Sprite, G):
     def __init__(self, bck_pth):
         super().__init__()
         self.image = pygame.image.load(os.path.join("Assets", bck_pth))
@@ -109,7 +91,7 @@ class Background(pygame.sprite.Sprite):
         self.rect.topleft = (0, 0)
 
 
-class FadeMove(pygame.sprite.Sprite):
+class FadeMove(pygame.sprite.Sprite, G):
     def __inti__(self, strt, end, imge):
         super().__init__()
         self.image = pygame.image.load(os.path.join("Assets", imge))
@@ -129,10 +111,9 @@ class FadeMove(pygame.sprite.Sprite):
             self.surface.set_alpha(next(self.fade))
 
 
-class Transition(pygame.sprite.Sprite):
-    def __init__(self, imge, score, custom_txt='Score'):
+class Transition(pygame.sprite.Sprite, G):
+    def __init__(self, score, custom_txt='Score'):
         super().__init__()
-        self.image = pygame.image.load(os.path.join("Assets", imge))
         self.rect = self.image.get_rect()
         self.rect.topleft = (14, 0)
         self.text = custom_txt + ' ' + str(score)
@@ -172,7 +153,7 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=(0, 0)):
     return x, y
 
 
-class scoreboard(pygame.sprite.Sprite):
+class scoreboard(pygame.sprite.Sprite, G):
     def __init__(self, pos, i):
         super().__init__()
         # self.image = pygame.image.load(os.path.join("Assets",
@@ -187,7 +168,7 @@ class scoreboard(pygame.sprite.Sprite):
                     xy=(50, 52 + (16 * rank)), colour=(0, 0, 0))
 
 
-class ripple(pygame.sprite.Sprite):
+class ripple(pygame.sprite.Sprite, G):
     def __init__(self, Glength, Gtransparency):
         super().__init__()
         self.image = pygame.Surface((256, 256), pygame.SRCALPHA)
