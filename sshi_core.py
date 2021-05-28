@@ -7,7 +7,7 @@ import pygame
 # from pygame.freetype import * # Errors led to this line, having to be here
 import math
 import os
-from itertools import repeat, cycle
+from itertools import repeat, cycle, count
 import random
 from operator import sub, add
 
@@ -15,7 +15,7 @@ from operator import sub, add
 import sshi_graphics as grph
 import sshi_msci as msci
 import sshi_score as sce
-import itertools
+import time
 from enum import IntEnum
 
 
@@ -56,11 +56,11 @@ class Initi:
             screenHigh = 4
             all = 5'''
             self.layers.add(Placeholder(), layer=num_of_layer)
-        print(self.layers.layers())
         self.board = sce.scoreboard()
         self.layers.add(self.ddger, self.sshi_group, layer=2)
         self.background = Background('background_res2.png')
         self.layers.add(self.background, layer=0)
+        self.d_move_value = 1.6
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -81,15 +81,6 @@ class Placeholder(pygame.sprite.Sprite):
         self.image = pygame.Surface((256, 256), pygame.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.topleft = (0, 0)
-
-
-class LayerN(IntEnum):
-    background = 0
-    screenLow = 1
-    sprites = 2
-    screenEffects = 3
-    screenHigh = 4
-    all = 5
 
 
 #                               ,,
@@ -119,19 +110,20 @@ class Dodger(pygame.sprite.Sprite):
         self.dirncy = 0
 
     def update(self):
+        global i
         keys = pygame.key.get_pressed()
         for key in keys:
             if keys[pygame.K_LEFT]:
-                self.dirnx = -1.5
+                self.dirnx = -(i.d_move_value)
             elif keys[pygame.K_RIGHT]:
-                self.dirnx = 1.5
+                self.dirnx = i.d_move_value
             else:
                 self.dirnx = 0
 
             if keys[pygame.K_UP]:
-                self.dirny = -1.5
+                self.dirny = -(i.d_move_value)
             elif keys[pygame.K_DOWN]:
-                self.dirny = 1.5
+                self.dirny = i.d_move_value
             else:
                 self.dirny = 0
 
@@ -312,34 +304,6 @@ def main():
 # .JML. `'  .JMML..JMML.M9mmmP'  YMbmd'
 
 
-# class GI(grph.add):
-#     '''Stands for Graphics Interface, inherits from a grph function'''
-#     GRvalues = []
-#
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         # This directally passes all variables to grph.add.__init__
-#
-#     def kill(self):
-#         super().kill()
-#
-#     def nongroup(func, *args, **kwargs):
-#         f = func(*args, **kwargs)
-#         GI.GRvalues.append(f)
-#
-#     @staticmethod
-#     def draw(flag, screen=None):
-#         screen = grph.add.update(flag)
-#         return screen
-#
-#     @staticmethod
-#     def NGupdate(flag, screen, *args, **kwargs):
-#         for v in GI.GRvalues:
-#             a = v(screen, *args, **kwargs)
-#             screen.blit(a, [0, 0])
-#         return screen
-
-
 def minmax(a, b, c):
     '''This function returns the middle variable between the min variable
     and the max variable.'''
@@ -353,35 +317,36 @@ class die_screen():
                                                                 3, 2, 1]]
         self.Ppos = cycle(zip(repeat(i.ddger.pos[0]),
                               self.YPpos))
-        self.GrLength = Lgenerator(64)
-        self.GrTransparency = Tgenerator(64)
         # The expression above zips together the x coordinate of ddger
         # This x coordinate is repeated, so it just keeps on
         # yelling the same value,  while the Y pos is from the
         # addition mapping above that takes in the y pos, and maps 0,1,2 ...
         # To it.
         self.group = pygame.sprite.Group()
-        i.layers.remove(i.background)
-        i.background = Background("defeat_screenV2.png")
-        i.layers.add(i.background, layer=0)
+        Background.change_i('defeat_screenV2.png')
+        self.ripple = grph.ripple()
+        self.group.add(self.ripple)
+        i.layers.add(self.ripple, layer=1)
+        self.time = time.time()
+        i.layers.remove_sprites_of_layer(2)
+        print(i.sshi_group)
+        self.fade = count(0, 5)
+        self.menu_screen = Background('defeat_screenV3.png')
+        self.menu_screen.set_alpha(0)
+        i.layers.add(self.menu_screen, layer=2)
 
     def __call__(self):
         global i
-        # GI('screenHigh', grph.Transition, "defeat_screenV2.png", i.score)
-        # GI('all', grph.Prtcl, next(self.Ppos), "dodger_helment.png")
-        # # GI('all', grph.scoreboard, (8, 8), i)
-        # T = next(self.GrTransparency)
-        # L = next(self.GrLength)
-        # if L == 'x':
-        #     self.GrLength = Lgenerator(64)
-        #     self.GrTransparency = Tgenerator(64)
-        #     T = next(self.GrTransparency)
-        #     L = next(self.GrLength)
-        # GI('screenHigh', grph.ripple, L, T)
-        # GI.nongroup(grph.Blur, 0.25)
+        if round(time.time() - self.time) >= 3:
+            self.temp_menu_screen = pygame.image.load(os.path.join("Assets/", 'defeat_screenV3.png'))
+            new_xy = grph.word_wrap(self.temp_menu_screen, str(i.score), pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade In.ttf'), 96), xy=['center', 128], colour=(46, 34, 47))
+            grph.word_wrap(self.temp_menu_screen, str(i.score), pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade Out.ttf'), 96), xy=new_xy, colour=(255, 130, 77))
+            self.menu_screen.change_i(self.temp_menu_screen, max(next(self.fade), 255))
+        self.ripple.update()
         if pygame.key.get_pressed()[pygame.K_x]:
             # Change to incorporate the movement of the helment
             i = Initi(i.lvl)
+            self.kill()
 
     def kill(self):
         for sprite in self.group:
@@ -389,15 +354,31 @@ class die_screen():
 
 
 class Background(pygame.sprite.Sprite):
-    def __init__(self, imge):
+    def __init__(self, image, alpha=255):
         super().__init__()
-        self.image = pygame.image.load(os.path.join('Assets', imge))
+        if type(image) is str:
+            self.image = pygame.image.load(os.path.join('Assets', image))
+
+        else:
+            self.image = image
         self.rect = self.image.get_rect()
         self.rect.topleft = (0, 0)
-    
-    def draw(self, surface):
+
+    def draw(self, surface, alpha=255):
        surface.blit(self.image, (0, 0))
 
+    def blit(self, surface):
+        self.image.blit(surface, (0, 0))
+
+    def set_alpha(self, alpha):
+        self.image.set_alpha(alpha)
+        print(alpha)
+    
+    @classmethod
+    def change_i(cls, image, l=0, a=255):
+        i.layers.remove(i.background)
+        i.background = cls(image, a)
+        i.layers.add(i.background, layer=l)
 
 
 # class win_screen():
@@ -409,7 +390,7 @@ def events():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
-        if event.type == pygame.K_F11:
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
             pygame.display.toggle_fullscreen()
             print(event)
 
@@ -435,19 +416,6 @@ def sr():
     '''This randomly returns a positive or negative 1'''
     return random.randrange(-1, 2, 2)
 
-
-def Lgenerator(length):
-    for i in range(length):
-        yield (128 // length) * i
-    while True:
-        yield 'x'
-
-
-def Tgenerator(length):
-    for i in range(length):
-        yield (255 // length) * (length - i)
-    while True:
-        yield 'x'
 
 
 #                               ,,

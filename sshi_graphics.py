@@ -4,48 +4,18 @@ import sshi_msci as msci
 import numpy as np
 import os
 from pygame.freetype import Font
-from itertools import repeat
 from PIL import Image, ImageFilter
-import random
-import sshi_score as sce
-from abc import ABC
+from abc import ABC, abstractmethod
 
 
 class G(ABC):
+    @abstractmethod
     def __init__(self):
         pass
 
+    @abstractmethod
     def update(self):
         pass
-#
-# class Flag:
-#     def __init__(self, flag_name):
-#         self.flag = pygame.sprite.Group()
-#
-#     def add(self, to_add):
-#         self.flag.add(to_add)
-#
-#     def remove(self, to_remove):
-#         self.flag.remove(to_remove)
-
-
-
-
-# class Leaf(pygame.sprite.Sprite):
-#     shapes = [[[1, 0],
-#                [1, 1]],
-#               [[1, 1],
-#                [1, 0]],
-#               [[1, 1],
-#                [0, 1]],
-#               [[0, 1],
-#                [1, 1]]]
-#
-#     def __init__(self, pos):
-#         self.pos = pos
-#         self.ranSH = random.randint(0, 5)
-#         for x in Leaf.shapes
-#     def
 
 
 class Blur:
@@ -128,15 +98,43 @@ class Transition(pygame.sprite.Sprite, G):
         return 'Transition Class'
 
 
-def word_wrap(surf, text, font, colour=(255, 255, 255), xy=(0, 0)):
+def word_wrap(surf, text, font, colour=(255, 255, 255), xy=[0, 0]):
     font.origin = True
     words = text.split(' ')
     width, height = surf.get_size()
-    if xy == 'center':
-        rect_b = font.get_rect(text)
+    txt_bounds = font.get_rect(text)
+    if xy[0] == 'center':
+        xy[0] = 0
+        xy[0] = width // 2 - txt_bounds.width // 2 
+    elif xy[1] == 'center':
+        xy[1] = 0
+        xy[1] = height // 2 - txt_bounds.height // 2 
+        print(height, txt_bounds.height, height // 2 - txt_bounds.height // 2) 
+    elif xy == 'center':
         xy = [0, 0]
-        xy[0] = (width - rect_b.width) // 2
-        xy[1] = int((height + font.get_sized_height() - rect_b.height) / 2)
+        xy[0] = width // 2 - txt_bounds.width // 2
+        xy[1] = height // 2 - txt_bounds.height // 2
+        print(height, txt_bounds.height, height // 2 - txt_bounds.height // 2) 
+    # match xy:
+    #         case [x,y]:
+    #             return [x, y]
+            
+    #         case ['center', y]:
+    #             xy[0] = 0
+    #             xy[0] = width // 2 - txt_bounds.width // 2
+    #             return [x, y]
+            
+    #         case [x, 'center']:
+    #             xy[1] = 0
+    #             xy[1] = height // 2 - (txt_bounds.height // 2)
+    #             return [x, y]
+
+    #         case 'center':
+    #             xy = [0, 0]
+    #             xy[0] = width // 2 - txt_bounds.width // 2
+    #             xy[1] = height // 2 - (txt_bounds.height // 2)
+    #             return [x, y]
+    
     line_spacing = font.get_sized_height() + 2
     x, y = 0 + xy[0], line_spacing - 14 + xy[1]
     space = font.get_rect(' ')
@@ -150,7 +148,7 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=(0, 0)):
             raise ValueError("text to long for the surface")
         font.render_to(surf, (x, y), None, colour)
         x += bounds.width + space.width
-    return x, y
+    return xy
 
 
 class scoreboard(pygame.sprite.Sprite, G):
@@ -169,16 +167,27 @@ class scoreboard(pygame.sprite.Sprite, G):
 
 
 class ripple(pygame.sprite.Sprite, G):
-    def __init__(self, Glength, Gtransparency):
+    def __init__(self):
+        self.transparency = self.Transparency(64)
+        self.length = self.Length(64)
         super().__init__()
         self.image = pygame.Surface((256, 256), pygame.SRCALPHA)
-        pygame.draw.circle(self.image, (77, 101, 180, Gtransparency), (128, 128), Glength, width=2)
         self.rect = self.image.get_rect()
         self.rect.topleft = (0, 0)
 
+    def Transparency(self, length):
+        while True:
+            for i in range(length):
+                yield (255 // length) * (length - i)
 
-if __name__ == '__main__':
-    Flag.create('screenHigh')
-    Flag.create('screenLow')
-    Flag.create('screenEffects')
-    Flag.create('all')
+    def Length(self, length):
+        while True:
+            for i in range(length):
+                yield (128 // length) * i
+
+    def update(self):
+        self.image = pygame.Surface((256, 256), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, (77, 101, 180,
+                                        next(self.transparency)), (128, 128),
+                           next(self.length), width=2)
+

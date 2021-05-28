@@ -76,6 +76,11 @@ class M_credits(M_page):
         return t_screen
 
 
+class M_settings(M_page):
+    def __init__(self):
+        pass
+
+
 class Button(pygame.sprite.Sprite):
     def __init__(self, xy, wh, colour, txt, action, font=None):
         super().__init__()
