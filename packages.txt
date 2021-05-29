@@ -1,0 +1,11 @@
+flake8==3.9.1
+jedi==0.18.0
+mccabe==0.6.1
+numpy==1.20.2
+parso==0.8.2
+Pillow==8.2.0
+pycodestyle==2.7.0
+pyflakes==2.3.1
+pygame==2.0.1
+PySide2==5.15.1
+shiboken2==5.15.1
