@@ -10,6 +10,7 @@ import os
 from itertools import repeat, cycle, count
 import random
 from operator import sub, add
+from copy import deepcopy
 
 # This importing the other modules into core
 import sshi_graphics as grph
@@ -17,6 +18,9 @@ import sshi_msci as msci
 import sshi_score as sce
 import time
 from enum import IntEnum
+from pathfinding.core.diagonal_movement import DiagonalMovement
+from pathfinding.core.grid import Grid
+from pathfinding.finder.a_star import AStarFinder
 
 
 #                     ,,
@@ -60,7 +64,7 @@ class Initi:
         self.layers.add(self.ddger, self.sshi_group, layer=2)
         self.background = Background('background_res2.png')
         self.layers.add(self.background, layer=0)
-        self.d_move_value = 1.6
+        self.p = DifficultlyStats()
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -82,6 +86,19 @@ class Placeholder(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (0, 0)
 
+
+class DifficultlyStats:
+    def __init__(self):
+        self.reset()
+    
+    def reset(self):
+        self.dodger = {
+            'movevalue': 1.6,
+        }
+        self.sshi = {
+            'movegrid': Grid(matrix=[[1 for row in range(48)] for column in range(48)]),
+            'finder': AStarFinder(diagonal_movement=DiagonalMovement.always)
+        }
 
 #                               ,,
 # `7MM"""Yb.                  `7MM
@@ -114,16 +131,16 @@ class Dodger(pygame.sprite.Sprite):
         keys = pygame.key.get_pressed()
         for key in keys:
             if keys[pygame.K_LEFT]:
-                self.dirnx = -(i.d_move_value)
+                self.dirnx = -(i.p.dodger['movevalue'])
             elif keys[pygame.K_RIGHT]:
-                self.dirnx = i.d_move_value
+                self.dirnx = i.p.dodger['movevalue']
             else:
                 self.dirnx = 0
 
             if keys[pygame.K_UP]:
-                self.dirny = -(i.d_move_value)
+                self.dirny = -(i.p.dodger['movevalue'])
             elif keys[pygame.K_DOWN]:
-                self.dirny = i.d_move_value
+                self.dirny = i.p.dodger['movevalue']
             else:
                 self.dirny = 0
 
@@ -167,19 +184,31 @@ class Sushi(pygame.sprite.Sprite):
         self.rect.topleft = self.poscheck(ddger)
 
     def update(self):
+        global i
         self.delta = list(map(sub, i.ddger.pos, self.rect.topleft))
         # This maps each coordinate of ddger and sshi; ddger - shhi
         self.deltap = list(map(lambda z: z * random.uniform(0.8, 1.2) / abs(z)
                                if z != 0 else 0, self.delta))
         # This returns a -1, 0 or 1 (with a little bit of noise)
         # depending on the delta
-        self.rect.topleft = tuple(map(minmax, [0, 0], map(add,
-                                                          self.rect.topleft,
-                                                          self.deltap),
-                                      [255, 255]))
-        # This adds the aforementioned -1, 0 or 1 to the current
-        # coordinates of sshi
-        self.checkhit()
+        # print(self.delta)
+        if len(list(filter(lambda a: -16 <= a <= 16, self.delta))) == 2:
+            self.grid = deepcopy(i.p.sshi['movegrid'])
+            self.start = self.grid.node(*map(int, tuple(map(sub, repeat(16),
+                                                            self.delta))))
+            self.end = self.grid.node(16, 16)
+            # print(self.start, self.end, self.grid)
+            self.path = i.p.sshi['finder'].find_path(self.start, self.end,
+                                                     self.grid)
+        else:    
+            self.rect.topleft = tuple(map(minmax, [0, 0],
+                                          map(add,
+                                              self.rect.topleft,
+                                              self.deltap),
+                                          [255, 255]))
+            # This adds the aforementioned -1, 0 or 1 to the current
+            # coordinates of sshi
+        # self.checkhit()
 
     def poscheck(self, ddger):
         self.square = ddger.where_am_i(True)

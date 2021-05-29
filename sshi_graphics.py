@@ -108,13 +108,11 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=[0, 0]):
         xy[0] = width // 2 - txt_bounds.width // 2 
     elif xy[1] == 'center':
         xy[1] = 0
-        xy[1] = height // 2 - txt_bounds.height // 2 
-        print(height, txt_bounds.height, height // 2 - txt_bounds.height // 2) 
+        xy[1] = height // 2 + (txt_bounds.height + 2) // 2  
     elif xy == 'center':
         xy = [0, 0]
         xy[0] = width // 2 - txt_bounds.width // 2
-        xy[1] = height // 2 - txt_bounds.height // 2
-        print(height, txt_bounds.height, height // 2 - txt_bounds.height // 2) 
+        xy[1] = height // 2 + (txt_bounds.height + 2) // 2
     # match xy:
     #         case [x,y]:
     #             return [x, y]

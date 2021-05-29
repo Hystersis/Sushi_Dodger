@@ -17,6 +17,10 @@ import pygame.freetype
 class M_page:
     def update(self, *args, **kwargs):
         self.group.update(*args, **kwargs)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
 
     def draw(self):
         t_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
@@ -27,7 +31,7 @@ class M_page:
 class M_main(M_page):
     def __init__(self):
         self.b1 = Button((77, 59), (103, 24), (0, 0, 0), 'Play', core.start)
-        self.b2 = Button((77, 117), (103, 24), (0, 0, 0), 'Settings', test)
+        self.b2 = Button((77, 117), (103, 24), (0, 0, 0), 'Settings', M_settings)
         self.b3 = Button((77, 175), (103, 24), (0, 0, 0), 'Credits', M_credits)  # Credits is a built in variable, so it can't be assigned
         self.group = pygame.sprite.Group()
         self.group.add(self.b1), self.group.add(self.b2)
@@ -62,11 +66,7 @@ class M_credits(M_page):
             if event.type == pygame.MOUSEWHEEL:
                 self.scroll = core.minmax(0, self.scroll + event.__dict__['y'] * 10, 5)
                 print('changed', self.scroll)
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                m(M_main)
+            events(event)
 
     def draw(self):
         s_screen = pygame.Surface((256, 1024), pygame.SRCALPHA)
@@ -78,7 +78,19 @@ class M_credits(M_page):
 
 class M_settings(M_page):
     def __init__(self):
-        pass
+        global m
+        m(M_settings)
+        self.b = []
+        self.b.append(Button((0, 0), (256, 24), (0, 0, 0), 'Hystersis ', test))
+        self.group = pygame.sprite.Group()
+        for x in self.b:
+            self.group.add(x)
+        self.scroll = 0
+    
+    def update(self, *args, **kwargs):
+        self.group.update(*args, **kwargs)
+        for event in pygame.event.get():
+            events(event)
 
 
 class Button(pygame.sprite.Sprite):
@@ -101,10 +113,11 @@ class Button(pygame.sprite.Sprite):
                 for event in pygame.event.get():
                     if event.type == pygame.MOUSEBUTTONDOWN and event.__dict__['button'] == 1:
                         if self.action == core.start:
-                            self.action(**kwargs)
+                            self.action(kwargs[self.txt])
                         else:
                             self.action()
-                self.image.fill((100, 100, 100))
+                    events(event)
+                self.image.fill([min(a + 100, 255) for a in self.colour])
             else:
                 self.image.fill(self.colour)
             grph.word_wrap(self.image, self.txt, pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade In.ttf'), 16), (255, 255, 255), 'center')
@@ -128,6 +141,13 @@ def make_screen():
 
 # core.start(screen=mscreen)
 
+
+def events(event):
+    if event.type == pygame.QUIT:
+        pygame.quit()
+        exit()
+    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+        m(M_main)
 
 class Menus:
     state = M_main
@@ -161,6 +181,6 @@ if __name__ == '__main__':
         pygame.display.flip()
         clock.tick(60)  # Locks the frame rate to 60 fps
         mscreen.blit(pygame.image.load(os.path.join('Assets', 'background_res1.png')), (0,0))
-        m.update(screen=mscreen)
+        m.update(Play=mscreen) # The key is the txt on the button
         mscreen.blit(m.draw(), (0, 0))
         core.events()
