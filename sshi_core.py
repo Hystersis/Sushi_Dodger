@@ -11,16 +11,13 @@ from itertools import repeat, cycle, count
 import random
 from operator import sub, add
 from copy import deepcopy
+import time
 
 # This importing the other modules into core
 import sshi_graphics as grph
 import sshi_msci as msci
 import sshi_score as sce
-import time
 from enum import IntEnum
-from pathfinding.core.diagonal_movement import DiagonalMovement
-from pathfinding.core.grid import Grid
-from pathfinding.finder.a_star import AStarFinder
 
 
 #                     ,,
@@ -90,14 +87,13 @@ class Placeholder(pygame.sprite.Sprite):
 class DifficultlyStats:
     def __init__(self):
         self.reset()
-    
+
     def reset(self):
         self.dodger = {
             'movevalue': 1.6,
         }
         self.sshi = {
-            'movegrid': Grid(matrix=[[1 for row in range(48)] for column in range(48)]),
-            'finder': AStarFinder(diagonal_movement=DiagonalMovement.always)
+            'intelligence': 16,
         }
 
 #                               ,,
@@ -185,30 +181,26 @@ class Sushi(pygame.sprite.Sprite):
 
     def update(self):
         global i
-        self.delta = list(map(sub, i.ddger.pos, self.rect.topleft))
-        # This maps each coordinate of ddger and sshi; ddger - shhi
+        self.ddger_pos = [i.ddger.rect.midtop[0], i.ddger.rect.midtop[1]
+                          + i.p.sshi['intelligence']]
+        self.delta = list(map(sub, self.ddger_pos, self.rect.midtop))
+        # This maps each coordinate of ddger and sshi; ddger - sshi
+        # Intelligence is the factor for the sushi to aim for the bottom of
+        # the ddger, can lead to avoiding ddger
         self.deltap = list(map(lambda z: z * random.uniform(0.8, 1.2) / abs(z)
                                if z != 0 else 0, self.delta))
         # This returns a -1, 0 or 1 (with a little bit of noise)
         # depending on the delta
-        # print(self.delta)
-        if len(list(filter(lambda a: -16 <= a <= 16, self.delta))) == 2:
-            self.grid = deepcopy(i.p.sshi['movegrid'])
-            self.start = self.grid.node(*map(int, tuple(map(sub, repeat(16),
-                                                            self.delta))))
-            self.end = self.grid.node(16, 16)
-            # print(self.start, self.end, self.grid)
-            self.path = i.p.sshi['finder'].find_path(self.start, self.end,
-                                                     self.grid)
-        else:    
+        self.Δ = list(map(sub, i.ddger.rect.center, self.rect.center))
+        if not self.avoid():
             self.rect.topleft = tuple(map(minmax, [0, 0],
                                           map(add,
                                               self.rect.topleft,
                                               self.deltap),
                                           [255, 255]))
-            # This adds the aforementioned -1, 0 or 1 to the current
-            # coordinates of sshi
-        # self.checkhit()
+        # This adds the aforementioned -1, 0 or 1 to the current
+        # coordinates of sshi
+        self.checkhit()
 
     def poscheck(self, ddger):
         self.square = ddger.where_am_i(True)
@@ -248,11 +240,23 @@ class Sushi(pygame.sprite.Sprite):
         self.image_copy = self.image.copy()
 
     def checkhit(self):
-        if len(list(filter(lambda a: -16 < a < 16, self.delta))) == 2:
+        if len(list(filter(lambda a: -16 < a < 16, self.Δ))) == 2:
             # This sees if sshi is in AoE of the ddger
             i.offset = shake()  # This shakes the screen
-            i.ddger.killed() if self.delta[1] < 0 else self.killed()
+            i.ddger.killed() if self.Δ[1] < 0 else self.killed()
             # This kills the ddger if it is bellow the sshi, and vice versa
+
+    def avoid(self):
+        if len(list(filter(lambda a: -48 < a < 48, self.Δ))) == 2:
+            if -20 < self.Δ[0] < 20 and 24 > self.Δ[1] > 8:
+                self.rect.topleft = closer(-48, self.rect.topleft[0],
+                                           48,
+                                           i.p.sshi['intelligence'] / 16),\
+                                    self.rect.topleft[1]\
+                                    - i.p.sshi['intelligence'] / 16
+                return True
+        return False
+
 
 # class background(pygame.sprite.Sprite):
 #     def __init__(self):
@@ -312,14 +316,6 @@ def main():
         i.background.draw(Initi.screen)
         i.layers.draw(move_screen)
         i.ddger.update()
-        # GI('screenLow', grph.Background, 'background_res2.png')
-        # move_screen.blit(GI.draw('screenLow'), [0, 0])
-        # i.sshi_group.draw(move_screen)
-        # i.ddger_group.draw(move_screen)
-        # i.ddger_group.update()
-        # move_screen.blit(GI.NGupdate('screenEffects', move_screen), [0, 0])
-        # move_screen.blit(GI.draw('screenHigh'), [0, 0])
-        # move_screen.blit(GI.draw('all'), [0, 0])
         Initi.screen.blit(move_screen, next(i.offset))
         track_previous_gm = i.gm
 
@@ -337,6 +333,20 @@ def minmax(a, b, c):
     '''This function returns the middle variable between the min variable
     and the max variable.'''
     return (lambda x: sorted(x)[1])([a, b, c])
+
+
+def closer(a, b, c, by=1):
+    '''This function returns what the effect of by will be on +/- it
+    to b, this returns which operation should be performed to get the closetest
+    to a or c'''
+    smaller = min(a, c)
+    larger = max(a, c)
+    minus = [(b - by) - smaller, b - by]
+    addition = [larger - (b + by), b + by]
+    if min(minus[0], addition[0]) == minus[0]:
+        return minus[1]
+    else:
+        return addition[1]
 
 
 class die_screen():
@@ -376,6 +386,8 @@ class die_screen():
             # Change to incorporate the movement of the helment
             i = Initi(i.lvl)
             self.kill()
+        elif pygame.key.get_pressed()[pygame.K_RIGHT]:
+            print('right arrow pressed')
 
     def kill(self):
         for sprite in self.group:
@@ -402,12 +414,12 @@ class Background(pygame.sprite.Sprite):
     def set_alpha(self, alpha):
         self.image.set_alpha(alpha)
         print(alpha)
-    
+
     @classmethod
-    def change_i(cls, image, l=0, a=255):
+    def change_i(cls, image, layer=0, a=255):
         i.layers.remove(i.background)
         i.background = cls(image, a)
-        i.layers.add(i.background, layer=l)
+        i.layers.add(i.background, layer=layer)
 
 
 # class win_screen():
