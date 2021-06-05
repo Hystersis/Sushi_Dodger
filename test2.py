@@ -1,25 +1,14 @@
-class add:
-    def __init__(self):
-        pass
-    def add(self,x):
-        self.instience = []
-        for i in range(x):
-            self.instience.append(Dog(x))
-    def command(self,c):
-        for i in self.instience:
-            i .c()
+def closer(a, b, c, by=1):
+    '''This function returns what the effect of by will be on +/- it
+    to b, this returns which operation should be performed to get the closetest
+    to a or c'''
+    smaller = min(a, c)
+    larger = max(a, c)
+    minus = [(b - by) - smaller, b - by]
+    addition = [larger - (b + by), b + by]
+    if min(minus[0], addition[0]) == minus[0]:
+        return minus[1]
+    else:
+        return addition[1]
 
-class Dog:
-    def __init__(self,name):
-        self.name = name
-        print("added")
-    def speak(self):
-        print('Woof')
-
-def func(hello):
-    print(hello)
-
-func()
-def func2(f):
-    def wrapper(*args, **kwargs):
-        kv = f(*args,**kwargs)
+print(closer(10, 16, 20, 1))
