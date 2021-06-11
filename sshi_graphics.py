@@ -188,4 +188,3 @@ class ripple(pygame.sprite.Sprite, G):
         pygame.draw.circle(self.image, (77, 101, 180,
                                         next(self.transparency)), (128, 128),
                            next(self.length), width=2)
-

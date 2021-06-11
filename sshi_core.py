@@ -17,7 +17,7 @@ import time
 import sshi_graphics as grph
 import sshi_msci as msci
 import sshi_score as sce
-from enum import IntEnum
+import sshi_special as spe
 
 
 #                     ,,
@@ -62,6 +62,8 @@ class Initi:
         self.background = Background('background_res2.png')
         self.layers.add(self.background, layer=0)
         self.p = DifficultlyStats()
+        self.missile = spe.missile((0, 0), 1)
+        self.layers.add(self.missile, layer=2)
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -93,7 +95,7 @@ class DifficultlyStats:
             'movevalue': 1.6,
         }
         self.sshi = {
-            'intelligence': 16,
+            'intelligence': 0,
         }
 
 #                               ,,
@@ -191,7 +193,7 @@ class Sushi(pygame.sprite.Sprite):
                                if z != 0 else 0, self.delta))
         # This returns a -1, 0 or 1 (with a little bit of noise)
         # depending on the delta
-        self.Δ = list(map(sub, i.ddger.rect.center, self.rect.center))
+        self.deltan = list(map(sub, i.ddger.rect.center, self.rect.center))
         if not self.avoid():
             self.rect.topleft = tuple(map(minmax, [0, 0],
                                           map(add,
@@ -240,15 +242,15 @@ class Sushi(pygame.sprite.Sprite):
         self.image_copy = self.image.copy()
 
     def checkhit(self):
-        if len(list(filter(lambda a: -16 < a < 16, self.Δ))) == 2:
+        if len(list(filter(lambda a: -16 < a < 16, self.deltan))) == 2:
             # This sees if sshi is in AoE of the ddger
             i.offset = shake()  # This shakes the screen
-            i.ddger.killed() if self.Δ[1] < 0 else self.killed()
+            i.ddger.killed() if self.deltan[1] < 0 else self.killed()
             # This kills the ddger if it is bellow the sshi, and vice versa
 
     def avoid(self):
-        if len(list(filter(lambda a: -48 < a < 48, self.Δ))) == 2:
-            if -20 < self.Δ[0] < 20 and 24 > self.Δ[1] > 8:
+        if len(list(filter(lambda a: -48 < a < 48, self.deltan))) == 2:
+            if -20 < self.deltan[0] < 20 and 24 > self.deltan[1] > 8:
                 self.rect.topleft = closer(-48, self.rect.topleft[0],
                                            48,
                                            i.p.sshi['intelligence'] / 16),\
@@ -287,7 +289,8 @@ def main():
         elif not act and i.gm == 'Active':
             i.gm = 'Paused'
 
-        events()
+        if i.gm != 'Died':
+            events()  # As die screen has its own event system
 
         if pygame.key.get_pressed()[pygame.K_F5]:
             i = Initi(i.lvl)
@@ -318,6 +321,7 @@ def main():
         i.ddger.update()
         Initi.screen.blit(move_screen, next(i.offset))
         track_previous_gm = i.gm
+        i.missile.update(i.ddger)
 
 #                   ,,
 # `7MMM.     ,MMF'  db
@@ -350,6 +354,9 @@ def closer(a, b, c, by=1):
 
 
 class die_screen():
+    states = {'Score': 'defeat_screenV3-3.png',
+              'Board': 'score_screen1.png',
+              'Fade': 'fade_out.bmp'}
     def __init__(self):
         global i
         self.YPpos = [add(x, i.ddger.pos[1]) for x in [0, 1, 2, 3, 4,
@@ -370,28 +377,96 @@ class die_screen():
         i.layers.remove_sprites_of_layer(2)
         print(i.sshi_group)
         self.fade = count(0, 5)
-        self.menu_screen = Background('defeat_screenV3.png')
+        self.menu_screen = Background('blank.png')
         self.menu_screen.set_alpha(0)
         i.layers.add(self.menu_screen, layer=2)
+        self.state = 'Score'
+        self.screen_state = 'blank.png'
 
     def __call__(self):
         global i
-        if round(time.time() - self.time) >= 3:
-            self.temp_menu_screen = pygame.image.load(os.path.join("Assets/", 'defeat_screenV3.png'))
-            new_xy = grph.word_wrap(self.temp_menu_screen, str(i.score), pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade In.ttf'), 96), xy=['center', 128], colour=(46, 34, 47))
-            grph.word_wrap(self.temp_menu_screen, str(i.score), pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade Out.ttf'), 96), xy=new_xy, colour=(255, 130, 77))
-            self.menu_screen.change_i(self.temp_menu_screen, max(next(self.fade), 255))
+        self.temp_screen = pygame.image.load(
+                                             os.path.join("Assets/",
+                                                          self.screen_state))
+        if self.state == 'Changing':
+            self.next = next(self.count_for_fade)
+            print(self.next)
+            if -11 < self.next < 11:
+                self.screen_out = pygame.image.load(
+                                             os.path.join("Assets/",
+                                                          die_screen.states[self.screen_out_state]))
+                self.screen_in = pygame.image.load(
+                                             os.path.join("Assets/",
+                                                          die_screen.states[self.screen_in_state]))
+
+                self.screen_out.set_alpha(((10 -abs(self.next)) / 9) * 255)
+                self.screen_in.set_alpha((abs(self.next) / 9) * 255)
+                if self.screen_in_state == 'Board':
+                    self.temp_screen.blit(self.screen_out, [0 - self.next, 0])
+                    self.temp_screen.blit(self.screen_in, [0 + (10 - self.next), 0])
+                elif self.screen_in_state != 'Fade':
+                    self.temp_screen.blit(self.screen_out, [0 - self.next, 0])
+                    self.temp_screen.blit(self.screen_in, [0 + (-10 - self.next), 0])
+                else:
+                    self.temp_screen.blit(self.screen_out, [0, 0])
+                    self.temp_screen.blit(self.screen_in, [0, 0], special_flags=pygame.BLEND_SUB)
+                    if self.next <= 0:
+                        i = Initi(i.lvl)
+                        self.kill()
+                        return
+
+                self.menu_screen.change_i(self.temp_screen, 2)
+            else:
+                print(self.screen_in_state)
+                self.state = self.screen_in_state
+        elif (time.time() - self.time) >= 2.5 and self.state == 'Score':
+            self.temp_screen.blit(pygame.image.load(os.path.join("Assets/", die_screen.states[self.state])), [0, 0], )
+            new_xy = grph.word_wrap(self.temp_screen,
+                                    str(i.score),
+                                    pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade In.ttf'), 96), 
+                                    xy=['center', 128],
+                                    colour=(46, 34, 47))
+            grph.word_wrap(self.temp_screen,
+                           str(i.score),
+                           pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade Out.ttf'), 96),
+                           xy=new_xy, colour=(255, 130, 77))
+            self.menu_screen.change_i(self.temp_screen, 2)
         self.ripple.update()
-        if pygame.key.get_pressed()[pygame.K_x]:
-            # Change to incorporate the movement of the helment
-            i = Initi(i.lvl)
-            self.kill()
-        elif pygame.key.get_pressed()[pygame.K_RIGHT]:
-            print('right arrow pressed')
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_x:
+                    # Change to incorporate the movement of the helmet
+                    self.fade_out()
+                elif event.key == pygame.K_RIGHT and self.state == 'Score':
+                    self.change_fade()
+                elif event.key == pygame.K_LEFT and self.state == 'Board':
+                    self.change_fade()
+            events_seperated(event)
 
     def kill(self):
         for sprite in self.group:
             sprite.kill()
+
+    def change_fade(self):
+        if self.state == 'Score':
+            self.screen_in_state = 'Board'
+            self.screen_out_state = 'Score'
+            self.count_for_fade = count(0)
+        elif (time.time() - self.time) >= 2.5:
+            self.screen_out_state = 'Board'
+            self.screen_in_state = 'Score'
+            self.count_for_fade = count(0, -1)
+        self.state = 'Changing'
+
+    def fade_out(self):
+        self.screen_out_state = 'Fade'
+        self.screen_in_state = 'Fade'
+        self.state = 'Changing'
+        self.screen_state = 'blank8.png'
+        self.count_for_fade = count(10, -1)
+
+    def remind(self, screen):
+        pass
 
 
 class Background(pygame.sprite.Sprite):
@@ -428,13 +503,16 @@ class Background(pygame.sprite.Sprite):
 
 def events():
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            exit()
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
-            pygame.display.toggle_fullscreen()
-            print(event)
+        events_seperated(event)
 
+
+def events_seperated(event):
+    if event.type == pygame.QUIT:
+        pygame.quit()
+        exit()
+    if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
+        pygame.display.toggle_fullscreen()
+        print(event)
 
 # https://stackoverflow.com/questions/23633339/pygame-shaking-window-when-loosing-lifes
 
