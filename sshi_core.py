@@ -242,6 +242,7 @@ class Sushi(pygame.sprite.Sprite):
         self.image_copy = self.image.copy()
 
     def checkhit(self):
+        i.ddger.killed()
         if len(list(filter(lambda a: -16 < a < 16, self.deltan))) == 2:
             # This sees if sshi is in AoE of the ddger
             i.offset = shake()  # This shakes the screen
@@ -353,6 +354,15 @@ def closer(a, b, c, by=1):
         return addition[1]
 
 
+#  .M"""bgd
+# ,MI    "Y
+# `MMb.      ,p6"bo `7Mb,od8 .gP"Ya   .gP"Ya `7MMpMMMb.  ,pP"Ybd
+#   `YMMNq. 6M'  OO   MM' "',M'   Yb ,M'   Yb  MM    MM  8I   `"
+# .     `MM 8M        MM    8M"""""" 8M""""""  MM    MM  `YMMMa.
+# Mb     dM YM.    ,  MM    YM.    , YM.    ,  MM    MM  L.   I8
+# P"Ybmmd"   YMbmd' .JMML.   `Mbmmd'  `Mbmmd'.JMML  JMML.M9mmmP'
+
+
 class die_screen():
     states = {'Score': 'defeat_screenV3-3.png',
               'Board': 'score_screen1.png',
@@ -382,21 +392,25 @@ class die_screen():
         i.layers.add(self.menu_screen, layer=2)
         self.state = 'Score'
         self.screen_state = 'blank.png'
+        self.scoreboard = sce.scoreboard()
+        self.mask = pygame.mask.Mask(size=(256, 512))
+        self.mask.draw(pygame.mask.Mask(size=(134, 130), fill=True), (61, 94))
+        self.iter_for_board_scroll = cycle([x for x in range(5, 69)])
 
     def __call__(self):
         global i
         self.temp_screen = pygame.image.load(
-                                             os.path.join("Assets/",
+                                             os.path.join("Assets",
                                                           self.screen_state))
         if self.state == 'Changing':
             self.next = next(self.count_for_fade)
             print(self.next)
             if -11 < self.next < 11:
                 self.screen_out = pygame.image.load(
-                                             os.path.join("Assets/",
+                                             os.path.join("Assets",
                                                           die_screen.states[self.screen_out_state]))
                 self.screen_in = pygame.image.load(
-                                             os.path.join("Assets/",
+                                             os.path.join("Assets",
                                                           die_screen.states[self.screen_in_state]))
 
                 self.screen_out.set_alpha(((10 -abs(self.next)) / 9) * 255)
@@ -420,17 +434,37 @@ class die_screen():
                 print(self.screen_in_state)
                 self.state = self.screen_in_state
         elif (time.time() - self.time) >= 2.5 and self.state == 'Score':
-            self.temp_screen.blit(pygame.image.load(os.path.join("Assets/", die_screen.states[self.state])), [0, 0], )
+            self.temp_screen.blit(pygame.image.load(os.path.join("Assets", die_screen.states[self.state])), [0, 0])
             new_xy = grph.word_wrap(self.temp_screen,
                                     str(i.score),
-                                    pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade In.ttf'), 96), 
+                                    pygame.freetype.Font(os.path.join("Assets", '8-bit Arcade In.ttf'), 96), 
                                     xy=['center', 128],
                                     colour=(46, 34, 47))
             grph.word_wrap(self.temp_screen,
                            str(i.score),
-                           pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade Out.ttf'), 96),
+                           pygame.freetype.Font(os.path.join("Assets", '8-bit Arcade Out.ttf'), 96),
                            xy=new_xy, colour=(255, 130, 77))
             self.menu_screen.change_i(self.temp_screen, 2)
+        elif (time.time() - self.time) >= 2.5 and self.state == 'Board':
+            self.temp_screen.blit(pygame.image.load(os.path.join("Assets", die_screen.states[self.state])), [0, 0])
+            self.score_screen = pygame.Surface((256, 512), flags=pygame.SRCALPHA)
+            for num, name_score in enumerate(self.scoreboard.get()):
+                name, score = name_score
+                name_score_string = f'{name}  {score}'
+                grph.word_wrap(self.score_screen,
+                               name_score_string,
+                               pygame.freetype.Font(os.path.join("Assets", 'manaspace.regular.ttf'), 24),
+                               xy = (61, 101 + 20*num), colour=(49, 54, 56))
+            self.mask_copy = self.mask.copy()
+            self.next_a = -next(self.iter_for_board_scroll)
+            print(self.next_a)
+            self.score_screen.scroll(dy=self.next_a)
+            self.score_screen = self.mask_copy.to_surface(self.score_screen,
+                                                          setsurface=self.score_screen,
+                                                          unsetcolor=(0, 0, 0, 0))
+            self.temp_screen.blit(self.score_screen, (0, 0))
+            self.menu_screen.change_i(self.temp_screen, 2)
+
         self.ripple.update()
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:

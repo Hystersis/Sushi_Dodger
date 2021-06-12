@@ -15,7 +15,6 @@ class missile(pygame.sprite.Sprite):
         self.delta = list(map(sign,
                               list(map(sub, ddger.rect.center,
                                        self.rect.center))))
-        print(self.delta,'\t',end='')
         self.rect.topleft = tuple(map(add, self.delta, self.rect.topleft))
         if 0 in self.delta:
             self.orientation = (lambda x, y: (0 if x == abs(x) else 4)
@@ -23,7 +22,6 @@ class missile(pygame.sprite.Sprite):
         else:
             self.orientation = (lambda x, y: abs((-6 if x != abs(x) else 2)
                                 - y))(*self.delta)
-        print(self.orientation)
         self.orientate()
 
     def orientate(self):

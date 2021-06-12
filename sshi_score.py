@@ -1,14 +1,19 @@
 # Sshi score module
 import json
 from itertools import repeat
+import os
 
 
 class scoreboard:
     def __init__(self):
-        with open('scoreboard.json', 'w') as board:
-            json.dump({'scores': {}}, board)
+        if not os.path.isfile('scoreboard.json'):
+            # File doesn't exist
+            with open('scoreboard.json', 'w') as board:
+                json.dump({'scores': {}}, board)
 
-    def write(self, name, score):
+    def write(self, name: str, score: int):
+        name = name.upper()[:3]
+        score = '{:>3}'.format(str(score)[:3])
         with open('scoreboard.json', 'r') as board:
             self.scores = json.load(board)
             print(self.scores)
@@ -21,11 +26,11 @@ class scoreboard:
     def get(self):
         with open('scoreboard.json', 'r') as board:
             self.scores = json.load(board)
-
-        if self.scores['scores'] == {}:
-            return list(repeat(('JDH', 000), 10))
-        else:
             return list(sorted(self.scores['scores'].items(),
-                               key=lambda item: item[1]))
+                               key=lambda item: item[1]))[:10][::-1] + list(
+                    repeat(('JDH', '  0'),
+                           max(0, 10 - len(self.scores['scores'].keys()))))
             # This sorts the scores by the score value
             # This is done by item[1] = score
+            # [:10] gets the top ten
+            # [::-1] reverses the list so that the first is first
