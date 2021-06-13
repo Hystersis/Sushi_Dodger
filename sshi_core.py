@@ -395,7 +395,10 @@ class die_screen():
         self.scoreboard = sce.scoreboard()
         self.mask = pygame.mask.Mask(size=(256, 512))
         self.mask.draw(pygame.mask.Mask(size=(134, 130), fill=True), (61, 94))
-        self.iter_for_board_scroll = cycle([x for x in range(5, 69)])
+        self.iter_for_board_scroll = cycle(list(repeat(0, 10))
+                                           + [x for x in range(0, 74)]
+                                           + list(repeat(74, 10))
+                                           + [y for y in range(74, 0, -1)])
 
     def __call__(self):
         global i

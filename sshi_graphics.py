@@ -112,27 +112,7 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=[0, 0]):
     elif xy == 'center':
         xy = [0, 0]
         xy[0] = width // 2 - txt_bounds.width // 2
-        xy[1] = height // 2 + (txt_bounds.height + 2) // 2
-    # match xy:
-    #         case [x,y]:
-    #             return [x, y]
-            
-    #         case ['center', y]:
-    #             xy[0] = 0
-    #             xy[0] = width // 2 - txt_bounds.width // 2
-    #             return [x, y]
-            
-    #         case [x, 'center']:
-    #             xy[1] = 0
-    #             xy[1] = height // 2 - (txt_bounds.height // 2)
-    #             return [x, y]
-
-    #         case 'center':
-    #             xy = [0, 0]
-    #             xy[0] = width // 2 - txt_bounds.width // 2
-    #             xy[1] = height // 2 - (txt_bounds.height // 2)
-    #             return [x, y]
-    
+        xy[1] = height // 2 + (txt_bounds.height + 2) // 2    
     line_spacing = font.get_sized_height() + 2
     x, y = 0 + xy[0], line_spacing - 14 + xy[1]
     space = font.get_rect(' ')
@@ -188,3 +168,9 @@ class ripple(pygame.sprite.Sprite, G):
         pygame.draw.circle(self.image, (77, 101, 180,
                                         next(self.transparency)), (128, 128),
                            next(self.length), width=2)
+
+
+class bottom_message(pygame.sprite.Sprite, G):
+    def __init__(self, text, colour):
+        super().__init__()
+        self.text = text
