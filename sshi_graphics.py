@@ -1,11 +1,12 @@
 # Graphics for Game
 import pygame
-import sshi_msci as msci
+from sshi_msci import Apj
 import numpy as np
 import os
 from pygame.freetype import Font
 from PIL import Image, ImageFilter
 from abc import ABC, abstractmethod
+from itertools import count
 
 
 class G(ABC):
@@ -15,6 +16,16 @@ class G(ABC):
 
     @abstractmethod
     def update(self):
+        pass
+
+
+class able_to_lock_in_menu(ABC):
+    @abstractmethod
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def get_size(self):
         pass
 
 
@@ -171,6 +182,70 @@ class ripple(pygame.sprite.Sprite, G):
 
 
 class bottom_message(pygame.sprite.Sprite, G):
-    def __init__(self, text, colour):
+    def __init__(self, text, colour,
+                 locking_object: able_to_lock_in_menu = None):
         super().__init__()
         self.text = text
+        self.colour = colour
+        self.image = pygame.Surface((256, 32), flags=pygame.SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (0, 223)
+        self.image.fill(self.colour)
+        if locking_object != None:
+            self.locking_object = locking_object
+            self.mask = pygame.mask.Mask(size=tuple(locking_object.get_size()
+                                                    .values()))
+        self.text_surface = pygame.Surface((512, 32), flags=pygame.SRCALPHA)
+        word_wrap(self.text_surface, self.text)
+
+    def update(self, text=None):
+        if text is None:
+            text = self.text
+        
+
+class button_symbol(pygame.sprite.Sprite, able_to_lock_in_menu):
+    def __init__(self, letter: str, colour: tuple = (199, 220, 208), xy: list = [150, 150]):
+        super().__init__()
+        self.image = pygame.image.load(Apj('button.png'))
+        print(colour)
+        self.image.fill(colour, special_flags=pygame.BLEND_MAX)
+        print(self.image)
+        self.letter = letter[0]
+        self.letter_surface = pygame.surface.Surface((32, 32),
+                                                     flags=pygame.SRCALPHA)
+        word_wrap(self.letter_surface, self.letter, Font(
+                  Apj('8-bit Arcade In.ttf'), 32),
+                  xy=(9, 11), colour=(0, 0, 0))
+        self.letter_mask = pygame.mask.from_surface(self.letter_surface)
+        self.letter_mask.to_surface(self.image, unsetsurface=self.image, setcolor=(0, 0, 0, 0))
+        self.rect = self.image.get_rect()
+        self.rect.topleft = xy
+        self._xy = xy
+
+    def get_size(self):
+        return {'width': self.rect.width, 'height': self.rect.height}
+
+    def bounce(self, above_pos, dampening=0.8):
+        '''This should only be called once for each bounce'''
+        self.y0 = above_pos
+        self.v0 = -1
+        self.g = 1
+        self.dampening = dampening
+        self.rect.topleft = (self.rect.topleft[0], self.rect.topleft[1] - above_pos)
+        self.t = count(1, step=0.5)
+        print(self._xy)
+
+    def update(self):
+        self.current_t = next(self.t)
+        if self.rect.topleft[1] < self._xy[1] or self._flip == True:
+            self.rect.topleft = (self.rect.topleft[0], self._xy[1] - (self.y0 + self.v0*self.current_t + 0.5 * -1 * self.current_t**2))
+            print(self.rect.topleft[1])
+            self._flip = False
+        else:
+            self._impact()
+    
+    def _impact(self):
+        self.t = count(1, step=0.5)
+        self.v0 *= self.dampening
+        self.y0 *= self.dampening
+        self._flip = True
