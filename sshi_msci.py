@@ -3,7 +3,8 @@
 # Path finding (line drawing edited) based off https://stackoverflow.com/questions/50387606/python-draw-line-between-two-coordinates-in-a-matrix
 # Line drawing for coordinates for sshi_core/sshi_graphics
 
-import numpy as np
+
+import os
 
 def pthfnd(mat, x0, y0, x1, y1, inplace=False):
     crd = []
@@ -45,3 +46,9 @@ def subscribe(event_type: str, fn):
 def post_event(event_type: str, data):
     for fn in subscribers[event_type]:
         fn(data)
+
+
+def Apj(name: str) -> str:
+    '''This is basically os.path.join put
+    just does it for the Assets folder'''
+    return os.path.join('Assets',name)
