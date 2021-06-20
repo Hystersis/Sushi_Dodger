@@ -16,7 +16,7 @@ import time
 # This importing the other modules into core
 import sshi_graphics as grph
 from sshi_msci import Apj
-import sshi_score as sce
+import sshi_json as sce
 import sshi_special as spe
 
 
@@ -57,11 +57,17 @@ class Initi:
             screenHigh = 4
             all = 5'''
             self.layers.add(Placeholder(), layer=num_of_layer)
+        self.unayers = pygame.sprite.LayeredUpdates()
+        # Shorthand for UNAffected laYERS
+        for num_of_layer in range(2):
+            '''Two layers: 0, 1'''
+            self.unayers.add(Placeholder(), layer=num_of_layer)
         self.board = sce.scoreboard()
         self.layers.add(self.ddger, self.sshi_group, layer=2)
         self.background = Background('background_res2.png')
         self.layers.add(self.background, layer=0)
-        self.p = DifficultlyStats()
+        global c
+        c = DifficultlyStats()  # c = config
         self.missile = spe.missile((0, 0), 1)
         self.layers.add(self.missile, layer=2)
 
@@ -91,12 +97,32 @@ class DifficultlyStats:
         self.reset()
 
     def reset(self):
-        self.dodger = {
-            'movevalue': 1.6,
-        }
-        self.sshi = {
-            'intelligence': 0,
-        }
+        self.fps = 10
+        self.overall_speed = 1
+        # Allows for all entities to be speed up by one control
+        self._dspeed = 1.6
+        self.intelligence = 1  # The higher the number more 'intelligent'
+        self._sspeed = 0  # The higher the number the faster
+        self.sensitivity = 0.2  # The higher the number the less sensitive
+
+    @property
+    def dspeed(self):
+        return self._dspeed * self.overall_speed
+
+    @dspeed.setter
+    def dspeed(self, value):
+        self._dspeed = value
+
+    @property
+    def sspeed(self):
+        return self._sspeed * self.overall_speed
+
+    @sspeed.setter
+    def sspeed(self, value):
+        self._sspeed = value
+
+    def load_from_json(self):
+        sce.config.get(self)
 
 #                               ,,
 # `7MM"""Yb.                  `7MM
@@ -119,26 +145,26 @@ class Dodger(pygame.sprite.Sprite):
         super().__init__()
         # Sprite
         self.image = pygame.image.load(picture_path)
-        self.image.set_colorkey((255, 255, 255))
         self.rect = self.image.get_rect()
         self.rect.topleft = self.pos
         self.dirncy = 0
+        self.lives = 2
 
     def update(self):
-        global i
+        global i, c
         keys = pygame.key.get_pressed()
         for key in keys:
             if keys[pygame.K_LEFT]:
-                self.dirnx = -(i.p.dodger['movevalue'])
+                self.dirnx = -(c.dspeed)
             elif keys[pygame.K_RIGHT]:
-                self.dirnx = i.p.dodger['movevalue']
+                self.dirnx = c.dspeed
             else:
                 self.dirnx = 0
 
             if keys[pygame.K_UP]:
-                self.dirny = -(i.p.dodger['movevalue'])
+                self.dirny = -(c.dspeed)
             elif keys[pygame.K_DOWN]:
-                self.dirny = i.p.dodger['movevalue']
+                self.dirny = c.dspeed
             else:
                 self.dirny = 0
 
@@ -156,11 +182,17 @@ class Dodger(pygame.sprite.Sprite):
         return [list(self.rect.topleft), list(self.rect.bottomright)]
 
     def killed(self):
-        i.gm = 'Died'
         # print(ddger_group)
-        self.kill()
+        self.lives -= 1
+        print('Lives:',self.lives)
+        if self.lives == 0:
+            i.gm = 'Died'
+            self.kill()
+            print('You died!, press \'X\' to start again')
+            return False
+        else:
+            return True
         # print(ddger_group)
-        print('You died!, press \'X\' to start again')
 
 
 
@@ -182,14 +214,16 @@ class Sushi(pygame.sprite.Sprite):
         self.rect.topleft = self.poscheck(ddger)
 
     def update(self):
-        global i
+        global i, c
         self.ddger_pos = [i.ddger.rect.midtop[0], i.ddger.rect.midtop[1]
-                          + i.p.sshi['intelligence']]
+                          + c.intelligence]
         self.delta = list(map(sub, self.ddger_pos, self.rect.midtop))
         # This maps each coordinate of ddger and sshi; ddger - sshi
         # Intelligence is the factor for the sushi to aim for the bottom of
         # the ddger, can lead to avoiding ddger
-        self.deltap = list(map(lambda z: z * random.uniform(0.8, 1.2) / abs(z)
+        self.deltap = list(map(lambda z: z * random.uniform(1 -
+                               c.sensitivity + c.sspeed,
+            1 + c.sensitivity + c.sspeed) / abs(z)
                                if z != 0 else 0, self.delta))
         # This returns a -1, 0 or 1 (with a little bit of noise)
         # depending on the delta
@@ -250,13 +284,17 @@ class Sushi(pygame.sprite.Sprite):
             # This kills the ddger if it is bellow the sshi, and vice versa
 
     def avoid(self):
+        global i, closer
         if len(list(filter(lambda a: -48 < a < 48, self.deltan))) == 2:
             if -20 < self.deltan[0] < 20 and 24 > self.deltan[1] > 8:
-                self.rect.topleft = closer(-48, self.rect.topleft[0],
-                                           48,
-                                           i.p.sshi['intelligence'] / 16),\
-                                    self.rect.topleft[1]\
-                                    - i.p.sshi['intelligence'] / 16
+                print(self.deltan, self.rect.center)
+                self.rect.center = tuple(map(sub, i.ddger.rect.center,
+                                             tuple(map(closer,
+                                                       repeat(-48),
+                                                       self.deltan,
+                                                       repeat(48),
+                                                       repeat(c.intelligence
+                                                              / 16)))))
                 return True
         return False
 
@@ -278,12 +316,12 @@ class Sushi(pygame.sprite.Sprite):
 
 def main():
     clock = pygame.time.Clock()
-    global i
+    global i, c
     track_previous_gm = 'Active'
     while True:
         move_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
         # print('Gamemode:\t',gm)
-        clock.tick(10)
+        clock.tick(c.fps)
         act = pygame.key.get_focused()
         if act and i.gm == 'Paused':
             i.gm = 'Active'
@@ -292,9 +330,6 @@ def main():
 
         if i.gm != 'Died':
             events()  # As die screen has its own event system
-
-        if pygame.key.get_pressed()[pygame.K_F5]:
-            i = Initi(i.lvl)
 
         if i.gm == 'Active':
             # print('Score:',score)
@@ -321,6 +356,7 @@ def main():
         i.layers.draw(move_screen)
         i.ddger.update()
         Initi.screen.blit(move_screen, next(i.offset))
+        i.unayers.draw(Initi.screen)
         track_previous_gm = i.gm
         i.missile.update(i.ddger)
 
@@ -340,7 +376,8 @@ def minmax(a, b, c):
     return (lambda x: sorted(x)[1])([a, b, c])
 
 
-def closer(a, b, c, by=1):
+def closer(a, b, c, by=1, maximise=False):
+    print(a, b, c, by, maximise)
     '''This function returns what the effect of by will be on +/- it
     to b, this returns which operation should be performed to get the closetest
     to a or c'''
@@ -348,7 +385,8 @@ def closer(a, b, c, by=1):
     larger = max(a, c)
     minus = [(b - by) - smaller, b - by]
     addition = [larger - (b + by), b + by]
-    if min(minus[0], addition[0]) == minus[0]:
+    if min(minus[0], addition[0]) == minus[0]\
+            or maximise and min(minus[0], addition[0]) == addition[0]:
         return minus[1]
     else:
         return addition[1]
@@ -395,6 +433,8 @@ class die_screen():
         self.scoreboard = sce.scoreboard()
         self.mask = pygame.mask.Mask(size=(256, 256))
         self.mask.draw(pygame.mask.Mask(size=(134, 130), fill=True), (61, 94))
+        self.message = grph.message_box('Press the key x to restart', (106, 23, 45, 100), [256, 16], xy=[0, 240])
+        i.unayers.add(self.message, layer=0)
 
     def __call__(self):
         global i
@@ -466,7 +506,10 @@ class die_screen():
             self.temp_screen.blit(self.score_screen, (0, 0))
             self.menu_screen.change_i(self.temp_screen, 2)
 
-
+        if (time.time() - self.time) >= 7.5 and self.screen_state != 'blank8.png':
+            self.message.update()
+        elif self.screen_state == 'blank8.png':
+            self.message.kill()
         self.ripple.update()
         self.last_state = deepcopy(self.state)
         for event in pygame.event.get():
@@ -534,6 +577,47 @@ class Background(pygame.sprite.Sprite):
         i.layers.add(i.background, layer=layer)
 
 
+#  `7MMF' mm
+#    MM   MM
+#    MM mmMMmm .gP"Ya `7MMpMMMb.pMMMb.  ,pP"Ybd
+#    MM   MM  ,M'   Yb  MM    MM    MM  8I   `"
+#    MM   MM  8M""""""  MM    MM    MM  `YMMMa.
+#    MM   MM  YM.    ,  MM    MM    MM  L.   I8
+#  .JMML. `Mbmo`Mbmmd'.JMML  JMML  JMML.M9mmmP'
+
+
+class item(pygame.sprite.Sprite):
+    def __init__(self, **kwargs):
+        global i, c
+        super().__init__()
+        self.activate_list = {'life': i.ddger}
+        self.image = pygame.Surface((1, 1), flags=pygame.SRCALPHA)
+        for key, value in kwargs:
+            setattr(self, str(key), value)
+            # This converts all the inputted dict into variables
+        if 'effects' in self.__dict__.keys():
+            for key, value in self.effects.items():
+                setattr(c, str(key), value)
+        if 'instants' in self.__dict__.keys():
+            for key, value in self.instants.items():
+                class_changing = self.activate_list[str(key)]
+                key_str = str(key)
+                setattr(class_changing, key_str, getattr(class_changing, key_str) + value)
+        self.time = time.time()
+        self.copy_of_c = deepcopy(c.__dict__)
+
+    def update(self):
+        if time.time() - self.time >= self.duration:
+            del self
+    
+    def __repr__(self) -> str:
+        return self.name
+
+    def __del__(self):
+        print(self, 'has been deleted')
+        # Resets c's dict to its original state
+        c.__dict__ = self.copy_of_c
+
 # class win_screen():
 #     def __inti__(self):
 #
@@ -544,12 +628,17 @@ def events():
 
 
 def events_seperated(event):
+    global i
     if event.type == pygame.QUIT:
         pygame.quit()
         exit()
     if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
         pygame.display.toggle_fullscreen()
         print(event)
+    if event.type == pygame.KEYDOWN and event.key == pygame.K_F2:
+        i.ddger.killed()
+    if event.type == pygame.KEYDOWN and event.key == pygame.K_F5:
+        i = Initi(i.lvl)
 
 # https://stackoverflow.com/questions/23633339/pygame-shaking-window-when-loosing-lifes
 
