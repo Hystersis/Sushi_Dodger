@@ -2,6 +2,8 @@
 import json
 from itertools import repeat
 import os
+import random
+from collections import Counter
 
 
 class scoreboard:
@@ -34,3 +36,42 @@ class scoreboard:
             # This is done by item[1] = score
             # [:10] gets the top ten
             # [::-1] reverses the list so that the first is first
+
+
+class config:
+    def __init__(self):
+        if not os.path.isfile('scoreboard.json'):
+            raise Exception('Config file was deleted!')
+
+    def get(self, write_to):
+        with open('scoreboard.json', 'r') as board:
+            self.values = json.load(board)['settings']
+            for y, v in self.values.items():
+                setattr(write_to, str(y), int(v))
+
+
+class items:
+    rarity_classes = {
+        1: 43.125,
+        2: 25.125,
+        3: 10,
+        4: 8,
+        5: 6,
+        6: 4,
+        7: 2,
+        8: 1,
+        9: 0.5,
+        10: 0.25
+    }
+
+    def __init__(self):
+        if not os.path.isfile('scoreboard.json'):
+            raise Exception('Items file was deleted!')
+
+    def return_item(self, item_function):
+        with open('scoreboard.json', 'r') as board:
+            self.items = json.load(board)['items']
+        self.choice = random.choices([x['name'] for x in self.items],
+                       [items.rarity_classes[x['rarity']] for x in self.items])
+        item = item_function()
+

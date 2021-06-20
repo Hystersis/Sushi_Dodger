@@ -6,7 +6,7 @@ import os
 from pygame.freetype import Font
 from PIL import Image, ImageFilter
 from abc import ABC, abstractmethod
-from itertools import count
+from itertools import count, cycle
 
 
 class G(ABC):
@@ -118,8 +118,9 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=[0, 0]):
         xy[0] = 0
         xy[0] = width // 2 - txt_bounds.width // 2 
     elif xy[1] == 'center':
+        print(height, txt_bounds.height)
         xy[1] = 0
-        xy[1] = height // 2 + (txt_bounds.height + 2) // 2  
+        xy[1] = height // 2 - (txt_bounds.height // 2  - 128 // height)
     elif xy == 'center':
         xy = [0, 0]
         xy[0] = width // 2 - txt_bounds.width // 2
@@ -133,8 +134,8 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=[0, 0]):
             x, y = 0, y + line_spacing
         if x + bounds.width + bounds.x >= width:
             raise ValueError("word too wide for the surface")
-        if y + bounds.height - bounds.y >= height:
-            raise ValueError("text to long for the surface")
+        # if y + bounds.height - bounds.y >= height:
+        #     raise ValueError("text to long for the surface")
         font.render_to(surf, (x, y), None, colour)
         x += bounds.width + space.width
     return xy
@@ -181,30 +182,61 @@ class ripple(pygame.sprite.Sprite, G):
                            next(self.length), width=2)
 
 
-class bottom_message(pygame.sprite.Sprite, G):
-    def __init__(self, text, colour,
-                 locking_object: able_to_lock_in_menu = None):
+class message_box(pygame.sprite.Sprite, G):
+    def __init__(self, text, colour, wh: list = [256, 16], xy: list = [0, 240],
+                 locking_object: able_to_lock_in_menu = None, *args, **kwargs):
         super().__init__()
         self.text = text
         self.colour = colour
-        self.image = pygame.Surface((256, 32), flags=pygame.SRCALPHA)
+        self.image = pygame.Surface((256, 256), flags=pygame.SRCALPHA)
         self.rect = self.image.get_rect()
-        self.rect.topleft = (0, 223)
-        self.image.fill(self.colour)
-        if locking_object != None:
+        self.rect.topleft = (0, 0)
+        self._xy = xy
+        self.offset_from_left = 0
+        self.font_size = wh[1] // 16 * 12
+        if locking_object is not None:
             self.locking_object = locking_object
+            print(tuple(locking_object.get_size().values()))
             self.mask = pygame.mask.Mask(size=tuple(locking_object.get_size()
                                                     .values()))
-        self.text_surface = pygame.Surface((512, 32), flags=pygame.SRCALPHA)
-        word_wrap(self.text_surface, self.text)
+            self.mask_pos = self.locking_object._xy
+            self.offset_from_left = locking_object.get_size()['width']
+            self.group = pygame.sprite.Group(self.locking_object)
+        self.offset_font_based = Font(Apj('manaspace.regular.ttf'), self.font_size)\
+            .get_rect(self.text).width
+        self.text_surface = pygame.Surface((max(256, self.offset_font_based) - (256 - wh[0]) - self.offset_from_left, wh[1]),
+                                           flags=pygame.SRCALPHA)
+        if Font(Apj('manaspace.regular.ttf'), self.font_size).get_rect(self.text).width \
+                > 256 - self.offset_from_left:
+            # This means that font is bigger than the surface
+            self.scroll = self.offset_font_based - (256 - self.offset_from_left)
+            print(self.offset_font_based, self.scroll)
+            self.scroll = cycle([a for a in range(0, self.scroll + 3, wh[1] // 16)]
+                                + [a for a in range(self.scroll + 3,
+                                                    0, -wh[1] // 16)])
 
     def update(self, text=None):
-        if text is None:
-            text = self.text
-        
+        self.image.fill((0, 0, 0, 0))
+        self.text_surface.fill(self.colour)  # Makes it blank
+        word_wrap(self.text_surface, self.text, Font(
+                  Apj('manaspace.regular.ttf'), self.font_size),
+                  xy=[self.offset_from_left, 'center'])
+        if text is not None:
+            self.text = text
+        if 'scroll' in self.__dict__.keys():
+            self.image.blit(self.text_surface, (self._xy[0]-next(self.scroll), self._xy[1]))
+        else:
+            self.image.blit(self.text_surface, self._xy)
+
+        if 'locking_object' in self.__dict__.keys():
+            self.locking_object.update()
+            self.mask.to_surface(self.image, unsetcolor=self.colour, dest=self.mask_pos)
+            self.group.draw(self.image)
+
 
 class button_symbol(pygame.sprite.Sprite, able_to_lock_in_menu):
-    def __init__(self, letter: str, colour: tuple = (199, 220, 208), xy: list = [150, 150]):
+    def __init__(self, letter: str, colour: tuple = (199, 220, 208),
+                 xy: list = [150, 150], click_action = None):
         super().__init__()
         self.image = pygame.image.load(Apj('button.png'))
         print(colour)
@@ -215,12 +247,15 @@ class button_symbol(pygame.sprite.Sprite, able_to_lock_in_menu):
                                                      flags=pygame.SRCALPHA)
         word_wrap(self.letter_surface, self.letter, Font(
                   Apj('8-bit Arcade In.ttf'), 32),
-                  xy=(9, 11), colour=(0, 0, 0))
+                  xy=[9, 11], colour=(0, 0, 0))
         self.letter_mask = pygame.mask.from_surface(self.letter_surface)
-        self.letter_mask.to_surface(self.image, unsetsurface=self.image, setcolor=(0, 0, 0, 0))
+        self.letter_mask.to_surface(self.image, unsetsurface=self.image,
+                                    setcolor=(0, 0, 0, 0))
         self.rect = self.image.get_rect()
         self.rect.topleft = xy
         self._xy = xy
+        if click_action is not None:
+            self.click_action = click_action
 
     def get_size(self):
         return {'width': self.rect.width, 'height': self.rect.height}
@@ -231,21 +266,37 @@ class button_symbol(pygame.sprite.Sprite, able_to_lock_in_menu):
         self.v0 = -1
         self.g = 1
         self.dampening = dampening
-        self.rect.topleft = (self.rect.topleft[0], self.rect.topleft[1] - above_pos)
+        self.rect.topleft = (self.rect.topleft[0],
+                             self.rect.topleft[1] - above_pos)
         self.t = count(1, step=0.5)
         print(self._xy)
+        self.bouncing_object = True
 
     def update(self):
-        self.current_t = next(self.t)
-        if self.rect.topleft[1] < self._xy[1] or self._flip == True:
-            self.rect.topleft = (self.rect.topleft[0], self._xy[1] - (self.y0 + self.v0*self.current_t + 0.5 * -1 * self.current_t**2))
-            print(self.rect.topleft[1])
-            self._flip = False
-        else:
-            self._impact()
-    
+        if 'bouncing_object' in self.__dict__.keys():
+            self.current_t = next(self.t)
+            if self.rect.topleft[1] < self._xy[1] or self._flip is True:
+                self.rect.topleft = (self.rect.topleft[0], self._xy[1]
+                                     - (self.y0 + self.v0*self.current_t
+                                     + 0.5 * -1 * self.current_t**2))
+                print(self.rect.topleft[1])
+                self._flip = False
+            else:
+                self._impact()
+        if 'click_action' in self.__dict__.keys():
+            mouse_pos = pygame.mouse.get_pos()
+            if self.rect.topleft[0] <= mouse_pos[0] <= self.rect.bottomright[0] and self.rect.topleft[1] <= mouse_pos[1] <= self.rect.bottomright[1]:
+                print(mouse_pos)
+                for event in pygame.event.get():
+                    print(event)
+                    if event.type == pygame.MOUSEBUTTONDOWN and event.__dict__['button'] == 1:
+                        self.click_action()
+
     def _impact(self):
         self.t = count(1, step=0.5)
         self.v0 *= self.dampening
         self.y0 *= self.dampening
         self._flip = True
+
+def test():
+    print('clicked')
