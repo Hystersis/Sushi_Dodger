@@ -1,20 +1,23 @@
-realpython-example-app/
+Sushi_dodger/
 │
 ├── Assets/
 │   'Handles all the assets e.g images, etc.'
 │
 ├─┬ sshi_base.py
-│ │ 'Handles the running of the game in corespondence
+│ │ 'Handles the running of the game in correspondence
 │ │  with the menu.'
 │ └───┬	sshi_core.py
 │     │ 'Core of the game.'	
-│     └───────┬	sshi_graphics.py
-│             │ 'Handles all the graphics for the game.'
-│             ├────────	sshi_msci.py
-│             │         'Handles mainly path-finding.'
-│             └────────	sshi_score.py
-│			'Implements the saving of scores
-│			 as JSONs and the load of
-│			 highscores.'
+│     ├───────┬	sshi_graphics.py
+│     │       │ 'Handles all the graphics for the game.'
+│     │       └────────	sshi_msci.py
+│     │                 'Handles mainly path-finding.'
+│     ├──────── sshi_json.py
+│     │ 	    'Implements the saving of scores
+│     │		     as JSONs and the loading of
+│     │		     highscores. Also settings and items are in here.'
+│     └──────── sshi_special.py
+│               'Implements special "characters" to add to the game."
+│
 └── requirements.txt
     'Reguirements for the game.'

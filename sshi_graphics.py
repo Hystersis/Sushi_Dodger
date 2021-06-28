@@ -298,5 +298,13 @@ class button_symbol(pygame.sprite.Sprite, able_to_lock_in_menu):
         self.y0 *= self.dampening
         self._flip = True
 
+
+def spritesheet(imge, rect):
+    rect = pygame.Rect(rect)
+    image = pygame.Surface(rect.size)
+    image.blit(pygame.image.load(imge), (0, 0), rect)
+    return image
+
+
 def test():
     print('clicked')
