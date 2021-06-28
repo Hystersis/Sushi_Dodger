@@ -12,11 +12,12 @@ import random
 from operator import sub, add
 from copy import deepcopy
 import time
+from collections import Counter
 
 # This importing the other modules into core
 import sshi_graphics as grph
 from sshi_msci import Apj
-import sshi_json as sce
+import sshi_json as jsn
 import sshi_special as spe
 
 
@@ -62,7 +63,7 @@ class Initi:
         for num_of_layer in range(2):
             '''Two layers: 0, 1'''
             self.unayers.add(Placeholder(), layer=num_of_layer)
-        self.board = sce.scoreboard()
+        self.board = jsn.scoreboard()
         self.layers.add(self.ddger, self.sshi_group, layer=2)
         self.background = Background('background_res2.png')
         self.layers.add(self.background, layer=0)
@@ -70,6 +71,7 @@ class Initi:
         c = DifficultlyStats()  # c = config
         self.missile = spe.missile((0, 0), 1)
         self.layers.add(self.missile, layer=2)
+        self.health = [item(**{"name": 1, })]
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -101,9 +103,10 @@ class DifficultlyStats:
         self.overall_speed = 1
         # Allows for all entities to be speed up by one control
         self._dspeed = 1.6
-        self.intelligence = 1  # The higher the number more 'intelligent'
+        self.intelligence = 8  # The higher the number more 'intelligent'
         self._sspeed = 0  # The higher the number the faster
         self.sensitivity = 0.2  # The higher the number the less sensitive
+        self.luck = 1  # This has to be a decimal or 1
 
     @property
     def dspeed(self):
@@ -122,7 +125,7 @@ class DifficultlyStats:
         self._sspeed = value
 
     def load_from_json(self):
-        sce.config.get(self)
+        jsn.config.get(self)
 
 #                               ,,
 # `7MM"""Yb.                  `7MM
@@ -262,6 +265,9 @@ class Sushi(pygame.sprite.Sprite):
         if len(i.sshi_group) == 0:
             i.gm = 'Won'
             print('Won', i.gm)
+        if random.random() <= c.luck:
+            i.items = jsn.items().return_item(item)
+            print('{:=^35}'.format('Item {} was created'.format(str(i.items).lower())))
 
     def create_centre(self):
         self.rt = pygame.image.load(os.path.join("Assets",
@@ -280,21 +286,21 @@ class Sushi(pygame.sprite.Sprite):
         if len(list(filter(lambda a: -16 < a < 16, self.deltan))) == 2:
             # This sees if sshi is in AoE of the ddger
             i.offset = shake()  # This shakes the screen
-            i.ddger.killed() if self.deltan[1] < 0 else self.killed()
+            # i.ddger.killed() if self.deltan[1] < 0 else self.killed()
             # This kills the ddger if it is bellow the sshi, and vice versa
 
     def avoid(self):
+        # TODO: add 'different' levels for the intelligence/avoid
         global i, closer
-        if len(list(filter(lambda a: -48 < a < 48, self.deltan))) == 2:
-            if -20 < self.deltan[0] < 20 and 24 > self.deltan[1] > 8:
-                print(self.deltan, self.rect.center)
-                self.rect.center = tuple(map(sub, i.ddger.rect.center,
-                                             tuple(map(closer,
-                                                       repeat(-48),
-                                                       self.deltan,
-                                                       repeat(48),
-                                                       repeat(c.intelligence
-                                                              / 16)))))
+        self.sense = c.intelligence * 3
+        self.sH = c.intelligence * 2
+        if len(list(filter(lambda a: -self.sense < a < self.sense, self.deltan))) == 2:
+            if -self.sH < self.deltan[0] < self.sH and self.sH > self.deltan[1] > 8 and c.intelligence >= 8:
+                self.closer = tuple(map(closer, repeat(-self.sense),
+                                        self.deltan, repeat(self.sense),
+                                        repeat(c.intelligence / 16)))
+                self.NEW_pos = tuple(map(sub, i.ddger.rect.center, self.closer))
+                self.rect.center = tuple(map(minmax, repeat(0), self.NEW_pos, repeat(256)))
                 return True
         return False
 
@@ -359,6 +365,8 @@ def main():
         i.unayers.draw(Initi.screen)
         track_previous_gm = i.gm
         i.missile.update(i.ddger)
+        if 'items' in i.__dict__.keys():
+            i.items.update()
 
 #                   ,,
 # `7MMM.     ,MMF'  db
@@ -377,7 +385,6 @@ def minmax(a, b, c):
 
 
 def closer(a, b, c, by=1, maximise=False):
-    print(a, b, c, by, maximise)
     '''This function returns what the effect of by will be on +/- it
     to b, this returns which operation should be performed to get the closetest
     to a or c'''
@@ -390,6 +397,13 @@ def closer(a, b, c, by=1, maximise=False):
         return minus[1]
     else:
         return addition[1]
+
+
+# From https://realpython.com/python-rounding/#a-menagerie-of-methods
+def round5(num, d=0):
+    multiplier = 10 ** d
+    rounded_abs = math.floor(abs(num)*multiplier + 0.5) / multiplier
+    return math.copysign(rounded_abs, num)
 
 
 #  .M"""bgd
@@ -430,7 +444,7 @@ class die_screen():
         i.layers.add(self.menu_screen, layer=2)
         self.state = 'Score'
         self.screen_state = 'blank.png'
-        self.scoreboard = sce.scoreboard()
+        self.scoreboard = jsn.scoreboard()
         self.mask = pygame.mask.Mask(size=(256, 256))
         self.mask.draw(pygame.mask.Mask(size=(134, 130), fill=True), (61, 94))
         self.message = grph.message_box('Press the key x to restart', (106, 23, 45, 100), [256, 16], xy=[0, 240])
@@ -591,10 +605,20 @@ class item(pygame.sprite.Sprite):
         global i, c
         super().__init__()
         self.activate_list = {'life': i.ddger}
-        self.image = pygame.Surface((1, 1), flags=pygame.SRCALPHA)
-        for key, value in kwargs:
-            setattr(self, str(key), value)
+        self.image = pygame.Surface((12, 12), flags=pygame.SRCALPHA).convert_alpha()
+        for key, value in kwargs.items():
+            setattr(self, str(key).lower(), value)
             # This converts all the inputted dict into variables
+
+        self.time = time.time()
+        self.copy_of_c = deepcopy(c.__dict__)
+
+        if 'key_press' in self.__dict__.keys():
+            self.key_press = getattr(pygame, 'K_' + self.key_press)
+            return
+
+        # ========== This will not activate some of the time ==========
+
         if 'effects' in self.__dict__.keys():
             for key, value in self.effects.items():
                 setattr(c, str(key), value)
@@ -603,24 +627,78 @@ class item(pygame.sprite.Sprite):
                 class_changing = self.activate_list[str(key)]
                 key_str = str(key)
                 setattr(class_changing, key_str, getattr(class_changing, key_str) + value)
-        self.time = time.time()
-        self.copy_of_c = deepcopy(c.__dict__)
 
     def update(self):
-        if time.time() - self.time >= self.duration:
-            del self
-    
+        # if time.time() - self.time >= self.duration:
+        #     del self
+        if 'key_press' in self.__dict__.keys():
+            if pygame.key.get_pressed()[self.key_press]:
+                if 'instants' in self.__dict__.keys():
+                    for key, value in self.instants.items():
+                        if key == 'restart':
+                            global i
+                            i = Initi(i.lvl)
+                            continue
+                        class_changing = self.activate_list[str(key)]
+                        key_str = str(key)
+                        setattr(class_changing, key_str, getattr(class_changing, key_str) + value)
+
     def __repr__(self) -> str:
         return self.name
 
     def __del__(self):
-        print(self, 'has been deleted')
+        global c
+        print(f'Item {str(self).lower()} has been deleted at {time.asctime()}')
         # Resets c's dict to its original state
         c.__dict__ = self.copy_of_c
 
-# class win_screen():
-#     def __inti__(self):
-#
+
+class item_manager:
+    # ==Dunder/internal methods for item_manager==
+    def __init__(self):
+        self.item_list = []
+        self.unique_items = {}
+
+    def __add__(self, item_to_add: item):
+        self.item_list.append(item_to_add)
+        self._calculate_unique_items()
+
+    def __delitem__(self, key: str):
+        '''This deletes the first object that are of the name of the key'''
+        key = [object for object in self.item_list if object.name == key.lower()][0]
+        self.item_list.remove(key)
+        self._calculate_unique_items()
+
+    def __len__(self) -> int:
+        return len(self.item_list)
+
+    def _len_of_unique(self, key: str) -> int:
+        return self.unique_items[key.lower()]
+
+    def _calculate_unique_items(self):
+        self.unique_items = Counter([object.name for object in self.item_list])
+
+    def card(self, item, stacking = 1):
+        self.pos 
+        self.surface = pygame.Surface((24, 22), flags=pygame.SRCALPHA)
+        self.surface.blit(pygame.image.load(Apj("item_background.png")))
+        self.surface.blit(grph.spritesheet("item_sprites.png", (*item.sprite, 12, 12)))
+        self.message = grph.message_box(self.name.capitalize(), (0, 0, 0, 0), [22, 8], [1, 12])
+        self.surface.blit(self.message, (0, 0))
+        return self.surface
+
+    # =='Outward facing' methods==
+    def cards(self):
+        self.surface = pygame.Surface((208, 24), flags=pygame.SRCALPHA)
+        for pos, (item, amount) in enumerate(self.unique_items.items()):
+            self.surface.blit(self.card(item, amount), (pos*22 + 1, 1))
+        return self.surface.convert_alpha()  # This makes blit more efficient
+
+    def update(self):
+        [object.update() for object in self.item_list]
+        # Updates every item in item_list
+        return
+
 
 def events():
     for event in pygame.event.get():
@@ -637,8 +715,8 @@ def events_seperated(event):
         print(event)
     if event.type == pygame.KEYDOWN and event.key == pygame.K_F2:
         i.ddger.killed()
-    if event.type == pygame.KEYDOWN and event.key == pygame.K_F5:
-        i = Initi(i.lvl)
+    # if event.type == pygame.KEYDOWN and event.key == pygame.K_F5:
+    #     i = Initi(i.lvl)
 
 # https://stackoverflow.com/questions/23633339/pygame-shaking-window-when-loosing-lifes
 

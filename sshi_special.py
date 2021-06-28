@@ -1,6 +1,8 @@
 import pygame
 import os
-from operator import sub, add
+from operator import sub, add, mul
+from itertools import cycle
+import math
 
 
 class missile(pygame.sprite.Sprite):
@@ -10,15 +12,18 @@ class missile(pygame.sprite.Sprite):
         self.orientate()
         self.rect = self.image.get_rect()
         self.rect.topleft = start_pos
+        self.burst = cycle([int(roundd(x / 12)) for x in range(1, 13)])
 
     def update(self, ddger):
         self.delta = list(map(sign,
                               list(map(sub, ddger.rect.center,
                                        self.rect.center))))
         self.rect.topleft = tuple(map(add, self.delta, self.rect.topleft))
+        if next(self.burst) == 1:
+            self.rect.topleft = tuple(map(add, map(mul, self.delta, [9,9]), self.rect.topleft))
         if 0 in self.delta:
-            self.orientation = (lambda x, y: (0 if x == abs(x) else 4)
-                                + (2 if y == abs(y) else 6))(*self.delta)
+            self.orientation = (lambda x, y: (x*2 if x == abs(x) else 6)
+                                + (0 if y == abs(y) else 4))(*self.delta)
         else:
             self.orientation = (lambda x, y: abs((-6 if x != abs(x) else 2)
                                 - y))(*self.delta)
@@ -44,3 +49,9 @@ def sign(num: int) -> int:
         return 0
     else:
         return -1
+
+
+# From https://realpython.com/python-rounding/#rounding-down
+def roundd(num, decimals=0):
+    multiplier = 10 ** decimals
+    return math.floor(num * multiplier) / multiplier

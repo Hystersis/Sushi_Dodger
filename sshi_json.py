@@ -14,8 +14,9 @@ class scoreboard:
                 json.dump({'scores': {}}, board)
 
     def write(self, name: str, score: int):
-        name = name.upper()[:3]
+        name = '{:<3}'.format(name.upper()[:3])
         score = '{:>3}'.format(str(score)[:3])
+        print('Name, score', name + score)
         with open('scoreboard.json', 'r') as board:
             self.scores = json.load(board)
             print(self.scores)
@@ -73,5 +74,10 @@ class items:
             self.items = json.load(board)['items']
         self.choice = random.choices([x['name'] for x in self.items],
                        [items.rarity_classes[x['rarity']] for x in self.items])
-        item = item_function()
+        self.choice_values = [x for x in self.items if x['name'] == self.choice[0]][0]
+        print(self.choice, self.choice_values)
+        item = item_function(**(self.choice_values))
+        return item
 
+def test(*args, **kwargs):
+    print(args, kwargs)
