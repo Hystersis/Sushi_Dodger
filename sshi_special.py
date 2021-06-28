@@ -42,13 +42,13 @@ class missile(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.image, self.orientation // 2 * 90)
 
 
-def sign(num: int) -> int:
+def sign(num: int, amount: int = 1) -> int:
     if num > 0:
-        return 1
+        return amount
     elif num == 0:
         return 0
     else:
-        return -1
+        return -amount
 
 
 # From https://realpython.com/python-rounding/#rounding-down

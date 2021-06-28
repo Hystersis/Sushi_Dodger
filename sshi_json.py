@@ -69,14 +69,14 @@ class items:
         if not os.path.isfile('scoreboard.json'):
             raise Exception('Items file was deleted!')
 
-    def return_item(self, item_function):
+    def return_item(self, item_function, **kwargs):
         with open('scoreboard.json', 'r') as board:
             self.items = json.load(board)['items']
         self.choice = random.choices([x['name'] for x in self.items],
                        [items.rarity_classes[x['rarity']] for x in self.items])
         self.choice_values = [x for x in self.items if x['name'] == self.choice[0]][0]
         print(self.choice, self.choice_values)
-        item = item_function(**(self.choice_values))
+        item = item_function(**kwargs, **(self.choice_values))
         return item
 
 def test(*args, **kwargs):
