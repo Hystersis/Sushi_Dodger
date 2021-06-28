@@ -193,7 +193,7 @@ class message_box(pygame.sprite.Sprite, G):
         self.rect.topleft = (0, 0)
         self._xy = xy
         self.offset_from_left = 0
-        self.font_size = wh[1] // 16 * 12
+        self.font_size = max(wh[1] // 16, 1) * 12
         if locking_object is not None:
             self.locking_object = locking_object
             print(tuple(locking_object.get_size().values()))
@@ -301,7 +301,7 @@ class button_symbol(pygame.sprite.Sprite, able_to_lock_in_menu):
 
 def spritesheet(imge, rect):
     rect = pygame.Rect(rect)
-    image = pygame.Surface(rect.size)
+    image = pygame.Surface(rect.size, flags=pygame.SRCALPHA)
     image.blit(pygame.image.load(imge), (0, 0), rect)
     return image
 

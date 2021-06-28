@@ -7,6 +7,7 @@ import pygame
 # from pygame.freetype import * # Errors led to this line, having to be here
 import math
 import os
+import sys
 from itertools import repeat, cycle, count
 import random
 from operator import sub, add
@@ -71,7 +72,8 @@ class Initi:
         c = DifficultlyStats()  # c = config
         self.missile = spe.missile((0, 0), 1)
         self.layers.add(self.missile, layer=2)
-        self.health = [item(**{"name": 1, })]
+        self.items = item_manager()
+        self.layers.add(self.items, layer=5)
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -266,7 +268,7 @@ class Sushi(pygame.sprite.Sprite):
             i.gm = 'Won'
             print('Won', i.gm)
         if random.random() <= c.luck:
-            i.items = jsn.items().return_item(item)
+            i.items = jsn.items().return_item(item, start_pos = self.rect.topleft)
             print('{:=^35}'.format('Item {} was created'.format(str(i.items).lower())))
 
     def create_centre(self):
@@ -286,7 +288,7 @@ class Sushi(pygame.sprite.Sprite):
         if len(list(filter(lambda a: -16 < a < 16, self.deltan))) == 2:
             # This sees if sshi is in AoE of the ddger
             i.offset = shake()  # This shakes the screen
-            # i.ddger.killed() if self.deltan[1] < 0 else self.killed()
+            i.ddger.killed() if self.deltan[1] < 0 else self.killed()
             # This kills the ddger if it is bellow the sshi, and vice versa
 
     def avoid(self):
@@ -324,6 +326,8 @@ def main():
     clock = pygame.time.Clock()
     global i, c
     track_previous_gm = 'Active'
+    i.items += item(**{"name": "health", "sprite": [0, 0]})
+    i.items += item(**{"name": "health", "sprite": [0, 0]})
     while True:
         move_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
         # print('Gamemode:\t',gm)
@@ -359,14 +363,15 @@ def main():
         pygame.display.flip()
         move_screen.fill((0, 0, 0)), Initi.screen.fill((0, 0, 0))
         i.background.draw(Initi.screen)
+        i.items.update()
+        # print(i.items)
         i.layers.draw(move_screen)
         i.ddger.update()
         Initi.screen.blit(move_screen, next(i.offset))
         i.unayers.draw(Initi.screen)
         track_previous_gm = i.gm
         i.missile.update(i.ddger)
-        if 'items' in i.__dict__.keys():
-            i.items.update()
+        # Initi.screen.blit(i.items.draw(), (0, 0))
 
 #                   ,,
 # `7MMM.     ,MMF'  db
@@ -604,11 +609,17 @@ class item(pygame.sprite.Sprite):
     def __init__(self, **kwargs):
         global i, c
         super().__init__()
-        self.activate_list = {'life': i.ddger}
-        self.image = pygame.Surface((12, 12), flags=pygame.SRCALPHA).convert_alpha()
+        self.activate_list = {'life': i.ddger}  # TODO: add more + change
         for key, value in kwargs.items():
             setattr(self, str(key).lower(), value)
             # This converts all the inputted dict into variables
+
+        if 'start_pos' in self.__dict__.keys():
+            self.image = grph.spritesheet("item_sprites.png", (*self.sprite, 12, 12))
+            self.rect = self.image.get_rect()
+            self.rect.topleft = self.start_pos
+        else:
+            self._void()
 
         self.time = time.time()
         self.copy_of_c = deepcopy(c.__dict__)
@@ -643,61 +654,124 @@ class item(pygame.sprite.Sprite):
                         key_str = str(key)
                         setattr(class_changing, key_str, getattr(class_changing, key_str) + value)
 
+    def draw(self, go_to_pos: list = [-1, -1]) -> pygame.Surface:
+        if self.rect.topleft != go_to_pos and self.rect.topleft != (-1, -1):
+            self.delta = list(map(spe.sign,
+                                  list(map(sub, go_to_pos,
+                                           self.rect.center))
+                                  (3, 3)))
+            self.rect.topleft = tuple(map(add, self.delta, self.rect.topleft))
+        if self.rect.topleft == go_to_pos:
+            self._void()
+        return (self.image, self.rect.topleft)
+
     def __repr__(self) -> str:
-        return self.name
+        return str(self.name)
 
     def __del__(self):
         global c
-        print(f'Item {str(self).lower()} has been deleted at {time.asctime()}')
+        print(f'Item {str(self).lower()} has been deleted')
         # Resets c's dict to its original state
         c.__dict__ = self.copy_of_c
 
+    def _void(self):
+        '''Makes the image "underrendable"'''
+        self.image = pygame.Surface((0, 0), pygame.SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (-1, -1)
 
-class item_manager:
+
+class item_manager(pygame.sprite.Sprite):
     # ==Dunder/internal methods for item_manager==
     def __init__(self):
+        super().__init__()
         self.item_list = []
         self.unique_items = {}
+        self.image = pygame.Surface((256, 256), flags=pygame.SRCALPHA)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (0, 0)
 
     def __add__(self, item_to_add: item):
         self.item_list.append(item_to_add)
         self._calculate_unique_items()
+        print(f'Item {item_to_add} is being added to {self.item_list} and {self.unique_items}', self)
+        return self
 
     def __delitem__(self, key: str):
-        '''This deletes the first object that are of the name of the key'''
-        key = [object for object in self.item_list if object.name == key.lower()][0]
+        '''This deletes the last object that are of the name of the key,
+            it removes the last object so it doesn't mess up ordering'''
+        key = [object for object in self.item_list if object.name == key.lower()][-1]
         self.item_list.remove(key)
         self._calculate_unique_items()
 
     def __len__(self) -> int:
         return len(self.item_list)
 
-    def _len_of_unique(self, key: str) -> int:
+    def __getitem__(self, key: str) -> item:
+        return [object for object in self.item_list if object.name == key.lower()][0]
+
+    def _len_of_unique(self) -> int:
+        return len(self.unique_items)
+
+    def len(self, key: str) -> int:
         return self.unique_items[key.lower()]
 
     def _calculate_unique_items(self):
         self.unique_items = Counter([object.name for object in self.item_list])
 
-    def card(self, item, stacking = 1):
-        self.pos 
-        self.surface = pygame.Surface((24, 22), flags=pygame.SRCALPHA)
-        self.surface.blit(pygame.image.load(Apj("item_background.png")))
-        self.surface.blit(grph.spritesheet("item_sprites.png", (*item.sprite, 12, 12)))
-        self.message = grph.message_box(self.name.capitalize(), (0, 0, 0, 0), [22, 8], [1, 12])
-        self.surface.blit(self.message, (0, 0))
+    def card(self, item, stacking=1):
+        self.surface = pygame.Surface((28, 24), flags=pygame.SRCALPHA)
+        self.surface.blit(pygame.image.load(Apj("item_background.png")), (2, 0))
+        for i in range(min(stacking - 1, 2), -1, -1):
+            print(i)
+            icon = grph.spritesheet(Apj("item_sprites.png"), (*item.sprite, 12, 12))
+            transparency = pygame.Surface((12, 12), pygame.SRCALPHA)
+            transparency.fill((255, 255, 255, (3 - i) * 43 + 96))
+            icon.blit(transparency, (0, 0),
+                      special_flags=pygame.BLEND_RGBA_MIN)
+            darkerener = pygame.Surface((12, 12), pygame.SRCALPHA)
+            darkerener.fill((i*50, i*50, i*50))
+            icon.blit(darkerener, (0, 0),
+                      special_flags=pygame.BLEND_RGB_SUB)
+            if i > 0:
+                print("pixel values", icon.get_at((0, 0)), icon.get_at((2, 2)))
+            self.surface.blit(icon, tuple(map(sub, (2, 0), (i*2, i*2))))
+        if stacking > 1:
+            grph.word_wrap(self.surface, str(stacking), pygame.freetype.Font(
+                Apj('8-bit Arcade In.ttf'), 18), xy=[5, 6], colour=(255, 255, 255, 210))
+        self.message = grph.message_box(str(item).capitalize(),
+                                        (0, 0, 0, 0), [100, 20], [3, 9])
+        self.message.update()
+        self.surface.blit(self.message.image, (0, 0))
         return self.surface
+
+    def __repr__(self) -> str:
+        return 'Item container: ' + str([obj for obj in self.item_list])
 
     # =='Outward facing' methods==
     def cards(self):
-        self.surface = pygame.Surface((208, 24), flags=pygame.SRCALPHA)
+        self.cards_surf = pygame.Surface((208, 24), flags=pygame.SRCALPHA)
         for pos, (item, amount) in enumerate(self.unique_items.items()):
-            self.surface.blit(self.card(item, amount), (pos*22 + 1, 1))
-        return self.surface.convert_alpha()  # This makes blit more efficient
+            item = self.__getitem__(item)
+            self.cards_surf.blit(self.card(item, amount), (pos*22 + 1, 0))
+        return self.cards_surf.convert_alpha()
+        # This makes blit more efficient
 
     def update(self):
         [object.update() for object in self.item_list]
         # Updates every item in item_list
-        return
+        self.image = self.draw()
+
+    def draw(self) -> pygame.Surface:
+        self.draw_surf = pygame.Surface((256, 256), flags=pygame.SRCALPHA)
+        self.draw_surf.blit(self.cards(), (24, 0))
+        self.poses_of_cards = {key: value for key, value in zip(
+                                self.unique_items.keys(),
+                               [(25 + i, 1) for i in range(
+                                   self._len_of_unique())])
+                               }
+        self.draw_surf.blits([obj.draw(self.poses_of_cards[obj.name]) for obj in self.item_list])
+        return self.draw_surf
 
 
 def events():
