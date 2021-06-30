@@ -1,6 +1,11 @@
 class a:
     def __init__(self) -> None:
-        self.a = 1
+        self._a = 1
     
-    def __repr__(self) -> str:
-        return 'a'
+    @property
+    def a(self):
+        return self._a
+    
+    @a.setter
+    def a(self, value):
+        self._a = value
