@@ -109,24 +109,29 @@ class Transition(pygame.sprite.Sprite, G):
         return 'Transition Class'
 
 
-def word_wrap(surf, text, font, colour=(255, 255, 255), xy=[0, 0]):
+def word_wrap(surf, text, font, colour=(255, 255, 255), xy=[0, 0], antialiased=True):
     font.origin = True
+    font.antialiased = antialiased
     words = text.split(' ')
     width, height = surf.get_size()
     txt_bounds = font.get_rect(text)
+
     if xy[0] == 'center':
         xy[0] = 0
-        xy[0] = width // 2 - txt_bounds.width // 2 
+        xy[0] = width // 2 - txt_bounds.width // 2
     elif xy[1] == 'center':
-        print(height, txt_bounds.height)
         xy[1] = 0
-        xy[1] = height // 2 - (txt_bounds.height // 2  - 128 // height)
+        xy[1] = height // 2 - (txt_bounds.height // 2 - 128 // height)
     elif xy == 'center':
         xy = [0, 0]
         xy[0] = width // 2 - txt_bounds.width // 2
-        xy[1] = height // 2 + (txt_bounds.height + 2) // 2    
+        xy[1] = height // 2 + (txt_bounds.height + 2) // 2
+
     line_spacing = font.get_sized_height() + 2
-    x, y = 0 + xy[0], line_spacing - 14 + xy[1]
+    if txt_bounds.height >= 14:
+        x, y = 0 + xy[0], line_spacing - 14 + xy[1]
+    else:
+        x, y = 0 + xy[0], 0 + xy[1]
     space = font.get_rect(' ')
     for word in words:
         bounds = font.get_rect(word)
@@ -134,8 +139,8 @@ def word_wrap(surf, text, font, colour=(255, 255, 255), xy=[0, 0]):
             x, y = 0, y + line_spacing
         if x + bounds.width + bounds.x >= width:
             raise ValueError("word too wide for the surface")
-        # if y + bounds.height - bounds.y >= height:
-        #     raise ValueError("text to long for the surface")
+        if y + bounds.height - bounds.y >= height:
+            raise ValueError("text to long for the surface")
         font.render_to(surf, (x, y), None, colour)
         x += bounds.width + space.width
     return xy
@@ -210,12 +215,11 @@ class message_box(pygame.sprite.Sprite, G):
                 > 256 - self.offset_from_left:
             # This means that font is bigger than the surface
             self.scroll = self.offset_font_based - (256 - self.offset_from_left)
-            print(self.offset_font_based, self.scroll)
             self.scroll = cycle([a for a in range(0, self.scroll + 3, wh[1] // 16)]
                                 + [a for a in range(self.scroll + 3,
                                                     0, -wh[1] // 16)])
 
-    def update(self, text=None):
+    def update(self, text=None, xy=None):
         self.image.fill((0, 0, 0, 0))
         self.text_surface.fill(self.colour)  # Makes it blank
         word_wrap(self.text_surface, self.text, Font(

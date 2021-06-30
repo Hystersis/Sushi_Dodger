@@ -69,11 +69,8 @@ class Initi:
         self.background = Background('background_res2.png')
         self.layers.add(self.background, layer=0)
         global c
-        c = DifficultlyStats()  # c = config
-        self.missile = spe.missile((0, 0), 1)
-        self.layers.add(self.missile, layer=2)
-        self.items = item_manager()
-        self.layers.add(self.items, layer=5)
+        self.layers.add(c.items, layer=0)
+        c.items += item(iV=self, **{"name": "health", "sprite": [0, 0]})
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -99,6 +96,7 @@ class Placeholder(pygame.sprite.Sprite):
 class DifficultlyStats:
     def __init__(self):
         self.reset()
+        self.items = item_manager()
 
     def reset(self):
         self.fps = 10
@@ -108,7 +106,9 @@ class DifficultlyStats:
         self.intelligence = 8  # The higher the number more 'intelligent'
         self._sspeed = 0  # The higher the number the faster
         self.sensitivity = 0.2  # The higher the number the less sensitive
-        self.luck = 1  # This has to be a decimal or 1
+        self.luck = 0.2  # This has to be a decimal or 1
+        self._health = 1
+        self._score = 0
 
     @property
     def dspeed(self):
@@ -128,6 +128,37 @@ class DifficultlyStats:
 
     def load_from_json(self):
         jsn.config.get(self)
+
+    @property
+    def health(self):
+        # self.reset_item("health", self._health, [0, 0])
+        return self._health
+
+    @health.setter
+    def health(self, value):
+        self._health = value
+        self.reset_item("health", self._health, [0, 0])
+
+    @property
+    def score(self):
+        self.reset_item("score", self._score, [0, 0])
+        return self._score
+
+    @score.setter
+    def score(self, value):
+        self._score = value
+        self.reset_item("score", self._score, [0, 0])
+        # !This must be changed to demonstrate the score's sprite sheet
+
+    def reset_item(self, item: str, val: int, sprite: list):
+        num_items = c.items.len(item)
+        if num_items > val:
+            for _ in range(num_items - val):
+                del c.items[item]
+        elif num_items < val:
+            for _ in range(num_items - val):
+                c.items += item(**{"name": item, "sprite": sprite})
+
 
 #                               ,,
 # `7MM"""Yb.                  `7MM
@@ -187,17 +218,14 @@ class Dodger(pygame.sprite.Sprite):
         return [list(self.rect.topleft), list(self.rect.bottomright)]
 
     def killed(self):
-        # print(ddger_group)
-        self.lives -= 1
-        print('Lives:',self.lives)
-        if self.lives == 0:
+        c.health -= 1
+        if c.health == 0:
             i.gm = 'Died'
             self.kill()
             print('You died!, press \'X\' to start again')
             return False
         else:
             return True
-        # print(ddger_group)
 
 
 
@@ -260,16 +288,12 @@ class Sushi(pygame.sprite.Sprite):
         return (x, y)
 
     def killed(self):
-        print('Killed!')
         i.score += 1
         self.kill()
-        print('len:', len(i.sshi_group))
         if len(i.sshi_group) == 0:
             i.gm = 'Won'
-            print('Won', i.gm)
         if random.random() <= c.luck:
-            i.items = jsn.items().return_item(item, start_pos = self.rect.topleft)
-            print('{:=^35}'.format('Item {} was created'.format(str(i.items).lower())))
+            c.items += jsn.items().return_item(item, start_pos = self.rect.topleft)
 
     def create_centre(self):
         self.rt = pygame.image.load(os.path.join("Assets",
@@ -326,11 +350,8 @@ def main():
     clock = pygame.time.Clock()
     global i, c
     track_previous_gm = 'Active'
-    i.items += item(**{"name": "health", "sprite": [0, 0]})
-    i.items += item(**{"name": "health", "sprite": [0, 0]})
     while True:
         move_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
-        # print('Gamemode:\t',gm)
         clock.tick(c.fps)
         act = pygame.key.get_focused()
         if act and i.gm == 'Paused':
@@ -342,8 +363,8 @@ def main():
             events()  # As die screen has its own event system
 
         if i.gm == 'Active':
-            # print('Score:',score)
             i.sshi_group.update()
+            c.items.update()
 
         if i.gm == 'Died' and track_previous_gm != 'Died':
             d = die_screen()
@@ -353,7 +374,6 @@ def main():
             d.kill()
 
         if i.gm == 'Won' and track_previous_gm != 'Won':
-            print('Won')
             i = Initi(i.lvl + 1)
         elif i.gm == 'Won':
             pass  # Add code here later
@@ -363,15 +383,11 @@ def main():
         pygame.display.flip()
         move_screen.fill((0, 0, 0)), Initi.screen.fill((0, 0, 0))
         i.background.draw(Initi.screen)
-        i.items.update()
-        # print(i.items)
         i.layers.draw(move_screen)
         i.ddger.update()
         Initi.screen.blit(move_screen, next(i.offset))
         i.unayers.draw(Initi.screen)
         track_previous_gm = i.gm
-        i.missile.update(i.ddger)
-        # Initi.screen.blit(i.items.draw(), (0, 0))
 
 #                   ,,
 # `7MMM.     ,MMF'  db
@@ -425,7 +441,6 @@ class die_screen():
               'Board': 'score_screen1.png',
               'Fade': 'fade_out.bmp'}
     def __init__(self):
-        global i
         self.YPpos = [add(x, i.ddger.pos[1]) for x in [0, 1, 2, 3, 4,
                                                                 3, 2, 1]]
         self.Ppos = cycle(zip(repeat(i.ddger.pos[0]),
@@ -442,7 +457,6 @@ class die_screen():
         i.layers.add(self.ripple, layer=1)
         self.time = time.time()
         i.layers.remove_sprites_of_layer(2)
-        print(i.sshi_group)
         self.fade = count(0, 5)
         self.menu_screen = Background('blank.png')
         self.menu_screen.set_alpha(0)
@@ -606,23 +620,42 @@ class Background(pygame.sprite.Sprite):
 
 
 class item(pygame.sprite.Sprite):
-    def __init__(self, **kwargs):
-        global i, c
+    def __init__(self, iV=None, **kwargs):
+        if iV is None:
+            global i
+        else:
+            i = iV
+        global c
         super().__init__()
-        self.activate_list = {'life': i.ddger}  # TODO: add more + change
+
+        self.copy_of_c = {k:v for k,v in c.__dict__.items() if k != 'items'}
+
+        self.activate_list = {'health': c.health}  # TODO: add more + change
         for key, value in kwargs.items():
             setattr(self, str(key).lower(), value)
             # This converts all the inputted dict into variables
 
+        if 'name' not in self.__dict__.keys():
+            raise SystemExit('Name was not passed into item')
+        if 'sprite' not in self.__dict__.keys():
+            raise SystemExit('Sprite was not passed into item')
+
         if 'start_pos' in self.__dict__.keys():
-            self.image = grph.spritesheet("item_sprites.png", (*self.sprite, 12, 12))
+            self.image = grph.spritesheet(Apj("item_sprites.png"), (*self.sprite, 12, 12))
             self.rect = self.image.get_rect()
             self.rect.topleft = self.start_pos
         else:
             self._void()
 
         self.time = time.time()
-        self.copy_of_c = deepcopy(c.__dict__)
+        self.offset = pygame.freetype.Font(Apj('8-bit Arcade In.ttf'), 12)\
+            .get_rect(self.name).width
+        self.scroll = cycle(list(repeat(0, 5))
+                            + [a for a in range(0, self.offset)]
+                            + [a for a in range(self.offset,
+                                                0, -1)]
+                            + list(repeat(self.offset, 5)))
+
 
         if 'key_press' in self.__dict__.keys():
             self.key_press = getattr(pygame, 'K_' + self.key_press)
@@ -636,8 +669,7 @@ class item(pygame.sprite.Sprite):
         if 'instants' in self.__dict__.keys():
             for key, value in self.instants.items():
                 class_changing = self.activate_list[str(key)]
-                key_str = str(key)
-                setattr(class_changing, key_str, getattr(class_changing, key_str) + value)
+                class_changing += 1
 
     def update(self):
         # if time.time() - self.time >= self.duration:
@@ -656,9 +688,9 @@ class item(pygame.sprite.Sprite):
 
     def draw(self, go_to_pos: list = [-1, -1]) -> pygame.Surface:
         if self.rect.topleft != go_to_pos and self.rect.topleft != (-1, -1):
-            self.delta = list(map(spe.sign,
-                                  list(map(sub, go_to_pos,
-                                           self.rect.center))
+            self.delta = list(map(minmax, (-3, -3),
+                                  map(sub, go_to_pos,
+                                      self.rect.topleft),
                                   (3, 3)))
             self.rect.topleft = tuple(map(add, self.delta, self.rect.topleft))
         if self.rect.topleft == go_to_pos:
@@ -670,9 +702,9 @@ class item(pygame.sprite.Sprite):
 
     def __del__(self):
         global c
-        print(f'Item {str(self).lower()} has been deleted')
         # Resets c's dict to its original state
-        c.__dict__ = self.copy_of_c
+        c.__dict__ = {k: v for k, v in c.__dict__.items() if k == 'items'}\
+        | self.copy_of_c
 
     def _void(self):
         '''Makes the image "underrendable"'''
@@ -694,7 +726,6 @@ class item_manager(pygame.sprite.Sprite):
     def __add__(self, item_to_add: item):
         self.item_list.append(item_to_add)
         self._calculate_unique_items()
-        print(f'Item {item_to_add} is being added to {self.item_list} and {self.unique_items}', self)
         return self
 
     def __delitem__(self, key: str):
@@ -716,33 +747,43 @@ class item_manager(pygame.sprite.Sprite):
     def len(self, key: str) -> int:
         return self.unique_items[key.lower()]
 
+    def empty(self):
+        for item in self.item_list:
+            del item
+
     def _calculate_unique_items(self):
         self.unique_items = Counter([object.name for object in self.item_list])
 
     def card(self, item, stacking=1):
         self.surface = pygame.Surface((28, 24), flags=pygame.SRCALPHA)
         self.surface.blit(pygame.image.load(Apj("item_background.png")), (2, 0))
-        for i in range(min(stacking - 1, 2), -1, -1):
-            print(i)
+        for x in range(min(stacking - 1, 2), -1, -1):
             icon = grph.spritesheet(Apj("item_sprites.png"), (*item.sprite, 12, 12))
             transparency = pygame.Surface((12, 12), pygame.SRCALPHA)
-            transparency.fill((255, 255, 255, (3 - i) * 43 + 96))
+            transparency.fill((255, 255, 255, (3 - x) * 43 + 96))
             icon.blit(transparency, (0, 0),
                       special_flags=pygame.BLEND_RGBA_MIN)
             darkerener = pygame.Surface((12, 12), pygame.SRCALPHA)
-            darkerener.fill((i*50, i*50, i*50))
+            darkerener.fill((x*50, x*50, x*50))
             icon.blit(darkerener, (0, 0),
                       special_flags=pygame.BLEND_RGB_SUB)
-            if i > 0:
-                print("pixel values", icon.get_at((0, 0)), icon.get_at((2, 2)))
-            self.surface.blit(icon, tuple(map(sub, (2, 0), (i*2, i*2))))
-        if stacking > 1:
-            grph.word_wrap(self.surface, str(stacking), pygame.freetype.Font(
-                Apj('8-bit Arcade In.ttf'), 18), xy=[5, 6], colour=(255, 255, 255, 210))
-        self.message = grph.message_box(str(item).capitalize(),
-                                        (0, 0, 0, 0), [100, 20], [3, 9])
-        self.message.update()
-        self.surface.blit(self.message.image, (0, 0))
+            self.surface.blit(icon, tuple(map(sub, (2, 0), (x*2, x*2))))
+
+        grph.word_wrap(self.surface, '{:>2}'.format(stacking),
+                       pygame.freetype.Font(
+                Apj('manaspace.regular.ttf'), 11),
+                xy=[12, 9], colour=(46, 34, 47), antialiased=False)
+        self.text_surface = pygame.Surface((100, 8), flags=pygame.SRCALPHA)
+        self.text_surface2 = pygame.Surface((22, 8), flags=pygame.SRCALPHA)
+        scroll = next(item.scroll)
+        global i
+        grph.word_wrap(self.text_surface, str(item).capitalize(),
+                       pygame.freetype.Font(
+                Apj('8-bit Arcade In.ttf'), 18),
+            xy=[2, 7], colour=(62, 53, 70), antialiased=False
+            )
+        self.text_surface2.blit(self.text_surface, (-1-scroll, 0))
+        self.surface.blit(self.text_surface2, (3, 13))
         return self.surface
 
     def __repr__(self) -> str:
@@ -767,9 +808,10 @@ class item_manager(pygame.sprite.Sprite):
         self.draw_surf.blit(self.cards(), (24, 0))
         self.poses_of_cards = {key: value for key, value in zip(
                                 self.unique_items.keys(),
-                               [(25 + i, 1) for i in range(
+                               [(25 + i*24, 1) for i in range(
                                    self._len_of_unique())])
                                }
+        print(self.poses_of_cards)
         self.draw_surf.blits([obj.draw(self.poses_of_cards[obj.name]) for obj in self.item_list])
         return self.draw_surf
 
@@ -826,7 +868,8 @@ def sr():
 
 
 def start(screen=None):
-    global i
+    global i, c
+    c = DifficultlyStats()
     i = Initi(screen=screen)
     main()
 
