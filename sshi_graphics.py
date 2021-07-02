@@ -304,6 +304,9 @@ class button_symbol(pygame.sprite.Sprite, able_to_lock_in_menu):
 
 
 def spritesheet(imge, rect):
+    """In rect argument the (x,y,w,h)
+    so x,y equal the position of the sprite in the sheet by topleft
+    the w,h correspond to the width,height of the sprites in the sheet."""
     rect = pygame.Rect(rect)
     image = pygame.Surface(rect.size, flags=pygame.SRCALPHA)
     image.blit(pygame.image.load(imge), (0, 0), rect)
