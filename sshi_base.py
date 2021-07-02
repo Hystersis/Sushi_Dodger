@@ -1,9 +1,11 @@
 import pygame
-import sshi_core as core
 import os
+import time
 import ctypes
-import sshi_graphics as grph
 import pygame.freetype
+
+import sshi_core as core
+import sshi_graphics as grph
 
 # `7MMM.     ,MMF'
 #   MMMb    dPMM
@@ -17,10 +19,6 @@ import pygame.freetype
 class M_page:
     def update(self, *args, **kwargs):
         self.group.update(*args, **kwargs)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
 
     def draw(self):
         t_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
@@ -36,6 +34,11 @@ class M_main(M_page):
         self.group = pygame.sprite.Group()
         self.group.add(self.b1), self.group.add(self.b2)
         self.group.add(self.b3)
+    
+    def update(self, *args, **kwargs):
+        self.group.update(*args, **kwargs)
+        for event in pygame.event.get():
+            events(event)
 
 
 class M_credits(M_page):
@@ -56,16 +59,20 @@ class M_credits(M_page):
         self.b.append(Button((0, 240), (256, 24), (0, 0, 0), 'From codeman38', test, True))
 
         self.group = pygame.sprite.Group()
+
+        self.elapsed_time = time.time()
+        self.message = grph.message_box('Press the key esc to leave', (106, 23, 45, 200), [256, 16], xy=[0, 240])
         for x in self.b:
             self.group.add(x)
         self.scroll = 0
 
     def update(self, *args, **kwargs):
         self.group.update(*args, **kwargs)
+        if time.time() - self.elapsed_time > 7.5:
+            self.message.update()
         for event in pygame.event.get():
             if event.type == pygame.MOUSEWHEEL:
                 self.scroll = core.minmax(0, self.scroll + event.__dict__['y'] * 10, 5)
-                print('changed', self.scroll)
             events(event)
 
     def draw(self):
@@ -73,6 +80,7 @@ class M_credits(M_page):
         t_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
         self.group.draw(s_screen)
         t_screen.blit(s_screen, (0, 0 - self.scroll))
+        t_screen.blit(self.message.image, (0, 0))
         return t_screen
 
 
@@ -86,11 +94,21 @@ class M_settings(M_page):
         for x in self.b:
             self.group.add(x)
         self.scroll = 0
+        self.elapsed_time = time.time()
+        self.message = grph.message_box('Press the key esc to leave', (106, 23, 45, 200), [256, 16], xy=[0, 240])
     
     def update(self, *args, **kwargs):
         self.group.update(*args, **kwargs)
+        if time.time() - self.elapsed_time > 7.5:
+            self.message.update()
         for event in pygame.event.get():
             events(event)
+    
+    def draw(self):
+        t_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
+        self.group.draw(t_screen)
+        t_screen.blit(self.message.image, (0, 0))
+        return t_screen
 
 
 class Button(pygame.sprite.Sprite):
@@ -148,6 +166,8 @@ def events(event):
         exit()
     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
         m(M_main)
+    if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
+        pygame.display.toggle_fullscreen()
 
 class Menus:
     state = M_main
@@ -180,7 +200,6 @@ if __name__ == '__main__':
     while True:
         pygame.display.flip()
         clock.tick(60)  # Locks the frame rate to 60 fps
-        mscreen.blit(pygame.image.load(os.path.join('Assets', 'background_res1.png')), (0,0))
+        mscreen.blit(pygame.image.load(os.path.join('Assets', 'menu_background.png')), (0,0))
         m.update(Play=mscreen) # The key is the txt on the button
         mscreen.blit(m.draw(), (0, 0))
-        core.events()

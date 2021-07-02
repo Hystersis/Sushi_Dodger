@@ -70,7 +70,11 @@ class Initi:
         self.layers.add(self.background, layer=0)
         global c
         self.layers.add(c.items, layer=0)
-        c.items += item(iV=self, **{"name": "health", "sprite": [0, 0]})
+        if c._health == 0:
+            print('health added')
+            c.items += item(iV=self, **{"name": "health",
+                                        "sprite": jsn.items().item_val('health', 'sprite')})
+            c._health += 1
 
     def Level(self, lvl):
         self.lvl = lvl
@@ -106,8 +110,8 @@ class DifficultlyStats:
         self.intelligence = 8  # The higher the number more 'intelligent'
         self._sspeed = 0  # The higher the number the faster
         self.sensitivity = 0.2  # The higher the number the less sensitive
-        self.luck = 0.2  # This has to be a decimal or 1
-        self._health = 1
+        self.luck = 1  # This has to be a decimal or 1
+        self._health = 0
         self._score = 0
 
     @property
@@ -218,14 +222,9 @@ class Dodger(pygame.sprite.Sprite):
         return [list(self.rect.topleft), list(self.rect.bottomright)]
 
     def killed(self):
-        c.health -= 1
-        if c.health == 0:
-            i.gm = 'Died'
-            self.kill()
-            print('You died!, press \'X\' to start again')
-            return False
-        else:
-            return True
+        i.gm = 'Died'
+        self.kill()
+        print('You died!, press \'X\' to start again')
 
 
 
@@ -287,12 +286,14 @@ class Sushi(pygame.sprite.Sprite):
                 continue
         return (x, y)
 
-    def killed(self):
-        i.score += 1
+    def killed(self, do_drop=True):
+        # Do drop exists when a sshi dies due to the ddger having another life
+        # the sshi doesn't just drop another one
+        c.score += 1
         self.kill()
         if len(i.sshi_group) == 0:
             i.gm = 'Won'
-        if random.random() <= c.luck:
+        if random.random() <= c.luck and do_drop:
             c.items += jsn.items().return_item(item, start_pos = self.rect.topleft)
 
     def create_centre(self):
@@ -312,7 +313,16 @@ class Sushi(pygame.sprite.Sprite):
         if len(list(filter(lambda a: -16 < a < 16, self.deltan))) == 2:
             # This sees if sshi is in AoE of the ddger
             i.offset = shake()  # This shakes the screen
-            i.ddger.killed() if self.deltan[1] < 0 else self.killed()
+            if self.deltan[1] < 0:
+                c.health -= 1
+                if c.health >= 1:
+                    self.killed(False)
+                    c.items.minus_of(jsn.items().item_val('health', 'sprite'),
+                                     self.rect.topleft)
+                else:
+                    i.ddger.killed()
+            else:
+                self.killed()
             # This kills the ddger if it is bellow the sshi, and vice versa
 
     def avoid(self):
@@ -457,6 +467,8 @@ class die_screen():
         i.layers.add(self.ripple, layer=1)
         self.time = time.time()
         i.layers.remove_sprites_of_layer(2)
+        i.layers.remove(c.items)
+        c.items.empty()
         self.fade = count(0, 5)
         self.menu_screen = Background('blank.png')
         self.menu_screen.set_alpha(0)
@@ -652,9 +664,9 @@ class item(pygame.sprite.Sprite):
             .get_rect(self.name).width
         self.scroll = cycle(list(repeat(0, 5))
                             + [a for a in range(0, self.offset)]
+                            + list(repeat(self.offset, 5))
                             + [a for a in range(self.offset,
-                                                0, -1)]
-                            + list(repeat(self.offset, 5)))
+                                                0, -1)])
 
 
         if 'key_press' in self.__dict__.keys():
@@ -672,8 +684,9 @@ class item(pygame.sprite.Sprite):
                 class_changing += 1
 
     def update(self):
-        # if time.time() - self.time >= self.duration:
-        #     del self
+        if 'duration' in self.__dict__.keys() and time.time() - self.time >= self.duration:
+            self.kill()
+            del c.items[self.name]
         if 'key_press' in self.__dict__.keys():
             if pygame.key.get_pressed()[self.key_press]:
                 if 'instants' in self.__dict__.keys():
@@ -681,6 +694,8 @@ class item(pygame.sprite.Sprite):
                         if key == 'restart':
                             global i
                             i = Initi(i.lvl)
+                            self.kill()
+                            del c.items[self.name]
                             continue
                         class_changing = self.activate_list[str(key)]
                         key_str = str(key)
@@ -719,6 +734,7 @@ class item_manager(pygame.sprite.Sprite):
         super().__init__()
         self.item_list = []
         self.unique_items = {}
+        self.other_items = []
         self.image = pygame.Surface((256, 256), flags=pygame.SRCALPHA)
         self.rect = self.image.get_rect()
         self.rect.topleft = (0, 0)
@@ -739,7 +755,7 @@ class item_manager(pygame.sprite.Sprite):
         return len(self.item_list)
 
     def __getitem__(self, key: str) -> item:
-        return [object for object in self.item_list if object.name == key.lower()][0]
+        return [object for object in self.item_list if object.name == key.lower()][-1]
 
     def _len_of_unique(self) -> int:
         return len(self.unique_items)
@@ -748,8 +764,10 @@ class item_manager(pygame.sprite.Sprite):
         return self.unique_items[key.lower()]
 
     def empty(self):
-        for item in self.item_list:
-            del item
+        self.item_list = []
+        self.unique_items = {}
+        c._health = 0
+        print(self.item_list, self.unique_items, c.health, c._health)
 
     def _calculate_unique_items(self):
         self.unique_items = Counter([object.name for object in self.item_list])
@@ -773,7 +791,7 @@ class item_manager(pygame.sprite.Sprite):
                        pygame.freetype.Font(
                 Apj('manaspace.regular.ttf'), 11),
                 xy=[12, 9], colour=(46, 34, 47), antialiased=False)
-        self.text_surface = pygame.Surface((100, 8), flags=pygame.SRCALPHA)
+        self.text_surface = pygame.Surface((256, 8), flags=pygame.SRCALPHA)
         self.text_surface2 = pygame.Surface((22, 8), flags=pygame.SRCALPHA)
         scroll = next(item.scroll)
         global i
@@ -784,6 +802,21 @@ class item_manager(pygame.sprite.Sprite):
             )
         self.text_surface2.blit(self.text_surface, (-1-scroll, 0))
         self.surface.blit(self.text_surface2, (3, 13))
+
+        if "duration" in item.__dict__.keys():
+            if "cumduration" not in item.__dict__.keys():
+                print('cumduration didn\'t exist')
+                self.cum_time = time.time()
+                for num, t in enumerate([obj for obj in self.item_list if obj.name == item.name], 1):
+                    t.cumduration = 'Set'
+                    t.duration = jsn.items().item_val(item.name, 'duration') * num
+                    t.time = self.cum_time
+            self.times = [item.time, item.duration]
+            self.progress_bar = pygame.image.load(Apj("progress_bar.png"))
+            self.progress_surface = pygame.Surface((max(round(24 / self.times[1] * (self.times[1] - (time.time() - self.times[0]))), 0), 1))
+            self.progress_surface.blit(self.progress_bar, (0, 0))
+            self.surface.blit(self.progress_surface, (2, 21))
+
         return self.surface
 
     def __repr__(self) -> str:
@@ -794,7 +827,7 @@ class item_manager(pygame.sprite.Sprite):
         self.cards_surf = pygame.Surface((208, 24), flags=pygame.SRCALPHA)
         for pos, (item, amount) in enumerate(self.unique_items.items()):
             item = self.__getitem__(item)
-            self.cards_surf.blit(self.card(item, amount), (pos*22 + 1, 0))
+            self.cards_surf.blit(self.card(item, amount), (pos*25, 0))
         return self.cards_surf.convert_alpha()
         # This makes blit more efficient
 
@@ -808,12 +841,19 @@ class item_manager(pygame.sprite.Sprite):
         self.draw_surf.blit(self.cards(), (24, 0))
         self.poses_of_cards = {key: value for key, value in zip(
                                 self.unique_items.keys(),
-                               [(25 + i*24, 1) for i in range(
+                               [(24 + i*25, 1) for i in range(
                                    self._len_of_unique())])
                                }
-        print(self.poses_of_cards)
         self.draw_surf.blits([obj.draw(self.poses_of_cards[obj.name]) for obj in self.item_list])
+        self.draw_surf.blits([[section[0], section[1].pop()] for section in self.other_items if len(section[1]) > 0])
+        self.other_items = [section for section in self.other_items if len(section[1]) > 0]
         return self.draw_surf
+
+    def minus_of(self, sprite: list, pos: list):
+        self.move_up = zip([[pos[0], [pos[1] - i for i in range(10)][0]]],
+                           [int(255/9 * i) for i in range(9, -1, -1)])
+        surface = grph.spritesheet(Apj("item_sprites.png"), (*sprite, 12, 12))
+        self.other_items.append([surface, self.move_up])
 
 
 def events():

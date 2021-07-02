@@ -77,6 +77,11 @@ class items:
         self.choice_values = [x for x in self.items if x['name'] == self.choice[0]][0]
         item = item_function(**kwargs, **(self.choice_values))
         return item
+    
+    def item_val(self, key: str, value: str) -> list:
+        with open('scoreboard.json', 'r') as board:
+            self.avaitems = json.load(board)['items']
+        return [x[value] for x in self.avaitems if x['name'] == key][0]
 
 def test(*args, **kwargs):
     print(args, kwargs)
