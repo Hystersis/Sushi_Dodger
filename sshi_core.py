@@ -10,10 +10,11 @@ import os
 import sys
 from itertools import repeat, cycle, count
 import random
-from operator import sub, add
+from operator import sub, add, mul
 from copy import deepcopy
 import time
 from collections import Counter
+from abc import ABC, abstractmethod
 
 # This importing the other modules into core
 import sshi_graphics as grph
@@ -107,10 +108,10 @@ class DifficultlyStats:
         self.overall_speed = 1
         # Allows for all entities to be speed up by one control
         self._dspeed = 1.6
-        self.intelligence = 8  # The higher the number more 'intelligent'
+        self.intelligence = 0  # The higher the number more 'intelligent', max: 16
         self._sspeed = 0  # The higher the number the faster
         self.sensitivity = 0.2  # The higher the number the less sensitive
-        self.luck = 1  # This has to be a decimal or 1
+        self.luck = 0.2  # This has to be a decimal or 1, aka drop_rate
         self._health = 0
         self._score = 0
 
@@ -244,31 +245,15 @@ class Sushi(pygame.sprite.Sprite):
         self.create_centre()
         self.rect = self.image.get_rect()
         self.rect.topleft = self.poscheck(ddger)
+        self.move = sshi_classic_movement()
+        self.hit = sshi_classic_hit()
 
     def update(self):
         global i, c
-        self.ddger_pos = [i.ddger.rect.midtop[0], i.ddger.rect.midtop[1]
-                          + c.intelligence]
-        self.delta = list(map(sub, self.ddger_pos, self.rect.midtop))
-        # This maps each coordinate of ddger and sshi; ddger - sshi
-        # Intelligence is the factor for the sushi to aim for the bottom of
-        # the ddger, can lead to avoiding ddger
-        self.deltap = list(map(lambda z: z * random.uniform(1 -
-                               c.sensitivity + c.sspeed,
-            1 + c.sensitivity + c.sspeed) / abs(z)
-                               if z != 0 else 0, self.delta))
-        # This returns a -1, 0 or 1 (with a little bit of noise)
-        # depending on the delta
-        self.deltan = list(map(sub, i.ddger.rect.center, self.rect.center))
-        if not self.avoid():
-            self.rect.topleft = tuple(map(minmax, [0, 0],
-                                          map(add,
-                                              self.rect.topleft,
-                                              self.deltap),
-                                          [255, 255]))
-        # This adds the aforementioned -1, 0 or 1 to the current
-        # coordinates of sshi
-        self.checkhit()
+        if type(self.move) is sshi_classic_movement:
+            self.movement = tuple(map(add, map(mul, self.move(self, i.ddger), repeat(1 - c.intelligence / 16)), map(mul, sshi_avoid_movement()(self, i.ddger), repeat(c.intelligence / 16))))
+            self.rect.topleft = tuple(map(minmax, (0, 0), self.movement, (239, 239)))
+        self.hit(self, i.ddger)
 
     def poscheck(self, ddger):
         self.square = ddger.where_am_i(True)
@@ -308,43 +293,88 @@ class Sushi(pygame.sprite.Sprite):
         self.image.blit(self.center, (0, 0))
         self.image_copy = self.image.copy()
 
-    def checkhit(self):
-        # i.ddger.killed()
+
+class sshi_movement(ABC):
+    @abstractmethod
+    def __call__(self, sshi, ddger):
+        pass
+
+
+class sshi_hit(ABC):
+    @abstractmethod
+    def __call__(self, sshi, ddger):
+        pass
+
+
+class sshi_classic_movement(sshi_movement):
+    def __call__(self, sshi: Sushi, ddger: Dodger):
+        global i, c
+        self.ddger_pos = [ddger.rect.midtop[0], ddger.rect.midtop[1]
+                          + c.intelligence]
+        self.delta = list(map(sub, self.ddger_pos, sshi.rect.midtop))
+        # This maps each coordinate of ddger and sshi; ddger - sshi
+        # Intelligence is the factor for the sushi to aim for the bottom of
+        # the ddger, can lead to avoiding ddger
+        self.deltap = list(map(lambda z: z * random.uniform(1 -
+                               c.sensitivity + c.sspeed,
+            1 + c.sensitivity + c.sspeed) / abs(z)
+                               if z != 0 else 0, self.delta))
+        # This returns a -1, 0 or 1 (with a little bit of noise)
+        # depending on the delta
+        self.deltan = tuple(map(sub, ddger.rect.center, sshi.rect.center))
+        return tuple(map(add, sshi.rect.topleft, self.deltap))
+        # This adds the aforementioned -1, 0 or 1 to the current
+        # coordinates of sshi
+
+
+class sshi_avoid_movement(sshi_movement):
+    def __call__(self, sshi: Sushi, ddger: Dodger) -> tuple:
+        global i, closer
+        self.sense = c.intelligence * 3
+        self.sH = c.intelligence * 2
+        self.deltan = list(map(sub, ddger.rect.center, sshi.rect.center))
+        by = c.intelligence / 16 + c.sspeed
+        if len(list(filter(lambda a: -self.sense < a < self.sense, self.deltan))) == 2\
+                and c.intelligence >= 8:
+            if self.sH > self.deltan[1] > 8:
+                self.closer = tuple(map(closer, repeat(-self.sense),
+                                        self.deltan, repeat(self.sense),
+                                        repeat(by)))
+                self.NEW_pos = map(sub, map(sub, i.ddger.rect.center, self.closer), (8, 8))
+                return self.NEW_pos
+            elif 8 >= self.deltan[1] >= -8:
+                self.xmovement = closer(-self.sense, self.deltan[0], self.sense, by)
+                self.xmovement = -by if self.xmovement < self.deltan[0] else by
+                self.ymovement = -by
+                self.NEW_pos = tuple(map(add, sshi.rect.topleft, (self.xmovement, self.ymovement)))
+                return self.NEW_pos
+            elif -self.sH < self.deltan[1] < -8:
+                self.deltam = list(map(sub, ddger.rect.midbottom, sshi.rect.midbottom))
+                self.xmovement = math.copysign(by, -self.deltam[0])
+                self.ymovement = spe.sign(math.sin(abs(self.deltam[0])/(self.sense/math.pi))*(self.sense-8), by)
+                # The sin function = sin(abs(xpos/(max_x_value/pi)))*max_height
+                self.NEW_pos = tuple(map(sub, sshi.rect.topleft, (self.xmovement, self.ymovement)))
+                return self.NEW_pos
+        return sshi_classic_movement()(sshi, ddger)
+
+
+class sshi_classic_hit(sshi_hit):
+    def __call__(self, sshi: Sushi, ddger: Dodger):
+        self.deltan = list(map(sub, ddger.rect.center, sshi.rect.center))
         if len(list(filter(lambda a: -16 < a < 16, self.deltan))) == 2:
             # This sees if sshi is in AoE of the ddger
             i.offset = shake()  # This shakes the screen
             if self.deltan[1] < 0:
                 c.health -= 1
                 if c.health >= 1:
-                    self.killed(False)
+                    sshi.killed(False)
                     c.items.minus_of(jsn.items().item_val('health', 'sprite'),
                                      self.rect.topleft)
                 else:
                     i.ddger.killed()
             else:
-                self.killed()
-            # This kills the ddger if it is bellow the sshi, and vice versa
+                sshi.killed()
 
-    def avoid(self):
-        # TODO: add 'different' levels for the intelligence/avoid
-        global i, closer
-        self.sense = c.intelligence * 3
-        self.sH = c.intelligence * 2
-        if len(list(filter(lambda a: -self.sense < a < self.sense, self.deltan))) == 2:
-            if -self.sH < self.deltan[0] < self.sH and self.sH > self.deltan[1] > 8 and c.intelligence >= 8:
-                self.closer = tuple(map(closer, repeat(-self.sense),
-                                        self.deltan, repeat(self.sense),
-                                        repeat(c.intelligence / 16)))
-                self.NEW_pos = tuple(map(sub, i.ddger.rect.center, self.closer))
-                self.rect.center = tuple(map(minmax, repeat(0), self.NEW_pos, repeat(256)))
-                return True
-        return False
-
-
-# class background(pygame.sprite.Sprite):
-#     def __init__(self):
-#
-#     def state(self):
 
 
 #                            ,,
@@ -670,7 +700,7 @@ class item(pygame.sprite.Sprite):
 
 
         if 'key_press' in self.__dict__.keys():
-            self.key_press = getattr(pygame, 'K_' + self.key_press)
+            self.keypress = getattr(pygame, 'K_' + self.key_press)
             return
 
         # ========== This will not activate some of the time ==========
@@ -686,16 +716,16 @@ class item(pygame.sprite.Sprite):
     def update(self):
         if 'duration' in self.__dict__.keys() and time.time() - self.time >= self.duration:
             self.kill()
-            del c.items[self.name]
+            c.items.remove(self)
         if 'key_press' in self.__dict__.keys():
-            if pygame.key.get_pressed()[self.key_press]:
+            if pygame.key.get_pressed()[self.keypress]:
                 if 'instants' in self.__dict__.keys():
                     for key, value in self.instants.items():
                         if key == 'restart':
                             global i
                             i = Initi(i.lvl)
                             self.kill()
-                            del c.items[self.name]
+                            c.items.remove(self)
                             continue
                         class_changing = self.activate_list[str(key)]
                         key_str = str(key)
@@ -717,7 +747,7 @@ class item(pygame.sprite.Sprite):
 
     def __del__(self):
         global c
-        # Resets c's dict to its original state
+        # Resets c's dict to its original state, but doesn't overwrite the items value
         c.__dict__ = {k: v for k, v in c.__dict__.items() if k == 'items'}\
         | self.copy_of_c
 
@@ -749,6 +779,10 @@ class item_manager(pygame.sprite.Sprite):
             it removes the last object so it doesn't mess up ordering'''
         key = [object for object in self.item_list if object.name == key.lower()][-1]
         self.item_list.remove(key)
+        self._calculate_unique_items()
+    
+    def remove(self, to_remove):
+        self.item_list.remove(to_remove)
         self._calculate_unique_items()
 
     def __len__(self) -> int:
@@ -805,7 +839,6 @@ class item_manager(pygame.sprite.Sprite):
 
         if "duration" in item.__dict__.keys():
             if "cumduration" not in item.__dict__.keys():
-                print('cumduration didn\'t exist')
                 self.cum_time = time.time()
                 for num, t in enumerate([obj for obj in self.item_list if obj.name == item.name], 1):
                     t.cumduration = 'Set'
@@ -816,6 +849,9 @@ class item_manager(pygame.sprite.Sprite):
             self.progress_surface = pygame.Surface((max(round(24 / self.times[1] * (self.times[1] - (time.time() - self.times[0]))), 0), 1))
             self.progress_surface.blit(self.progress_bar, (0, 0))
             self.surface.blit(self.progress_surface, (2, 21))
+        
+        # if "key_press" in item.__dict__.keys():
+        #     self.surface.blit(grph.button_symbol('F5').image, (0, 0))
 
         return self.surface
 
