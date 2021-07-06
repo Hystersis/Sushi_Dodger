@@ -42,7 +42,15 @@ class missile(pygame.sprite.Sprite):
         self.image = pygame.transform.rotate(self.image, self.orientation // 2 * 90)
 
 
+class laser_enemy(pygame.sprite.Sprite):
+    def __init__(self) -> None:
+        super().__init__()
+        pass
+
+
 def sign(num: int, amount: int = 1) -> int:
+    '''Function that takes an interger and return an absolute positive, negative or null value; the positive and negative values
+    equalling the amount (default 1).'''
     if num > 0:
         return amount
     elif num == 0:

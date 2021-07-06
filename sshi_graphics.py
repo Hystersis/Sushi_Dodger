@@ -246,7 +246,7 @@ class button_symbol(pygame.sprite.Sprite, able_to_lock_in_menu):
         print(colour)
         self.image.fill(colour, special_flags=pygame.BLEND_MAX)
         print(self.image)
-        self.letter = letter[0]
+        self.letter = letter[:2]  # Capped at two letters
         self.letter_surface = pygame.surface.Surface((32, 32),
                                                      flags=pygame.SRCALPHA)
         word_wrap(self.letter_surface, self.letter, Font(
