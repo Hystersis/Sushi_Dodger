@@ -71,10 +71,13 @@ class Initi:
         self.layers.add(self.background, layer=0)
         global c
         self.layers.add(c.items, layer=0)
+        self.event_sys = events_sync()
+        self.event_sys.listen('Active', pygame.KEYDOWN, self.ddger.killed, pygame.K_F2)
         if c._health == 0:
             print('health added')
             c.items += item(iV=self, **{"name": "health",
-                                        "sprite": jsn.items().item_val('health', 'sprite')})
+                                        "sprite": jsn.items().item_val(
+                                            'health', 'sprite')})
             c._health += 1
 
     def Level(self, lvl):
@@ -399,8 +402,7 @@ def main():
         elif not act and i.gm == 'Active':
             i.gm = 'Paused'
 
-        if i.gm != 'Died':
-            events()  # As die screen has its own event system
+        i.event_sys()
 
         if i.gm == 'Active':
             i.sshi_group.update()
@@ -510,6 +512,10 @@ class die_screen():
         self.mask.draw(pygame.mask.Mask(size=(134, 130), fill=True), (61, 94))
         self.message = grph.message_box('Press the key x to restart', (106, 23, 45, 100), [256, 16], xy=[0, 240])
         i.unayers.add(self.message, layer=0)
+        # self.text_input = input_box()
+        i.event_sys.listen('Died', pygame.KEYDOWN, self.fade_out, pygame.K_x)
+        i.event_sys.listen('Died', pygame.KEYDOWN, self.change_fade, pygame.K_RIGHT, 'Right')
+        i.event_sys.listen('Died', pygame.KEYDOWN, self.change_fade, pygame.K_LEFT, 'Left')
 
     def __call__(self):
         global i
@@ -586,31 +592,37 @@ class die_screen():
         elif self.screen_state == 'blank8.png':
             self.message.kill()
         self.ripple.update()
-        self.last_state = deepcopy(self.state)
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_x:
-                    # Change to incorporate the movement of the helmet
-                    self.fade_out()
-                elif event.key == pygame.K_RIGHT and self.state == 'Score':
-                    self.change_fade()
-                elif event.key == pygame.K_LEFT and self.state == 'Board':
-                    self.change_fade()
-            events_seperated(event)
+        if (time.time() - self.time) < 2.5 and self.state != 'Board' or\
+                (time.time() - self.time) >= 2.5:
+            self.last_state = deepcopy(self.state)
+        # for event in pygame.event.get():
+        #     if event.type == pygame.KEYDOWN:
+        #         if event.key == pygame.K_x:
+        #             # Change to incorporate the movement of the helmet
+        #             self.fade_out()
+        #         elif event.key == pygame.K_RIGHT and self.state == 'Score':
+        #             self.change_fade('Right')
+        #         elif event.key == pygame.K_LEFT and self.state == 'Board':
+        #             self.change_fade('Left')
+        #     events_seperated(event)
 
     def kill(self):
         for sprite in self.group:
             sprite.kill()
 
-    def change_fade(self):
-        if self.state == 'Score':
+    def change_fade(self, direction):
+        print(direction, self.state)
+        if self.state == 'Score' and direction == 'Right':
             self.screen_in_state = 'Board'
             self.screen_out_state = 'Score'
             self.count_for_fade = count(0)
-        elif (time.time() - self.time) >= 2.5:
+        elif (time.time() - self.time) >= 2.5 and self.state == 'Board'\
+                and direction == 'Left':
             self.screen_out_state = 'Board'
             self.screen_in_state = 'Score'
             self.count_for_fade = count(0, -1)
+        else:
+            return
         self.state = 'Changing'
 
     def fade_out(self):
@@ -849,7 +861,7 @@ class item_manager(pygame.sprite.Sprite):
             self.progress_surface = pygame.Surface((max(round(24 / self.times[1] * (self.times[1] - (time.time() - self.times[0]))), 0), 1))
             self.progress_surface.blit(self.progress_bar, (0, 0))
             self.surface.blit(self.progress_surface, (2, 21))
-        
+
         # if "key_press" in item.__dict__.keys():
         #     self.surface.blit(grph.button_symbol('F5').image, (0, 0))
 
@@ -891,25 +903,6 @@ class item_manager(pygame.sprite.Sprite):
         surface = grph.spritesheet(Apj("item_sprites.png"), (*sprite, 12, 12))
         self.other_items.append([surface, self.move_up])
 
-
-def events():
-    for event in pygame.event.get():
-        events_seperated(event)
-
-
-def events_seperated(event):
-    global i
-    if event.type == pygame.QUIT:
-        pygame.quit()
-        exit()
-    if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
-        pygame.display.toggle_fullscreen()
-        print(event)
-    if event.type == pygame.KEYDOWN and event.key == pygame.K_F2:
-        i.ddger.killed()
-    # if event.type == pygame.KEYDOWN and event.key == pygame.K_F5:
-    #     i = Initi(i.lvl)
-
 # https://stackoverflow.com/questions/23633339/pygame-shaking-window-when-loosing-lifes
 
 
@@ -932,6 +925,47 @@ def sr():
     return random.randrange(-1, 2, 2)
 
 
+# https://stackoverflow.com/questions/46390231/how-can-i-create-a-text-input-box-with-pygame
+class text_input:
+    def __init__(self, text='', flu: str = None, length: int = None,
+                 disallowed_words: list = []) -> None:
+        self.text = text
+        self.change = flu.upper()
+        self.length = length
+        self.disallowed_words = disallowed_words
+
+    def handle_events(self, event: pygame.event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_BACKSPACE:
+                self.text = self.text[:-1]
+            else:
+                self.text += event.unicode
+        self.text = self.text[:self.length]
+
+        if self.change == 'S':
+            self.text.sentence()
+        elif self.change == 'U':
+            self.text.upper()
+        elif self.change == 'L':
+            self.text.lower()
+
+    def return_text(self) -> str:
+        return self.text
+
+
+class input_box:
+    def __init__(self, x, y, w, h, *args, **kwargs) -> None:
+        self.rect = pygame.Rect(x, y, w, h)
+        self.font = pygame.freetype.Font(Apj("Assets/", '8-bit Arcade In.ttf'), 16)
+        self.input = text_input(*args, **kwargs)
+        self.font_surface = self.font.render(self.input.text)
+
+    def handle_events(self, event: pygame.event):
+        self.input.handle_events(event)
+
+    def draw(self, surface):
+        surface.blit(self.font.render(self.input.return_text()), (self.rect.x + 2, self.rect.y + 2))
+        pygame.draw.rect(surface, self.colour, self.rect)
 
 #                               ,,
 # `7MM"""YMM                  `7MM
@@ -939,7 +973,7 @@ def sr():
 #   MM   d    `7MMpMMMb.   ,M""bMM
 #   MMmmMM      MM    MM ,AP    MM
 #   MM   Y  ,   MM    MM 8MI    MM
-#   MM     ,M   MM    MM `Mb    MM
+#   MM     ,M   MM    MM `Mb    MaM
 # .JMMmmmmMMM .JMML  JMML.`Wbmd"MML.
 
 
@@ -948,6 +982,44 @@ def start(screen=None):
     c = DifficultlyStats()
     i = Initi(screen=screen)
     main()
+
+
+class events_sync:
+    def __init__(self) -> None:
+        self.register = {}
+        for i in ['Active', 'Paused', 'Died', 'Won']:
+            self.register[i] = []
+
+    def __call__(self):
+        global i
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
+                pygame.display.toggle_fullscreen()
+                print(event)
+            for x in self.register[i.gm]:
+                k = list(x.keys())[0]
+                v = tuple(x.values())[0]
+                if event.type == k[0] and len(k) < 2:
+                    print(k, v, event.type)
+                    v[0](*v[1], **v[2])
+                elif event.type == k[0] and event.key == k[1] and len(k) == 2:
+                    print(k, v, event.type, event.key)
+                    v[0](*v[1], **v[2])
+
+    def listen(self, gm: str, event: int, action, key: int = None, *args, **kwargs):
+        if key is None:
+            self.register[gm].append({(event): (action, args, kwargs)})
+        else:
+            self.register[gm].append({(event, key): (action, args, kwargs)})
+
+    def latch(self, gm):
+        self.__call__()
+
+    def __delattr__(self, key: str) -> None:
+        self.register = {k: v for k, v in self.register.items()}
 
 
 if __name__ == '__main__':
