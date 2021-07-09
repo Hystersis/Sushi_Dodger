@@ -12,15 +12,20 @@ class missile(pygame.sprite.Sprite):
         self.orientate()
         self.rect = self.image.get_rect()
         self.rect.topleft = start_pos
-        self.burst = cycle([int(roundd(x / 12)) for x in range(1, 13)])
 
-    def update(self, ddger):
-        self.delta = list(map(sign,
+    def update(self, ddger, sshiG: pygame.sprite.Group):
+        self.delta = [math.inf]
+        for i in sshiG:
+            self.Ndelta = list(map(sign,
+                              map(sub, i.rect.center,
+                                 self.rect.center)))
+            self.delta = self.Ndelta if sum(self.Ndelta) < sum(self.delta) else self.delta     
+        self.Ndelta = list(map(sign,
                               list(map(sub, ddger.rect.center,
                                        self.rect.center))))
+        self.delta = self.Ndelta if sum(self.Ndelta) < sum(self.delta) else self.delta
+
         self.rect.topleft = tuple(map(add, self.delta, self.rect.topleft))
-        if next(self.burst) == 1:
-            self.rect.topleft = tuple(map(add, map(mul, self.delta, [9,9]), self.rect.topleft))
         if 0 in self.delta:
             self.orientation = (lambda x, y: (x*2 if x == abs(x) else 6)
                                 + (0 if y == abs(y) else 4))(*self.delta)
@@ -28,6 +33,7 @@ class missile(pygame.sprite.Sprite):
             self.orientation = (lambda x, y: abs((-6 if x != abs(x) else 2)
                                 - y))(*self.delta)
         self.orientate()
+        self.delta_copy = self.delta.copy()
 
     def orientate(self):
         '''Orientates the missile to be faces the 'right' direction
@@ -40,6 +46,9 @@ class missile(pygame.sprite.Sprite):
             # Rotated sprite
             self.image = pygame.image.load(os.path.join('Assets', 'missile_rot.png'))
         self.image = pygame.transform.rotate(self.image, self.orientation // 2 * 90)
+
+    def do_hit(self, ddger):
+        self.a = None
 
 
 class laser_enemy(pygame.sprite.Sprite):

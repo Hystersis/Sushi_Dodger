@@ -1,11 +1,5 @@
-class a:
+import pygame
+
+class test(pygame.sprite.Sprite):
     def __init__(self) -> None:
-        self._a = 1
-    
-    @property
-    def a(self):
-        return self._a
-    
-    @a.setter
-    def a(self, value):
-        self._a = value
+        super().__init__()
