@@ -21,6 +21,8 @@ import sshi_graphics as grph
 from sshi_msci import Apj
 import sshi_json as jsn
 import sshi_special as spe
+import tkinter
+from tkinter import messagebox
 
 
 #                     ,,
@@ -394,42 +396,52 @@ def main():
     global i, c
     track_previous_gm = 'Active'
     while True:
-        move_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
-        clock.tick(c.fps)
-        act = pygame.key.get_focused()
-        if act and i.gm == 'Paused':
-            i.gm = 'Active'
-        elif not act and i.gm == 'Active':
-            i.gm = 'Paused'
+        try:
+            move_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
+            clock.tick(c.fps)
+            act = pygame.key.get_focused()
+            if act and i.gm == 'Paused':
+                i.gm = 'Active'
+            elif not act and i.gm == 'Active':
+                i.gm = 'Paused'
 
-        i.event_sys()
+            i.event_sys()
 
-        if i.gm == 'Active':
-            i.sshi_group.update()
-            c.items.update()
+            if i.gm == 'Active':
+                i.sshi_group.update()
+                c.items.update()
 
-        if i.gm == 'Died' and track_previous_gm != 'Died':
-            d = die_screen()
-        elif i.gm == 'Died':
-            d()
-        elif i.gm != 'Died' and track_previous_gm == 'Died':
-            d.kill()
+            if i.gm == 'Died' and track_previous_gm != 'Died':
+                d = die_screen()
+            elif i.gm == 'Died':
+                d()
+            elif i.gm != 'Died' and track_previous_gm == 'Died':
+                d.kill()
 
-        if i.gm == 'Won' and track_previous_gm != 'Won':
-            i = Initi(i.lvl + 1)
-        elif i.gm == 'Won':
-            pass  # Add code here later
+            if i.gm == 'Won' and track_previous_gm != 'Won':
+                i = Initi(i.lvl + 1)
+            elif i.gm == 'Won':
+                pass  # Add code here later
 
-        i.score = i.num - len(i.sshi_group)
+            i.score = i.num - len(i.sshi_group)
 
-        pygame.display.flip()
-        move_screen.fill((0, 0, 0)), Initi.screen.fill((0, 0, 0))
-        i.background.draw(Initi.screen)
-        i.layers.draw(move_screen)
-        i.ddger.update()
-        Initi.screen.blit(move_screen, next(i.offset))
-        i.unayers.draw(Initi.screen)
-        track_previous_gm = i.gm
+            pygame.display.flip()
+            move_screen.fill((0, 0, 0)), Initi.screen.fill((0, 0, 0))
+            i.background.draw(Initi.screen)
+            i.layers.draw(move_screen)
+            i.ddger.update()
+            Initi.screen.blit(move_screen, next(i.offset))
+            i.unayers.draw(Initi.screen)
+            track_previous_gm = i.gm
+        except Exception as the_error:
+            # This makes sure the tkinter screen isn't visable
+            TK_screen = tkinter.Tk()
+            TK_screen.withdraw()
+            # This displays the error
+            messagebox.showerror(title='Error', message=f"A fatal error has occured: {the_error}")
+            pygame.quit()
+            quit()
+
 
 #                   ,,
 # `7MMM.     ,MMF'  db
@@ -512,7 +524,7 @@ class die_screen():
         self.mask.draw(pygame.mask.Mask(size=(134, 130), fill=True), (61, 94))
         self.message = grph.message_box('Press the key x to restart', (106, 23, 45, 100), [256, 16], xy=[0, 240])
         i.unayers.add(self.message, layer=0)
-        # self.text_input = input_box()
+        self.text_input = input_box(20, 92, 3, UpperLowerSentence='U', length=3)
         i.event_sys.listen('Died', pygame.KEYDOWN, self.fade_out, pygame.K_x)
         i.event_sys.listen('Died', pygame.KEYDOWN, self.change_fade, pygame.K_RIGHT, 'Right')
         i.event_sys.listen('Died', pygame.KEYDOWN, self.change_fade, pygame.K_LEFT, 'Left')
@@ -585,6 +597,8 @@ class die_screen():
                                                           setsurface=self.score_screen,
                                                           unsetcolor=(0, 0, 0, 0))
             self.temp_screen.blit(self.score_screen, (0, 0))
+            self.text_input.handle_events()
+            self.text_input.draw(self.temp_screen)
             self.menu_screen.change_i(self.temp_screen, 2)
 
         if (time.time() - self.time) >= 7.5 and self.screen_state != 'blank8.png':
@@ -611,7 +625,6 @@ class die_screen():
             sprite.kill()
 
     def change_fade(self, direction):
-        print(direction, self.state)
         if self.state == 'Score' and direction == 'Right':
             self.screen_in_state = 'Board'
             self.screen_out_state = 'Score'
@@ -633,6 +646,9 @@ class die_screen():
         self.count_for_fade = count(10, -1)
 
     def remind(self, screen):
+        pass
+
+    def ask_for_input(self):
         pass
 
 
@@ -927,45 +943,96 @@ def sr():
 
 # https://stackoverflow.com/questions/46390231/how-can-i-create-a-text-input-box-with-pygame
 class text_input:
-    def __init__(self, text='', flu: str = None, length: int = None,
-                 disallowed_words: list = []) -> None:
+    def __init__(self, text='', UpperLowerSentence: str = None,
+                 length: int = None, disallowed_words: list = []) -> None:
         self.text = text
-        self.change = flu.upper()
+        self.change = UpperLowerSentence.upper()
         self.length = length
         self.disallowed_words = disallowed_words
+        self.latch = i.event_sys.latch(pygame.KEYDOWN)
 
-    def handle_events(self, event: pygame.event):
-        if event.type == pygame.KEYDOWN:
+    def handle_events(self):
+        for event in i.event_sys.retrieve(pygame.KEYDOWN):
             if event.key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
+            elif event.key == pygame.K_RETURN:
+                self.text = self.text
+                return None
             else:
                 self.text += event.unicode
-        self.text = self.text[:self.length]
+            self.text = self.text[:self.length]
 
-        if self.change == 'S':
-            self.text.sentence()
-        elif self.change == 'U':
-            self.text.upper()
-        elif self.change == 'L':
-            self.text.lower()
+            if self.text.upper() in [w.upper() for w in self.disallowed_words]:
+                return 'Error'
+
+            if self.change == 'S':
+                self.text.sentence()
+            elif self.change == 'U':
+                self.text.upper()
+            elif self.change == 'L':
+                self.text.lower()
+            return None
 
     def return_text(self) -> str:
         return self.text
 
 
 class input_box:
-    def __init__(self, x, y, w, h, *args, **kwargs) -> None:
-        self.rect = pygame.Rect(x, y, w, h)
-        self.font = pygame.freetype.Font(Apj("Assets/", '8-bit Arcade In.ttf'), 16)
+    def __init__(self, x, y, chr_num, *args, **kwargs) -> None:
+        w = 32 + chr_num * 56 + (chr_num - 1) * 8
+        # This calculates the width according to the construct 
+        Xw = max((chr_num * 56 + (chr_num - 1) * 8 - 40) // 2, 0)
+        # Exclusive w, all width is based off 8bit font at 16 pt
+        Lw = w - 32
+        self.rect = pygame.Rect(x, y, w, 9)
+        self.font = pygame.freetype.Font(Apj('8-bit Arcade In.ttf'), 128)
         self.input = text_input(*args, **kwargs)
         self.font_surface = self.font.render(self.input.text)
+        self.surface = pygame.Surface((w, 72), flags=pygame.SRCALPHA)
+        self.surface_alert = pygame.Surface((w, 9), flags=pygame.SRCALPHA)
+        self.screen = self.surface
+        self.count = []
+        instructions = {(0, 0): (0, 0, 16, 72), (w - 16, 0): (56, 0, 16, 72)}
+        instructions = instructions | {k: v for k, v in zip(zip(count(16, 8), repeat(8, Xw//8)), repeat((72, 8, 8, 56), Xw//8))}
+        # This is the left padding on text box 
+        instructions = instructions | {k: v for k, v in zip(zip(count(56 + Xw, 8), repeat(8, Xw//8)), repeat((72, 8, 8, 56), Xw//8))}
+        # # This the right padding on the text box
+        instructions = instructions | {(16 + Xw, 8): (16, 8, 40, 8)}
+        instructions = instructions | {(16 + Xw, 56): (16, 8, 40, 8)}
+        # # This is the center "artwork" being added, there is the plus 3, as x coordinates starts from 0
+        instructions = instructions | {(16, 16): (0, 72, min(Lw, 184), 40)}
+        if Lw > 184:
+            for i in range(1, (Lw - 23) // 8 + 2):
+                instructions = instructions | {(2 + 23 + 8 * (i - 1), 2): (15, 9, 8, 5)}
+                # Extension of type box's input box
 
-    def handle_events(self, event: pygame.event):
-        self.input.handle_events(event)
+        print(instructions)
+
+        for z in instructions.items():
+            by = 80 if z[1][1] < 72 else 0
+            self.surface.blit(grph.spritesheet(Apj("text_box-sheet3.png"),
+                                               z[1]), z[0])
+            self.surface_alert.blit(grph.spritesheet(Apj("text_box-sheet3.png"),
+                                                (z[1][0], z[1][1] + by,
+                                                z[1][2], z[1][3])),
+                               z[0])
+
+    def handle_events(self):
+        x = self.input.handle_events()
+        if x == 'Error':
+            self.screen = self.surface_alert
+            self.count = [i for i in range(3)]
 
     def draw(self, surface):
-        surface.blit(self.font.render(self.input.return_text()), (self.rect.x + 2, self.rect.y + 2))
-        pygame.draw.rect(surface, self.colour, self.rect)
+        if len(self.count) > 0:
+            self.count.pop()
+            if len(self.count) <= 0:
+                self.screen = self.surface
+        surface.blit(self.screen, (self.rect.x, self.rect.y))
+        print(self.input.return_text())
+        # surface.blit(self.font.render(self.input.return_text(), False, (46, 34, 47))[0], (self.rect.x + 16, self.rect.y + 16))
+        self.font.render_to(surface, (self.rect.x + 16, self.rect.y + 16), self.input.return_text(), (46, 34, 47))
+        # pygame.draw.rect(surface, self.colour, self.rect)
 
 #                               ,,
 # `7MM"""YMM                  `7MM
@@ -989,6 +1056,7 @@ class events_sync:
         self.register = {}
         for i in ['Active', 'Paused', 'Died', 'Won']:
             self.register[i] = []
+        self.latch_register = {}
 
     def __call__(self):
         global i
@@ -1008,6 +1076,8 @@ class events_sync:
                 elif event.type == k[0] and event.key == k[1] and len(k) == 2:
                     print(k, v, event.type, event.key)
                     v[0](*v[1], **v[2])
+            if event.type in self.latch_register.keys():
+                self.latch_register[event.type].append(event)
 
     def listen(self, gm: str, event: int, action, key: int = None, *args, **kwargs):
         if key is None:
@@ -1015,8 +1085,15 @@ class events_sync:
         else:
             self.register[gm].append({(event, key): (action, args, kwargs)})
 
-    def latch(self, gm):
-        self.__call__()
+    def latch(self, key: int):
+        '''This listens to a particular event'''
+        self.latch_register[key] = []
+
+    def retrieve(self, key: int):
+        '''This retrieves all the stored events that were listened too'''
+        r = self.latch_register[key]
+        self.latch_register[key] = []
+        return r
 
     def __delattr__(self, key: str) -> None:
         self.register = {k: v for k, v in self.register.items()}
