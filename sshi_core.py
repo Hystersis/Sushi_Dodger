@@ -7,7 +7,7 @@ import pygame
 # from pygame.freetype import * # Errors led to this line, having to be here
 import math
 import os
-import sys
+import string
 from itertools import repeat, cycle, count
 import random
 from operator import sub, add, mul
@@ -75,6 +75,8 @@ class Initi:
         self.layers.add(c.items, layer=0)
         self.event_sys = events_sync()
         self.event_sys.listen('Active', pygame.KEYDOWN, self.ddger.killed, pygame.K_F2)
+        self.missile = spe.missile((0, 0), 0)
+        self.layers.add(self.missile, layer=2)
         if c._health == 0:
             print('health added')
             c.items += item(iV=self, **{"name": "health",
@@ -279,7 +281,8 @@ class Sushi(pygame.sprite.Sprite):
     def killed(self, do_drop=True):
         # Do drop exists when a sshi dies due to the ddger having another life
         # the sshi doesn't just drop another one
-        c.score += 1
+        global score
+        score += 1
         self.kill()
         if len(i.sshi_group) == 0:
             i.gm = 'Won'
@@ -396,51 +399,52 @@ def main():
     global i, c
     track_previous_gm = 'Active'
     while True:
-        try:
-            move_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
-            clock.tick(c.fps)
-            act = pygame.key.get_focused()
-            if act and i.gm == 'Paused':
-                i.gm = 'Active'
-            elif not act and i.gm == 'Active':
-                i.gm = 'Paused'
+        # try:
+        move_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
+        clock.tick(c.fps)
+        act = pygame.key.get_focused()
+        if act and i.gm == 'Paused':
+            i.gm = 'Active'
+        elif not act and i.gm == 'Active':
+            i.gm = 'Paused'
 
-            i.event_sys()
+        i.event_sys()
 
-            if i.gm == 'Active':
-                i.sshi_group.update()
-                c.items.update()
+        if i.gm == 'Active':
+            i.sshi_group.update()
+            c.items.update()
 
-            if i.gm == 'Died' and track_previous_gm != 'Died':
-                d = die_screen()
-            elif i.gm == 'Died':
-                d()
-            elif i.gm != 'Died' and track_previous_gm == 'Died':
-                d.kill()
+        if i.gm == 'Died' and track_previous_gm != 'Died':
+            d = die_screen()
+        elif i.gm == 'Died':
+            d()
+        elif i.gm != 'Died' and track_previous_gm == 'Died':
+            d.kill()
 
-            if i.gm == 'Won' and track_previous_gm != 'Won':
-                i = Initi(i.lvl + 1)
-            elif i.gm == 'Won':
-                pass  # Add code here later
+        if i.gm == 'Won' and track_previous_gm != 'Won':
+            i = Initi(i.lvl + 1)
+        elif i.gm == 'Won':
+            pass  # Add code here later
 
-            i.score = i.num - len(i.sshi_group)
+        i.score = i.num - len(i.sshi_group)
 
-            pygame.display.flip()
-            move_screen.fill((0, 0, 0)), Initi.screen.fill((0, 0, 0))
-            i.background.draw(Initi.screen)
-            i.layers.draw(move_screen)
-            i.ddger.update()
-            Initi.screen.blit(move_screen, next(i.offset))
-            i.unayers.draw(Initi.screen)
-            track_previous_gm = i.gm
-        except Exception as the_error:
-            # This makes sure the tkinter screen isn't visable
-            TK_screen = tkinter.Tk()
-            TK_screen.withdraw()
-            # This displays the error
-            messagebox.showerror(title='Error', message=f"A fatal error has occured: {the_error}")
-            pygame.quit()
-            quit()
+        pygame.display.flip()
+        move_screen.fill((0, 0, 0)), Initi.screen.fill((0, 0, 0))
+        i.missile.update(i.ddger, i.sshi_group)
+        i.background.draw(Initi.screen)
+        i.layers.draw(move_screen)
+        i.ddger.update()
+        Initi.screen.blit(move_screen, next(i.offset))
+        i.unayers.draw(Initi.screen)
+        track_previous_gm = i.gm
+        # except Exception as the_error:
+        #     # This makes sure the tkinter screen isn't visable
+        #     TK_screen = tkinter.Tk()
+        #     TK_screen.withdraw()
+        #     # This displays the error
+        #     messagebox.showerror(title='Error', message=f"A fatal error has occured: {the_error}")
+        #     pygame.quit()
+        #     quit()
 
 
 #                   ,,
@@ -522,10 +526,12 @@ class die_screen():
         self.scoreboard = jsn.scoreboard()
         self.mask = pygame.mask.Mask(size=(256, 256))
         self.mask.draw(pygame.mask.Mask(size=(134, 130), fill=True), (61, 94))
-        self.message = grph.message_box('Press the key x to restart', (106, 23, 45, 100), [256, 16], xy=[0, 240])
+        self.message = grph.message_box('Press the key x to restart, press the key z to enter text input mode for scoreboard', (106, 23, 45, 100), [256, 16], xy=[0, 240])
         i.unayers.add(self.message, layer=0)
-        self.text_input = input_box(20, 92, 3, UpperLowerSentence='U', length=3)
+        self.text_input = input_box(20, 92, 3, UpperLowerSentence='U', length=3, disallowed_words=['ASS', 'SEX'])
+        self.show_text_input = False
         i.event_sys.listen('Died', pygame.KEYDOWN, self.fade_out, pygame.K_x)
+        i.event_sys.listen('Died', pygame.KEYDOWN, self.ask_for_input, pygame.K_z)
         i.event_sys.listen('Died', pygame.KEYDOWN, self.change_fade, pygame.K_RIGHT, 'Right')
         i.event_sys.listen('Died', pygame.KEYDOWN, self.change_fade, pygame.K_LEFT, 'Left')
 
@@ -564,6 +570,10 @@ class die_screen():
             else:
                 self.state = self.screen_in_state
         if (time.time() - self.time) >= 2.5 and self.state == 'Score':
+            self.message.kill()
+            print(i.unayers)
+            self.message = grph.message_box('Press the key x to restart', (106, 23, 45, 100), [256, 16], xy=[0, 240])
+            i.unayers.add(self.message, layer=0)
             self.temp_screen.blit(pygame.image.load(os.path.join("Assets", die_screen.states[self.state])), [0, 0])
             new_xy = grph.word_wrap(self.temp_screen,
                                     str(i.score),
@@ -581,8 +591,12 @@ class die_screen():
                                                    + [x for x in range(0, 74)]
                                                    + list(repeat(74, 10))
                                                    + [y for y in range(74, 0, -1)])
+                self.message.kill()
+                self.message = grph.message_box('Press the key x to restart, press the key z to enter text input mode for scoreboard', (106, 23, 45, 100), [256, 16], xy=[0, 240])
+                i.unayers.add(self.message, layer=0)
             self.temp_screen.blit(pygame.image.load(os.path.join("Assets", die_screen.states[self.state])), [0, 0])
             self.score_screen = pygame.Surface((256, 512), flags=pygame.SRCALPHA)
+
             for num, name_score in enumerate(self.scoreboard.get()):
                 name, score = name_score
                 name_score_string = f'{name}  {score}'
@@ -597,8 +611,18 @@ class die_screen():
                                                           setsurface=self.score_screen,
                                                           unsetcolor=(0, 0, 0, 0))
             self.temp_screen.blit(self.score_screen, (0, 0))
-            self.text_input.handle_events()
-            self.text_input.draw(self.temp_screen)
+            if self.show_text_input:
+                x = self.text_input.handle_events()
+                self.text_input.draw(self.temp_screen)
+                if type(x) is list and x[0] == 'Entered':
+                    print('Written')
+                    self.show_text_input = None
+                    self.scoreboard.write(x[1], x[2])
+                    self.iter_for_board_scroll = cycle(list(repeat(0, 10))
+                                                   + [x for x in range(0, 74)]
+                                                   + list(repeat(74, 10))
+                                                   + [y for y in range(74, 0, -1)])
+                    # Reset scroll so they can *hopefully see their name at the top of the list
             self.menu_screen.change_i(self.temp_screen, 2)
 
         if (time.time() - self.time) >= 7.5 and self.screen_state != 'blank8.png':
@@ -609,16 +633,6 @@ class die_screen():
         if (time.time() - self.time) < 2.5 and self.state != 'Board' or\
                 (time.time() - self.time) >= 2.5:
             self.last_state = deepcopy(self.state)
-        # for event in pygame.event.get():
-        #     if event.type == pygame.KEYDOWN:
-        #         if event.key == pygame.K_x:
-        #             # Change to incorporate the movement of the helmet
-        #             self.fade_out()
-        #         elif event.key == pygame.K_RIGHT and self.state == 'Score':
-        #             self.change_fade('Right')
-        #         elif event.key == pygame.K_LEFT and self.state == 'Board':
-        #             self.change_fade('Left')
-        #     events_seperated(event)
 
     def kill(self):
         for sprite in self.group:
@@ -639,17 +653,19 @@ class die_screen():
         self.state = 'Changing'
 
     def fade_out(self):
-        self.screen_out_state = 'Fade'
-        self.screen_in_state = 'Fade'
-        self.state = 'Changing'
-        self.screen_state = 'blank8.png'
-        self.count_for_fade = count(10, -1)
+        if not self.show_text_input:
+            self.screen_out_state = 'Fade'
+            self.screen_in_state = 'Fade'
+            self.state = 'Changing'
+            self.screen_state = 'blank8.png'
+            self.count_for_fade = count(10, -1)
 
     def remind(self, screen):
         pass
 
     def ask_for_input(self):
-        pass
+        if self.state == 'Board' and self.show_text_input != None:
+            self.show_text_input = True
 
 
 class Background(pygame.sprite.Sprite):
@@ -955,11 +971,12 @@ class text_input:
         for event in i.event_sys.retrieve(pygame.KEYDOWN):
             if event.key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
-            elif event.key == pygame.K_RETURN:
+            elif event.key == pygame.K_RETURN and self.text.upper() not in [w.upper() for w in self.disallowed_words]:
                 self.text = self.text
-                return None
+                return 'Entered'
             else:
-                self.text += event.unicode
+                if event.unicode in string.ascii_letters:
+                    self.text += event.unicode
             self.text = self.text[:self.length]
 
             if self.text.upper() in [w.upper() for w in self.disallowed_words]:
@@ -989,7 +1006,7 @@ class input_box:
         self.input = text_input(*args, **kwargs)
         self.font_surface = self.font.render(self.input.text)
         self.surface = pygame.Surface((w, 72), flags=pygame.SRCALPHA)
-        self.surface_alert = pygame.Surface((w, 9), flags=pygame.SRCALPHA)
+        self.surface_alert = pygame.Surface((w, 72), flags=pygame.SRCALPHA)
         self.screen = self.surface
         self.count = []
         instructions = {(0, 0): (0, 0, 16, 72), (w - 16, 0): (56, 0, 16, 72)}
@@ -1006,14 +1023,12 @@ class input_box:
                 instructions = instructions | {(2 + 23 + 8 * (i - 1), 2): (15, 9, 8, 5)}
                 # Extension of type box's input box
 
-        print(instructions)
-
         for z in instructions.items():
             by = 80 if z[1][1] < 72 else 0
             self.surface.blit(grph.spritesheet(Apj("text_box-sheet3.png"),
                                                z[1]), z[0])
             self.surface_alert.blit(grph.spritesheet(Apj("text_box-sheet3.png"),
-                                                (z[1][0], z[1][1] + by,
+                                                (z[1][0] + by, z[1][1],
                                                 z[1][2], z[1][3])),
                                z[0])
 
@@ -1022,6 +1037,9 @@ class input_box:
         if x == 'Error':
             self.screen = self.surface_alert
             self.count = [i for i in range(3)]
+        elif x == 'Entered':
+            global score
+            return ['Entered', self.input.return_text(), score]
 
     def draw(self, surface):
         if len(self.count) > 0:
@@ -1029,7 +1047,6 @@ class input_box:
             if len(self.count) <= 0:
                 self.screen = self.surface
         surface.blit(self.screen, (self.rect.x, self.rect.y))
-        print(self.input.return_text())
         # surface.blit(self.font.render(self.input.return_text(), False, (46, 34, 47))[0], (self.rect.x + 16, self.rect.y + 16))
         self.font.render_to(surface, (self.rect.x + 16, self.rect.y + 16), self.input.return_text(), (46, 34, 47))
         # pygame.draw.rect(surface, self.colour, self.rect)
@@ -1045,9 +1062,10 @@ class input_box:
 
 
 def start(screen=None):
-    global i, c
+    global i, c, score
     c = DifficultlyStats()
     i = Initi(screen=screen)
+    score = 0
     main()
 
 
@@ -1066,15 +1084,12 @@ class events_sync:
                 exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
-                print(event)
             for x in self.register[i.gm]:
                 k = list(x.keys())[0]
                 v = tuple(x.values())[0]
                 if event.type == k[0] and len(k) < 2:
-                    print(k, v, event.type)
                     v[0](*v[1], **v[2])
                 elif event.type == k[0] and event.key == k[1] and len(k) == 2:
-                    print(k, v, event.type, event.key)
                     v[0](*v[1], **v[2])
             if event.type in self.latch_register.keys():
                 self.latch_register[event.type].append(event)
