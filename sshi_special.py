@@ -4,7 +4,10 @@ from operator import sub, add, mul
 from itertools import repeat, cycle
 import math
 import random
+
+from pygame import surface
 from sshi_msci import Apj
+import time
 
 
 def sign(num: int, amount: int = 1) -> int:
@@ -34,31 +37,24 @@ class missile(pygame.sprite.Sprite):
         self.dirny = 0
         self.particles = []
         self.colours = [(174, 35, 52), (232, 59, 59), (249, 194, 43)]
+        self.time = time.time()
+        self.life_span = 1
 
     def update(self, ddger, sshiG: pygame.sprite.Group):
         self.image.fill((0, 0, 0, 0))
         # https://gamedev.stackexchange.com/questions/17313/how-does-one-prevent-homing-missiles-from-orbiting-their-targets
         delta = tuple(map(sub, self.rect2.topleft, ddger.rect.topleft))
 
-        Sdelta = tuple(map(sign, delta))
-        NSdelta = Sdelta[0] + 2
-
-        if Sdelta[0] == -1:
-            NSdelta = abs(NSdelta - 8)
-        elif Sdelta[0] == 0:
-            NSdelta = (NSdelta - 1) * 2
-        self.orientate(NSdelta)
-
         # This returns the backside coords of the craft
-        self.backside = list(map(add, self.rect.center,
-                                  tuple(map(sub, (0, 0), Sdelta))
-                                  * (self.rect.size[0] // 2)))
+        self.backside = list(map(add, self.rect2.center,
+                                  tuple(map(sub, (0, 0), map(sign, delta)))
+                                  * (self.rect2.size[0] // 2)))
 
-        self.particles.append([self.backside, [random.gauss(0, 0.6), -2], random.uniform(3, 4)])
+        self.particles.append([self.backside, [random.gauss(0, 0.6), sign(self.rect2.center[1] - self.backside[1]) * 2], random.uniform(3, 4)])
         for p in self.particles:
             p[0][0] += p[1][0]
             p[0][1] += p[1][1]
-            p[2] -= 0.15
+            p[2] -= 0.1
             colour = [a + b + c for a, b, c in zip(map(mul, self.colours[0], repeat(sinsq(min(p[2], 2), 4, 2))),
                         map(mul, self.colours[1], repeat(sinsq(p[2], 4))),
                         map(mul, self.colours[2], repeat(sinsq(max(p[2], 2), 4, 2))))]
@@ -73,9 +69,23 @@ class missile(pygame.sprite.Sprite):
         esttime = (math.sqrt(s**2 + 2 * a * d) - s) / a
         estpos = (ddger.rect.topleft[0] + ddger.dirnx * esttime,
                   ddger.rect.topleft[1] + ddger.dirny * esttime)
-        accel = tuple(map(sign, map(sub, ddger.rect.topleft, estpos)))
-        self.rect2.topleft = tuple(map(add, accel, self.rect2.topleft))
+        accel = tuple(map(sign, map(sub, estpos, self.rect2.topleft)))
+        self.dirnx += accel[0]
+        self.dirny += accel[1]
+
+        NSdelta = sign(self.dirny) + 2
+
+        if sign(self.dirnx) == -1:
+            NSdelta = abs(NSdelta - 8)
+        elif sign(self.dirnx) == 0:
+            NSdelta = (NSdelta - 1) * 2
+        self.orientate(NSdelta)
+
+        self.rect2.topleft = tuple(map(minmax, (0, 0), tuple(map(add, (self.dirnx, self.dirny), self.rect2.topleft)), (239, 239)))
         self.image.blit(self.missile, self.rect2.topleft)
+        if time.time() - self.time > self.life_span:
+            self.do_hit(ddger, sshiG)
+            self.kill()
 
     def orientate(self, orientation):
         '''Orientates the missile to be faces the 'right' direction
@@ -87,10 +97,21 @@ class missile(pygame.sprite.Sprite):
         else:
             # Rotated sprite
             self.missile = pygame.image.load(os.path.join('Assets', 'missile_rot.png'))
-        self.missile = pygame.transform.rotate(self.missile, self.orientation // 2 * 90)
+        self.missile = pygame.transform.rotate(self.missile, orientation // 2 * 90)
 
-    def do_hit(self, ddger):
-        self.a = None
+    def do_hit(self, ddger, sshiG):
+        hit_surface = pygame.Surface((256, 256), flags=pygame.SRCALPHA)
+        pygame.draw.circle(hit_surface, (0, 0, 0), self.rect2.center, 20)
+        mask = pygame.mask.from_surface(hit_surface)
+        for sprite in sshiG:
+            hit = mask.overlap(pygame.mask.from_surface(sprite.image),
+                               sprite.rect.topleft)
+            if type(hit) is tuple:
+                sprite.killed()
+        hit = mask.overlap(pygame.mask.from_surface(ddger.image),
+                           ddger.rect.topleft)
+        if type(hit) is tuple:
+            ddger.kill()
 
 
 class laser_enemy(pygame.sprite.Sprite):
@@ -147,3 +168,9 @@ def roundu(n, decimals=0):
 
 def sinsq(n: float, width: int, deviation=0) -> float:
     return math.sin((n+deviation) / (width / math.pi))**2
+
+
+def minmax(a, b, c):
+    '''This function returns the middle variable between the min variable
+    and the max variable.'''
+    return (lambda x: sorted(x)[1])([a, b, c])
