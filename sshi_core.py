@@ -232,7 +232,7 @@ class Dodger(pygame.sprite.Sprite):
     def killed(self):
         i.gm = 'Died'
         self.kill()
-        print('You died!, press \'X\' to start again')
+        print('You died!, press \'X\' to start again', i.gm)
 
 
 
@@ -395,6 +395,12 @@ class sshi_classic_hit(sshi_hit):
 # .JML. `'  .JMML.`Moo9^Yo..JMML..JMML  JMML.
 
 def main():
+    """This the main loop of the program
+    Notes
+    -----
+    This function will be the only while loop in the program and
+    will continually run until interupted
+    """    
     clock = pygame.time.Clock()
     global i, c
     track_previous_gm = 'Active'
@@ -430,13 +436,13 @@ def main():
 
         pygame.display.flip()
         move_screen.fill((0, 0, 0)), Initi.screen.fill((0, 0, 0))
-        i.missile.update(i.ddger, i.sshi_group)
         i.background.draw(Initi.screen)
         i.layers.draw(move_screen)
         i.ddger.update()
         Initi.screen.blit(move_screen, next(i.offset))
         i.unayers.draw(Initi.screen)
         track_previous_gm = i.gm
+        i.missile.update(i.ddger, i.sshi_group)
         # except Exception as the_error:
         #     # This makes sure the tkinter screen isn't visable
         #     TK_screen = tkinter.Tk()
@@ -458,8 +464,22 @@ def main():
 
 
 def minmax(a, b, c):
-    '''This function returns the middle variable between the min variable
-    and the max variable.'''
+    """This returns the middle parameter
+
+    Parameters
+    ----------
+    a : int | float
+        Any number
+    b : int | float
+        Any number
+    c : int | float
+        Any number
+
+    Returns
+    -------
+    int | float
+        Returns the middle parameter between the max and min variables
+    """
     return (lambda x: sorted(x)[1])([a, b, c])
 
 
