@@ -21,4 +21,4 @@ You can use Sushi_Dodger to play an afternoon away or you can improve on this pr
 Entirely made by [Hystersis](https://github.com/Hystersis).
 
 ## License:
-This file is under properatary license.
+This file is under proprietary license.
