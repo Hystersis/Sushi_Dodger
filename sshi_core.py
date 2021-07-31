@@ -34,9 +34,51 @@ from tkinter import messagebox
 #   MM    MM    MM    MM   MM
 # .JMML..JMML  JMML..JMML. `Mbmo
 class Initi:
+    """A class that manages initalisation variables and flow
+
+    Attributes
+    ----------
+    screen : pygame.Surface
+        This is the main screen of the game - it is a low-level variable so,
+        the screen doesn't flash when restarting as it isn't recreated
+    """    
     screen = None
 
     def __init__(self, lvl=1, screen=None):
+        """Initalisation of the game
+
+        Parameters
+        ----------
+        lvl : int, optional
+            This is the starting level of the game, by default 1
+        screen : pygame.Surface, optional
+            This is the passed through screen from sshi_base
+            this is so the experience is one constant screen, by default None
+
+        Attributes
+        ----------
+        screen : pygame.Surface
+            Main screen of the game
+        screen_width : int
+            CONSTANT, width of the screen
+        gm : str
+            Current game mode either:
+                Active - the game is being played
+                Won - the player has passed a level
+                Died - the player is deceased
+                Paused - the player doesn't have the game currently in focus
+        score : int
+            The player's score
+        lvel : int
+            The current level of the game
+            See Also
+            --------
+            Initi.Level:
+                Is a sudo-class for holding the current level and how
+                many enemies should be on the screen
+        ddger : int
+            The player's score
+        """
         if screen != None: Initi.screen = screen
         pygame.init()
         self.screen_width = 256
@@ -75,7 +117,7 @@ class Initi:
         self.layers.add(c.items, layer=0)
         self.event_sys = events_sync()
         self.event_sys.listen('Active', pygame.KEYDOWN, self.ddger.killed, pygame.K_F2)
-        self.missile = spe.missile((0, 0), 0)
+        self.missile = spe.laser_enemy((0, 0))
         self.layers.add(self.missile, layer=2)
         if c._health == 0:
             print('health added')
@@ -116,7 +158,7 @@ class DifficultlyStats:
         # Allows for all entities to be speed up by one control
         self._dspeed = 1.6
         self.intelligence = 0  # The higher the number more 'intelligent', max: 16
-        self._sspeed = 0  # The higher the number the faster
+        self._sspeed = 1  # The higher the number the faster
         self.sensitivity = 0.2  # The higher the number the less sensitive
         self.luck = 0.2  # This has to be a decimal or 1, aka drop_rate
         self._health = 0
@@ -319,20 +361,20 @@ class sshi_classic_movement(sshi_movement):
         global i, c
         self.ddger_pos = [ddger.rect.midtop[0], ddger.rect.midtop[1]
                           + c.intelligence]
-        self.delta = list(map(sub, self.ddger_pos, sshi.rect.midtop))
         # This maps each coordinate of ddger and sshi; ddger - sshi
         # Intelligence is the factor for the sushi to aim for the bottom of
         # the ddger, can lead to avoiding ddger
-        self.deltap = list(map(lambda z: z * random.uniform(1 -
-                               c.sensitivity + c.sspeed,
-            1 + c.sensitivity + c.sspeed) / abs(z)
-                               if z != 0 else 0, self.delta))
+        self.delta = list(map(sub, self.ddger_pos, sshi.rect.midtop))
         # This returns a -1, 0 or 1 (with a little bit of noise)
         # depending on the delta
+        self.deltap = list(map(lambda z: spe.sign(z) * random.uniform(
+            1 - c.sensitivity,
+            1 + c.sensitivity),
+                self.delta))
         self.deltan = tuple(map(sub, ddger.rect.center, sshi.rect.center))
-        return tuple(map(add, sshi.rect.topleft, self.deltap))
         # This adds the aforementioned -1, 0 or 1 to the current
         # coordinates of sshi
+        return tuple(map(add, sshi.rect.topleft, self.deltap))
 
 
 class sshi_avoid_movement(sshi_movement):
@@ -591,7 +633,6 @@ class die_screen():
                 self.state = self.screen_in_state
         if (time.time() - self.time) >= 2.5 and self.state == 'Score':
             self.message.kill()
-            print(i.unayers)
             self.message = grph.message_box('Press the key x to restart', (106, 23, 45, 100), [256, 16], xy=[0, 240])
             i.unayers.add(self.message, layer=0)
             self.temp_screen.blit(pygame.image.load(os.path.join("Assets", die_screen.states[self.state])), [0, 0])
