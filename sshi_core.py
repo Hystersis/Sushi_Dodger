@@ -239,6 +239,7 @@ class Dodger(pygame.sprite.Sprite):
         self.rect.topleft = self.pos
         self.dirncy = 0
         self.lives = 2
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
         global i, c
@@ -296,6 +297,7 @@ class Sushi(pygame.sprite.Sprite):
         self.rect.topleft = self.poscheck(ddger)
         self.move = sshi_classic_movement()
         self.hit = sshi_classic_hit()
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self):
         global i, c
