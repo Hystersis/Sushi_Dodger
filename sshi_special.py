@@ -211,6 +211,8 @@ class missile(pygame.sprite.Sprite):
 
 
 class laser_enemy(pygame.sprite.Sprite):
+    dtoint = [(0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1),
+              (-1, 0), (-1, 1)]
     def __init__(self, start_pos: tuple):
         super().__init__()
         self.image = pygame.Surface((256, 256), flags=pygame.SRCALPHA)
@@ -220,6 +222,9 @@ class laser_enemy(pygame.sprite.Sprite):
         self.rect2 = self.ship.get_rect()
         self.charge_cycle = cycle(range(18))
         self.time = time.time()
+        self.firing = False
+        self.fire = self.firing_solutions()
+        self.mask = pygame.mask.from_surface(self.image)
 
     def update(self, ddger, sshiG: pygame.sprite.Group):
         """Movement and firing solutions for laser
@@ -247,9 +252,18 @@ class laser_enemy(pygame.sprite.Sprite):
         self.image.fill((0, 0, 0, 0))
         # Calculate where to move
         ang = abs(anglebetween(ddger.rect.center, self.rect2.center))
-        if ang % 45 == 0:
-            self.fire()
-        else:
+                # This returns the backside coords of the craft
+        ordegrees = int(abs((anglebetween(self.rect2.center, ddger.rect.center)
+                         - 90) // 45))
+        print(ordegrees)
+        d = (round(math.sin(ordegrees * 45 * .0174532925)),
+             round(math.cos(ordegrees * 45 * .0174532925)))
+        self.frontside = list(map(add, self.rect2.center,
+                                 map(sign, d, repeat(self.rect2.width // 2))))
+        if ang % 45 == 0 and not self.firing:
+            self.fire(self.frontside, (ordegrees*45 + 90) % 360, self.image)
+            self.firing = True
+        elif not self.firing:
             # https://stackoverflow.com/questions/12141150/from-list-of-integers-get-number-closest-to-a-given-value
             # This returns the angle closest to the current angle
             angto = min([ang // 45 * 45, (ang // 45 + 1) * 45], key=lambda x:abs(x-ang))
@@ -271,9 +285,17 @@ class laser_enemy(pygame.sprite.Sprite):
                                     self.rect2.center[1]
                                     + math.sin(trangto * math.pi / 180))
             self.rect2.center = tuple(map(minmax, (8, 8), moveto, (247, 247)))
-        ordegrees = anglebetween(self.rect2.center, ddger.rect.center)
-        self.orientate(abs((ordegrees - 90) // 45))
+        elif self.firing:
+            self.firing = self.fire(self.frontside, (ordegrees*45 + 90) % 360, self.image)
+
+        self.orientate(ordegrees)
         self.image.blit(self.ship, self.rect2.topleft)
+        self.mask = pygame.mask.from_surface(self.image)
+        if self.firing > 0:
+            cd = pygame.sprite.spritecollide(self, sshiG, False, pygame.sprite.collide_mask)
+            cs = ddger if pygame.sprite.collide_mask(self, ddger) != None else []
+            for i in cd + cs:
+                i.killed()
         # for v in range(0, 256):
         #     gopm = [self.rect2.center]
         #     est_pos = dco[min(len(dco), 13 + v)]
@@ -284,12 +306,6 @@ class laser_enemy(pygame.sprite.Sprite):
         #         self.fire()
         #     self.rect2.center += tuple(map(sign, map(sub, go_to_pos, self.rect2.center)))
 
-        delta = tuple(map(sub, self.rect2.topleft, ddger.rect.topleft))
-        Sdelta = tuple(map(sign, delta))
-        # This returns the backside coords of the craft
-        self.backside = list(map(add, self.rect2.center,
-                                 tuple(map(sub, (0, 0), map(sign, delta)))
-                                 * (self.rect2.size[0] // 2)))
         # Mapping of cycle:
         # 0 - reset everything
         # 1-10 charge laser
@@ -314,10 +330,54 @@ class laser_enemy(pygame.sprite.Sprite):
         #     # -----Firing of laser-----
         #     pygame.draw.line()
 
-    def fire(self):
-        """The craft fires in one directions, as it won't fire often
-        """
-        print('fire!', time.time())
+    class firing_solutions:
+        colours = {
+            1: (72, 74, 119, 235),
+            2: (77, 101, 180, 240),
+            3: (77, 150, 230, 245),
+            4: (77, 150, 230, 255)
+        }
+        def __init__(self) -> None:
+            self.firing = self.fireloop()
+            self.particles = []
+
+        def __call__(self, coords, direction, screen):
+            """The craft fires in one directions, as it won't fire often
+            """
+            n = next(self.firing)
+            if n < 0:
+                pygame.draw.circle(screen, (255, 255, 255), coords, 0 - n)
+                self.particles = []
+            elif 0 < n <= 4:
+                # Does outline
+                x = coords[0] + math.cos(math.radians(abs(direction - 180))) * 256
+                y = coords[1] + math.sin(math.radians(abs(direction - 180))) * 256
+                pygame.draw.line(screen, type(self).colours[n], coords, (x, y))
+            elif n == 20:
+                for _ in range(random.randint(4, 8)):
+                    self.particles.append([[random.randint(coords[0] - 14, coords[0] + 14),
+                                            random.randint(coords[1] - 14, coords[1] + 14)]])
+            for p in self.particles:
+                if p[0] == coords:
+                    self.particles.remove(p)
+                    continue
+                d = int(5 - minmax(1, 4, math.sqrt((coords[0] - p[0][0])**2 + (coords[1] - p[0][1])**2)))
+                p[0][0] += sign(coords[0] - p[0][0], d)
+                p[0][1] += sign(coords[1] - p[0][1], d)
+                pygame.draw.circle(screen, (38, 50, 56, random.randint(210, 250)), p[0], 3 - max(d, 2))
+            return n
+
+        def fireloop(self):
+            self.colours = []
+            while True:
+                for i in range(-10, 0):
+                    yield i
+                for i in range(1, 6):
+                    yield min(i, 4)
+                for i in range(0, 20):
+                    # Cool down
+                    yield 20
+                yield 0
 
     def orientate(self, orientation):
         """Orientates the laser in one of eight orientates as listed below
@@ -417,12 +477,4 @@ def closer(a, b, c, by=1, maximise=False):
         Returns what the b value should be so it is closer to either of the
         two values (a or c)
     """
-    smaller = min(a, c)
-    larger = max(a, c)
-    minus = [(b - by) - smaller, b - by]
-    addition = [larger - (b + by), b + by]
-    if min(minus[0], addition[0]) == minus[0]\
-            or maximise and min(minus[0], addition[0]) == addition[0]:
-        return minus[1]
-    else:
-        return addition[1]
+    return min([a, c], key=lambda x: abs(b-x))
