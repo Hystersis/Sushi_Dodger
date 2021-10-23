@@ -10,6 +10,14 @@ from itertools import count, cycle
 
 
 class G(ABC):
+    """An abstract base class for all graphics, so the program can
+    check if the desired class is a graphic
+
+    Parameters
+    ----------
+    ABC : taken from python's abc
+        Allows for an Abstract Base Class
+    """
     @abstractmethod
     def __init__(self):
         pass
@@ -20,6 +28,14 @@ class G(ABC):
 
 
 class able_to_lock_in_menu(ABC):
+    """An abstract base class for all items that can be locked in menu,
+    so the program can check if the desired class is able to lock
+
+    Parameters
+    ----------
+    ABC : taken from python's abc
+        Allows for an Abstract Base Class
+    """
     @abstractmethod
     def __init__(self):
         pass
@@ -30,12 +46,33 @@ class able_to_lock_in_menu(ABC):
 
 
 class Blur:
-    '''Allows for blurring of screen'''
+    """Allows for the blurring of a surface
+    """
     def __init__(self, blur_amount):
+        """Allows for initatlisation of the Blur class
+
+        Parameters
+        ----------
+        blur_amount : int
+            Is the radius of the gaussian blur
+        """
         super().__init__()
         self.bAmt = blur_amount
 
     def __call__(self, surface):
+        """Uses the pillow module to blur a pygame surface by converting it to bytes,
+        blurring the bytes and then converting it back into a pygame surface
+
+        Parameters
+        ----------
+        surface : pygame.Surface
+            The surface desired to be blured
+
+        Returns
+        -------
+        pygame.Surface
+            The blurred surface
+        """
         surf = pygame.image.tostring(surface, 'RGBA')
         blurred = Image.frombytes('RGBA', surface.get_size(), surf).filter(ImageFilter.GaussianBlur(radius=5))
         surf = pygame.image.fromstring(blurred.tobytes('raw', 'RGBA'), surface.get_size(), 'RGBA')
@@ -43,7 +80,15 @@ class Blur:
 
 
 class Prtcl(pygame.sprite.Sprite, G):
-    '''Classic Prtcl, just ment to display something on a certain layer'''
+    """A stationary object or particle
+
+    Parameters
+    ----------
+    pygame : pygame
+        allows for it to interact with pygame specific sprite operations
+    G : ABC
+        Allows it to be recognized as a graphic
+    """
     def __init__(self, pos, imge):
         super().__init__()
         self.image = pygame.image.load(os.path.join("Assets", imge))

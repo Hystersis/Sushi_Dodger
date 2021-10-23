@@ -49,14 +49,31 @@ class M_credits(M_page):
         self.b.append(Button((0, 0), (256, 24), (0, 0, 0), '(c) Hystersis ', test, True))
         self.b.append(Button((0, 24), (256, 24), (0, 0, 0), 'Original idea', test, True))
         self.b.append(Button((0, 48), (256, 24), (0, 0, 0), 'Original design in Lua', test, True))
+
         self.b.append(Button((0, 72), (256, 24), (0, 0, 0), '=' * 15, test, True))
+
         self.b.append(Button((0, 96), (256, 24), (0, 0, 0), 'Fonts from:', test, True))
         self.b.append(Button((0, 120), (256, 24), (0, 0, 0), '8-bit Arcade In &', test, True))
         self.b.append(Button((0, 144), (256, 24), (0, 0, 0), '8-bit Arcade Out', test, True))
         self.b.append(Button((0, 168), (256, 24), (0, 0, 0), 'From Damien Gosset', test, True))
+
         self.b.append(Button((0, 192), (256, 24), (0, 0, 0), '+' * 15, test, True))
+
         self.b.append(Button((0, 216), (256, 24), (0, 0, 0), 'Manaspace', test, True))
         self.b.append(Button((0, 240), (256, 24), (0, 0, 0), 'From codeman38', test, True))
+
+        self.b.append(Button((0, 264), (256, 24), (0, 0, 0), '=' * 15, test, True))
+        self.b.append(Button((0, 288), (256, 24), (0, 0, 0), 'Music:', test, True))
+        self.b.append(Button((0, 312), (256, 24), (0, 0, 0), 'Main game music is', test, True))
+        self.b.append(Button((0, 336), (256, 24), (0, 0, 0), 'Kung Fu Fighters March - Fast', test, True))
+        self.b.append(Button((0, 360), (256, 24), (0, 0, 0), 'By Loco Loco', test, True))
+
+        self.b.append(Button((0, 384), (256, 24), (0, 0, 0), '+' * 15, test, True))
+
+        self.b.append(Button((0, 408), (256, 24), (0, 0, 0), 'Background music is', test, True))
+        self.b.append(Button((0, 432), (256, 24), (0, 0, 0), 'Temple of the Dragon Friendship', test, True))
+        self.b.append(Button((0, 456), (256, 24), (0, 0, 0), 'By Loco Loco', test, True))
+
 
         self.group = pygame.sprite.Group()
 
@@ -72,7 +89,7 @@ class M_credits(M_page):
             self.message.update()
         for event in pygame.event.get():
             if event.type == pygame.MOUSEWHEEL:
-                self.scroll = core.minmax(0, self.scroll + event.__dict__['y'] * 10, 5)
+                self.scroll = core.minmax(0, self.scroll + -event.__dict__['y'] * 10, 224)
             events(event)
 
     def draw(self):
@@ -197,6 +214,11 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     mscreen = make_screen()
     m = Menus()
+    pygame.mixer.init()
+
+    # Music
+    pygame.mixer.Sound(os.path.join("Assets","Sounds","Background-sound.mp3")).play(loops = -1).set_volume(0.07)
+
     while True:
         pygame.display.flip()
         clock.tick(60)  # Locks the frame rate to 60 fps

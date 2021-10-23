@@ -117,8 +117,11 @@ class Initi:
         self.layers.add(c.items, layer=0)
         self.event_sys = events_sync()
         self.event_sys.listen('Active', pygame.KEYDOWN, self.ddger.killed, pygame.K_F2)
-        self.missile = spe.laser_enemy((0, 0))
+        self.laser = spe.laser_enemy((0, 0))
+        self.missile = spe.missile((0, 0))
+
         self.layers.add(self.missile, layer=2)
+        self.layers.add(self.laser, layer=2)
         if c._health == 0:
             print('health added')
             c.items += item(iV=self, **{"name": "health",
@@ -127,11 +130,31 @@ class Initi:
             c._health += 1
 
     def Level(self, lvl):
+        """Creates a list of amount of sushi that should be in each
+        level, it then receives the level num and recalls the amount
+        of sushi that should be in the level
+
+        Parameters
+        ----------
+        lvl : int
+            The level to be recalled
+        Returns
+        -------
+        int
+            The amount of sushi that should be in the level
+        """        
         self.lvl = lvl
         self.n = list(map(lambda y: y*2+12, range(2, 15)))
         self.n.insert(0, 10)
 
         def get_num():
+            """Gets the amount of sushi from the list using the lvl parameter
+
+            Returns
+            -------
+            int
+                The amount of sushi to be in the level
+            """            
             return self.n[self.lvl - 1 if self.lvl < 14 else 13]
         self.num = get_num()
 
@@ -140,6 +163,9 @@ class Initi:
 
 
 class Placeholder(pygame.sprite.Sprite):
+    """A placeholder for certain situation where something needs to
+    be kept open
+    """
     def __init__(self):
         super().__init__()
         self.image = pygame.Surface((256, 256), pygame.SRCALPHA)
@@ -148,11 +174,23 @@ class Placeholder(pygame.sprite.Sprite):
 
 
 class DifficultlyStats:
+    """
+    These are the stats that allow for
+    granular control over parts of the game
+    therefore allowing for the difficulty to
+    be changed
+    """    
     def __init__(self):
+        """
+        Resets all items to their original state and
+        it also creates the item manager
+        """        
         self.reset()
         self.items = item_manager()
 
     def reset(self):
+        """Resets all values to their original state
+        """        
         self.fps = 10
         self.overall_speed = 1
         # Allows for all entities to be speed up by one control
@@ -166,10 +204,25 @@ class DifficultlyStats:
 
     @property
     def dspeed(self):
+        """The speed of the ddger
+
+        Returns
+        -------
+        float
+            The dodger speed effected by the overall speed
+        """        
         return self._dspeed * self.overall_speed
 
     @dspeed.setter
     def dspeed(self, value):
+        """Allows for the setting of the internal
+        ddger speed value
+
+        Parameters
+        ----------
+        value : float
+            The value wished for dspeed to be
+        """        
         self._dspeed = value
 
     @property
@@ -487,6 +540,7 @@ def main():
         i.unayers.draw(Initi.screen)
         track_previous_gm = i.gm
         i.missile.update(i.ddger, i.sshi_group)
+        i.laser.update(i.ddger, i.sshi_group)
         # except Exception as the_error:
         #     # This makes sure the tkinter screen isn't visable
         #     TK_screen = tkinter.Tk()
@@ -592,7 +646,7 @@ class die_screen():
         self.mask.draw(pygame.mask.Mask(size=(134, 130), fill=True), (61, 94))
         self.message = grph.message_box('Press the key x to restart, press the key z to enter text input mode for scoreboard', (106, 23, 45, 100), [256, 16], xy=[0, 240])
         i.unayers.add(self.message, layer=0)
-        self.text_input = input_box(20, 92, 3, UpperLowerSentence='U', length=3, disallowed_words=['ASS', 'SEX'])
+        self.text_input = input_box(20, 92, 3, UpperLowerSentence='U', length=3, disallowed_words=['ASS', 'SEX', 'JDH'])
         self.show_text_input = False
         i.event_sys.listen('Died', pygame.KEYDOWN, self.fade_out, pygame.K_x)
         i.event_sys.listen('Died', pygame.KEYDOWN, self.ask_for_input, pygame.K_z)
@@ -1127,27 +1181,50 @@ class input_box:
 def start(screen=None):
     global i, c, score
     c = DifficultlyStats()
+    
+    # Music
+    pygame.mixer.stop()
+    pygame.mixer.Sound(os.path.join("Assets","Sounds","Main-sound.mp3")).play(loops = -1).set_volume(0.05)
+
     i = Initi(screen=screen)
     score = 0
     main()
 
 
 class events_sync:
+    """
+    Allows for pygame to be handled at the same time
+    and with coordination; otherwise every system
+    who wanted to listen for a particular event
+    would be stepping on each other toes and the
+    events may be taken from the queue accidentally
+    and interfere with other systems
+    """    
     def __init__(self) -> None:
+        """Sets up events_sync program
+        """        
         self.register = {}
         for i in ['Active', 'Paused', 'Died', 'Won']:
             self.register[i] = []
         self.latch_register = {}
 
     def __call__(self):
+        """
+        Goes through each event in the queue
+        and does appropriate actions
+        """
         global i
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                # Quits game if 'X" is pressed in game window
                 pygame.quit()
                 exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
+                # Allows for fullscreen
                 pygame.display.toggle_fullscreen()
             for x in self.register[i.gm]:
+                # Goes through every action in the register and if the action
+                # matches with the selected event type
                 k = list(x.keys())[0]
                 v = tuple(x.values())[0]
                 if event.type == k[0] and len(k) < 2:
@@ -1158,19 +1235,57 @@ class events_sync:
                 self.latch_register[event.type].append(event)
 
     def listen(self, gm: str, event: int, action, key: int = None, *args, **kwargs):
+        """Allows for an action to be performed when the associated event occurs
+        if passed the listen function can also listen for specific keys, it
+        also allows for args or kwargs to be passed into the action
+
+        Parameters
+        ----------
+        gm : str
+            At what game mode should the action trigger
+        event : int
+            The pygame event that should be listened too
+        action : [type]
+            The function that should be called when the event occurs
+        key : int, optional
+            If the event is a keyboard event, so on what key should
+            the event occur, by default None
+        """
         if key is None:
             self.register[gm].append({(event): (action, args, kwargs)})
         else:
             self.register[gm].append({(event, key): (action, args, kwargs)})
 
-    def latch(self, key: int):
-        '''This listens to a particular event'''
-        self.latch_register[key] = []
+    def latch(self, event: int):
+        """This allows for events to be listened too and recorded
+        when events are heard, the occurrence is noted in latch
+        register for the respective event and can be retrieved at anytime
 
-    def retrieve(self, key: int):
-        '''This retrieves all the stored events that were listened too'''
-        r = self.latch_register[key]
-        self.latch_register[key] = []
+        Parameters
+        ----------
+        event : int
+            The pygame event that should be listened for
+        """
+        self.latch_register[event] = []
+
+    def retrieve(self, event: int):
+        """Retrieves all the events stored in the register from the requested
+        event type, this function is designed to be called frequently (most
+        likely once per tick) so it unlikely to have multiple events in the
+        register
+
+        Parameters
+        ----------
+        event : int
+            The pygame event that should be retrieved
+
+        Returns
+        -------
+        list
+            All the events that occurred in the registers
+        """
+        r = self.latch_register[event]
+        self.latch_register[event] = []
         return r
 
     def __delattr__(self, key: str) -> None:
@@ -1181,6 +1296,7 @@ if __name__ == '__main__':
     icon = pygame.image.load(os.path.join("Assets", "dodger_icon.png"))
     pygame.display.set_icon(icon)
     pygame.display.set_caption("Sushi Dodger")
+    pygame.mixer.init()
     screen = pygame.display.set_mode((256, 256), flags=pygame.RESIZABLE
                                      | pygame.SCALED)
     start(screen)

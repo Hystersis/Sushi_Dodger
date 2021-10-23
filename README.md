@@ -19,6 +19,9 @@ You can use Sushi_Dodger to play an afternoon away or you can improve on this pr
 
 ## Credits:
 Entirely made by [Hystersis](https://github.com/Hystersis).
+Music:
+Game music: [Kung Fu Fighters March - Fast (ID 833) by Lobo Loco](https://freemusicarchive.org/music/Lobo_Loco/Round_the_World/Kung_Fu_Fighters_March_-_Fast_ID_833)
+Background menu music: [Temple of the Dragon Friendship (ID 1564) by Lobo Loco](https://freemusicarchive.org/music/Lobo_Loco/hot-summer-place/temple-of-the-dragon-friendship-id-1564)
 
 ## License:
 This file is under a **proprietary** license.

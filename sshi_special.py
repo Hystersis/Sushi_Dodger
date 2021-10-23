@@ -1,4 +1,3 @@
-from sshi_core import minmax
 import pygame
 import os
 from operator import sub, add, mul
@@ -23,12 +22,12 @@ def sign(num: int, amount: int = 1) -> int:
 
 
 class missile(pygame.sprite.Sprite):
-    def __init__(self, start_pos: tuple, orientation: int):
+    def __init__(self, start_pos: tuple):
         super().__init__()
         self.colours = [(174, 35, 52), (232, 59, 59), (249, 194, 43)]
         self.time = time.time()
         self.life_span = 7
-        self.orientation = orientation
+        self.orientation = random.randint(0, 8)
         self.orientate(self.orientation)
         self.image = pygame.Surface((256, 256), flags=pygame.SRCALPHA)
         self.rect = self.image.get_rect()
@@ -40,6 +39,7 @@ class missile(pygame.sprite.Sprite):
         self.dirny = 0
         self.particles = []
         self.explosion = []
+        self.ash = []
         self._hit = True
         self.last_dist = math.inf
 
@@ -79,8 +79,16 @@ class missile(pygame.sprite.Sprite):
                                12 - p[1] - int(p[1] / 3.2))
             self.image.blit(expface, (p[0][0] - 16, p[0][1] - 16))
 
+        for p in self.ash:
+            p[0][0] += p[1][0]
+            p[0][1] += p[1][1]
+            p[2] -= 0.02
+            colour = (138, 145, 140, random.randint(220, 245))
+            pygame.draw.circle(self.image, colour, tuple(map(int, p[0])), min(int(p[2]), 2))
+
         self.particles = [p for p in self.particles if p[2] > 0]
         self.explosion = [p for p in self.explosion if p[1] > 0]
+        self.ash = [p for p in self.ash if p[2] > 0]
 
         if self._hit:
             d = math.sqrt(delta[0] ** 2 + delta[1] ** 2)  # Pythagoras for distance
@@ -164,10 +172,14 @@ class missile(pygame.sprite.Sprite):
                 hit = mask.overlap(pygame.mask.from_surface(sprite.image),
                                 sprite.rect.topleft)
                 if type(hit) is tuple:
+                    for _ in range(16):
+                        self.ash.append([[random.randint(sprite.rect.midleft[0], sprite.rect.midright[0]), random.randint(sprite.rect.midtop[1], sprite.rect.midbottom[1])], [random.gauss(0, 1), -1], random.uniform(1, 3)])
                     sprite.killed()
             hit = mask.overlap(pygame.mask.from_surface(ddger.image),
                             ddger.rect.topleft)
             if type(hit) is tuple:
+                for _ in range(16):
+                    self.ash.append([[random.randint(ddger.rect.midleft[0], ddger.rect.midright[0]), random.randint(ddger.rect.midtop[1], ddger.rect.midbottom[1])], [random.gauss(0, 1), -1], random.uniform(1, 3)])
                 ddger.killed()
             self.explosion.append([self.rect2.center, 16])
 
@@ -222,9 +234,11 @@ class laser_enemy(pygame.sprite.Sprite):
         self.rect2 = self.ship.get_rect()
         self.charge_cycle = cycle(range(18))
         self.time = time.time()
-        self.firing = False
+        self.firing = 0
         self.fire = self.firing_solutions()
         self.mask = pygame.mask.from_surface(self.image)
+        self.particles = []
+        self.o = 0
 
     def update(self, ddger, sshiG: pygame.sprite.Group):
         """Movement and firing solutions for laser
@@ -255,14 +269,13 @@ class laser_enemy(pygame.sprite.Sprite):
                 # This returns the backside coords of the craft
         ordegrees = int(abs((anglebetween(self.rect2.center, ddger.rect.center)
                          - 90) // 45))
-        print(ordegrees)
         d = (round(math.sin(ordegrees * 45 * .0174532925)),
              round(math.cos(ordegrees * 45 * .0174532925)))
         self.frontside = list(map(add, self.rect2.center,
                                  map(sign, d, repeat(self.rect2.width // 2))))
         if ang % 45 == 0 and not self.firing:
-            self.fire(self.frontside, (ordegrees*45 + 90) % 360, self.image)
-            self.firing = True
+            self.o = ordegrees
+            self.firing = self.fire(self.frontside, (self.o*45 + 90) % 360, self.image)
         elif not self.firing:
             # https://stackoverflow.com/questions/12141150/from-list-of-integers-get-number-closest-to-a-given-value
             # This returns the angle closest to the current angle
@@ -285,50 +298,31 @@ class laser_enemy(pygame.sprite.Sprite):
                                     self.rect2.center[1]
                                     + math.sin(trangto * math.pi / 180))
             self.rect2.center = tuple(map(minmax, (8, 8), moveto, (247, 247)))
+            self.orientate(ordegrees)
         elif self.firing:
-            self.firing = self.fire(self.frontside, (ordegrees*45 + 90) % 360, self.image)
+            self.firing = self.fire(self.frontside, ((self.o*45)%360 + 90), self.image)
+            self.orientate(self.o)
 
-        self.orientate(ordegrees)
-        self.image.blit(self.ship, self.rect2.topleft)
+
         self.mask = pygame.mask.from_surface(self.image)
-        if self.firing > 0:
+        self.image.blit(self.ship, self.rect2.topleft)
+        if 5 > self.firing > 0:
             cd = pygame.sprite.spritecollide(self, sshiG, False, pygame.sprite.collide_mask)
-            cs = ddger if pygame.sprite.collide_mask(self, ddger) != None else []
+            cs = [ddger] if pygame.sprite.collide_mask(self, ddger) != None else []
+            print(cd, cs, self.firing)
             for i in cd + cs:
+                for _ in range(16):
+                    self.particles.append([[random.randint(i.rect.midleft[0], i.rect.midright[0]), random.randint(i.rect.midtop[1], i.rect.midbottom[1])], [random.gauss(0, 1), -1], random.uniform(2, 4)])
                 i.killed()
-        # for v in range(0, 256):
-        #     gopm = [self.rect2.center]
-        #     est_pos = dco[min(len(dco), 13 + v)]
-        #     collide_offset = anglebetween(self.rect2.center, est_pos) - 90
-        #     if collide_offset % 45 == 0:
-        #         go_to_pos = collide_offset
-        #     if go_to_pos == self.rect2.center:
-        #         self.fire()
-        #     self.rect2.center += tuple(map(sign, map(sub, go_to_pos, self.rect2.center)))
 
-        # Mapping of cycle:
-        # 0 - reset everything
-        # 1-10 charge laser
-        # 11-14 fire laser:
-        #    11 show outline
-        #    12 make outline bigger
-        #    13 calculate hits
-        #    14 leave remanent of laser blast
-        # 15-17 cooldown
-        # n = next(self.charge_cycle)
-        # if n >= 1 and n < 11:
-        #     # -----Charge of laser-----
-        #     pygame.draw.circle(self.image, tuple(map(add,
-        #                                              map(mul,
-        #                                                  (255, 255, 255, 150),
-        #                                                  repeat(1 / 10 * (11 - n))),
-        #                                               map(mul,
-        #                                                   (77, 155, 230, 245),
-        #                                                   repeat(1 / 10 * n)))), 
-        #                        self.backside)
-        # elif n >= 11 and n < 15:
-        #     # -----Firing of laser-----
-        #     pygame.draw.line()
+        for p in self.particles:
+            p[0][0] += p[1][0]
+            p[0][1] += p[1][1]
+            p[2] -= 0.01
+            colour = (178, 190, 181, 245)
+            pygame.draw.circle(self.image, colour, tuple(map(int, p[0])), min(int(p[2]), 2))
+
+        self.particles = [p for p in self.particles if p[2] > 0]
 
     class firing_solutions:
         colours = {
@@ -350,8 +344,8 @@ class laser_enemy(pygame.sprite.Sprite):
                 self.particles = []
             elif 0 < n <= 4:
                 # Does outline
-                x = coords[0] + math.cos(math.radians(abs(direction - 180))) * 256
-                y = coords[1] + math.sin(math.radians(abs(direction - 180))) * 256
+                x = coords[0] + math.cos(math.radians(abs(direction - 180))) * 512
+                y = coords[1] + math.sin(math.radians(abs(direction - 180))) * 512
                 pygame.draw.line(screen, type(self).colours[n], coords, (x, y))
             elif n == 20:
                 for _ in range(random.randint(4, 8)):
@@ -362,8 +356,8 @@ class laser_enemy(pygame.sprite.Sprite):
                     self.particles.remove(p)
                     continue
                 d = int(5 - minmax(1, 4, math.sqrt((coords[0] - p[0][0])**2 + (coords[1] - p[0][1])**2)))
-                p[0][0] += sign(coords[0] - p[0][0], d)
-                p[0][1] += sign(coords[1] - p[0][1], d)
+                p[0][0] += sign(coords[0] - p[0][0], random.gauss(1, 1))
+                p[0][1] += sign(coords[1] - p[0][1], random.gauss(1, 1))
                 pygame.draw.circle(screen, (38, 50, 56, random.randint(210, 250)), p[0], 3 - max(d, 2))
             return n
 
@@ -409,16 +403,65 @@ class laser_enemy(pygame.sprite.Sprite):
 
 # From https://realpython.com/python-rounding/#rounding-down
 def roundd(num, decimals=0):
+    """Rounds a number to specified number of decimal places
+    by rounding down
+
+    Parameters
+    ----------
+    num : int or float
+        The number being rounded
+    decimals : int, optional
+        How many decimals the program should round too, by default 0
+
+    Returns
+    -------
+    int or float
+        The rounded number
+    """
     multiplier = 10 ** decimals
     return math.floor(num * multiplier) / multiplier
 
 
 def roundu(n, decimals=0):
+    """Rounds a number to specified number of decimal places
+    by rounding up
+
+    Parameters
+    ----------
+    num : int or float
+        The number being rounded
+    decimals : int, optional
+        How many decimals the program should round too, by default 0
+
+    Returns
+    -------
+    int or float
+        The rounded number
+    """
     multiplier = 10 ** decimals
     return math.ceil(n * multiplier) / multiplier
 
 
 def sinsq(n: float, width: int, deviation=0) -> float:
+    """A sin squared function that returns waves with width of 'width'
+    and 'n' determines the x position the y value should be read from
+    the wave's 0 y value usually begins at x = 0, but with deviation
+    it can be changed
+
+    Parameters
+    ----------
+    n : float
+        The x value where y should be read from
+    width : int
+        How 'wide' the waves should be
+    deviation : int, optional
+        The offset of y = 0 from x = 0, by default 0
+
+    Returns
+    -------
+    float
+        The y value
+    """    
     return math.sin((n+deviation) / (width / math.pi))**2
 
 
@@ -453,7 +496,7 @@ def anglebetween(avector: tuple, bvector: tuple):
                                    bvector[0] - avector[0]))
 
 
-def closer(a, b, c, by=1, maximise=False):
+def closer(a, b, c):
     """This angle determines which number b is closer too
     either a or c
 
