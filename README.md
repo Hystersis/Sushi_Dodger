@@ -20,7 +20,7 @@ You can use Sushi_Dodger to play an afternoon away or you can improve on this pr
 ## Credits:
 Entirely made by [Hystersis](https://github.com/Hystersis).
 
-Music:
+### Music:
 
 Game music: [Kung Fu Fighters March - Fast (ID 833) by Lobo Loco](https://freemusicarchive.org/music/Lobo_Loco/Round_the_World/Kung_Fu_Fighters_March_-_Fast_ID_833)
 
