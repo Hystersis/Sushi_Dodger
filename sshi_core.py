@@ -326,9 +326,10 @@ class Dodger(pygame.sprite.Sprite):
         return [list(self.rect.topleft), list(self.rect.bottomright)]
 
     def killed(self):
-        i.gm = 'Died'
-        self.kill()
-        print('You died!, press \'X\' to start again', i.gm)
+        # i.gm = 'Died'
+        # self.kill()
+        # print('You died!, press \'X\' to start again', i.gm)
+        pass
 
 
 
@@ -478,6 +479,7 @@ class sshi_classic_hit(sshi_hit):
                 else:
                     i.ddger.killed()
             else:
+                pygame.mixer.Sound(os.path.join("Assets","Sounds","Sword-swish.wav")).play().set_volume(0.07)
                 sshi.killed()
 
 

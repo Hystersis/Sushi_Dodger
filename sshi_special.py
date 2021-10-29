@@ -168,6 +168,7 @@ class missile(pygame.sprite.Sprite):
             hit_surface = pygame.Surface((256, 256), flags=pygame.SRCALPHA)
             pygame.draw.circle(hit_surface, (0, 0, 0), self.rect2.center, 30)
             mask = pygame.mask.from_surface(hit_surface)
+            pygame.mixer.Sound(os.path.join("Assets","Sounds","explosion.wav")).play().set_volume(0.07)
             for sprite in sshiG:
                 hit = mask.overlap(pygame.mask.from_surface(sprite.image),
                                 sprite.rect.topleft)
@@ -340,9 +341,17 @@ class laser_enemy(pygame.sprite.Sprite):
             """
             n = next(self.firing)
             if n < 0:
+                if n == -15:
+                    self.alarm_sound = pygame.mixer.Sound(os.path.join("Assets","Sounds","alarm-laser-fast.wav")).play()
+                    self.alarm_sound.set_volume(0.01)
+                elif n == -1:
+                    self.alarm_sound.stop()
                 pygame.draw.circle(screen, (255, 255, 255), coords, 0 - n)
                 self.particles = []
             elif 0 < n <= 4:
+                if n == 1:
+                    print('playing sound')
+                    pygame.mixer.Sound(os.path.join("Assets","Sounds","laser-blast.wav")).play().set_volume(0.02)
                 # Does outline
                 x = coords[0] + math.cos(math.radians(abs(direction - 180))) * 512
                 y = coords[1] + math.sin(math.radians(abs(direction - 180))) * 512
@@ -364,7 +373,7 @@ class laser_enemy(pygame.sprite.Sprite):
         def fireloop(self):
             self.colours = []
             while True:
-                for i in range(-10, 0):
+                for i in range(-15, 0):
                     yield i
                 for i in range(1, 6):
                     yield min(i, 4)
