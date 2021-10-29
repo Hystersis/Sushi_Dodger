@@ -12,12 +12,12 @@ Installation:
 -------------------
 
 Terminal::
+
     git clone https://github.com/Hystersis/Sushi_Dodger.git
 
     pip install -r requirements.txt
 
     python sshi_base.py
-
 
 Usage:
 -------------------
