@@ -104,8 +104,8 @@ class Initi:
             screenHigh = 4
             all = 5'''
             self.layers.add(Placeholder(), layer=num_of_layer)
-        self.unayers = pygame.sprite.LayeredUpdates()
         # Shorthand for UNAffected laYERS
+        self.unayers = pygame.sprite.LayeredUpdates()
         for num_of_layer in range(2):
             '''Two layers: 0, 1'''
             self.unayers.add(Placeholder(), layer=num_of_layer)
@@ -326,10 +326,9 @@ class Dodger(pygame.sprite.Sprite):
         return [list(self.rect.topleft), list(self.rect.bottomright)]
 
     def killed(self):
-        # i.gm = 'Died'
-        # self.kill()
+        i.gm = 'Died'
+        self.kill()
         # print('You died!, press \'X\' to start again', i.gm)
-        pass
 
 
 
@@ -518,6 +517,8 @@ def main():
         if i.gm == 'Active':
             i.sshi_group.update()
             c.items.update()
+            i.missile.update(i.ddger, i.sshi_group)
+            i.laser.update(i.ddger, i.sshi_group)
 
         if i.gm == 'Died' and track_previous_gm != 'Died':
             d = die_screen()
@@ -541,8 +542,7 @@ def main():
         Initi.screen.blit(move_screen, next(i.offset))
         i.unayers.draw(Initi.screen)
         track_previous_gm = i.gm
-        i.missile.update(i.ddger, i.sshi_group)
-        i.laser.update(i.ddger, i.sshi_group)
+        
         # except Exception as the_error:
         #     # This makes sure the tkinter screen isn't visable
         #     TK_screen = tkinter.Tk()
@@ -901,7 +901,6 @@ class item(pygame.sprite.Sprite):
                                       self.rect.topleft),
                                   (3, 3)))
             self.rect.topleft = tuple(map(add, self.delta, self.rect.topleft))
-        if self.rect.topleft == go_to_pos:
             self._void()
         return (self.image, self.rect.topleft)
 
@@ -1186,7 +1185,8 @@ def start(screen=None):
     
     # Music
     pygame.mixer.stop()
-    pygame.mixer.Sound(os.path.join("Assets","Sounds","Main-sound.mp3")).play(loops = -1).set_volume(0.05)
+    pygame.mixer.Channel(0).play(pygame.mixer.Sound(os.path.join("Assets","Sounds","Main-sound.mp3")), loops = -1)
+    if pygame.mixer.Channel(0).get_volume() > 0: pygame.mixer.Channel(0).set_volume(0.08)
 
     i = Initi(screen=screen)
     score = 0
@@ -1293,12 +1293,18 @@ class events_sync:
     def __delattr__(self, key: str) -> None:
         self.register = {k: v for k, v in self.register.items()}
 
+def start_sounds():
+    pygame.mixer.init()
+    pygame.mixer.set_reserved(0)
+
 
 if __name__ == '__main__':
     icon = pygame.image.load(os.path.join("Assets", "dodger_icon.png"))
     pygame.display.set_icon(icon)
     pygame.display.set_caption("Sushi Dodger")
-    pygame.mixer.init()
+    start_sounds()
     screen = pygame.display.set_mode((256, 256), flags=pygame.RESIZABLE
                                      | pygame.SCALED)
     start(screen)
+
+

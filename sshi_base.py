@@ -46,33 +46,33 @@ class M_credits(M_page):
         global m
         m(M_credits)
         self.b = []
-        self.b.append(Button((0, 0), (256, 24), (0, 0, 0), '(c) Hystersis ', test, True))
-        self.b.append(Button((0, 24), (256, 24), (0, 0, 0), 'Original idea', test, True))
-        self.b.append(Button((0, 48), (256, 24), (0, 0, 0), 'Original design in Lua', test, True))
+        self.b.append(Button((0, 0), (256, 24), (0, 0, 0), '(c) Hystersis ', void, True))
+        self.b.append(Button((0, 24), (256, 24), (0, 0, 0), 'Original idea', void, True))
+        self.b.append(Button((0, 48), (256, 24), (0, 0, 0), 'Original design in Lua', void, True))
 
-        self.b.append(Button((0, 72), (256, 24), (0, 0, 0), '=' * 15, test, True))
+        self.b.append(Button((0, 72), (256, 24), (0, 0, 0), '=' * 15, void, True))
 
-        self.b.append(Button((0, 96), (256, 24), (0, 0, 0), 'Fonts from:', test, True))
-        self.b.append(Button((0, 120), (256, 24), (0, 0, 0), '8-bit Arcade In &', test, True))
-        self.b.append(Button((0, 144), (256, 24), (0, 0, 0), '8-bit Arcade Out', test, True))
-        self.b.append(Button((0, 168), (256, 24), (0, 0, 0), 'From Damien Gosset', test, True))
+        self.b.append(Button((0, 96), (256, 24), (0, 0, 0), 'Fonts from:', void, True))
+        self.b.append(Button((0, 120), (256, 24), (0, 0, 0), '8-bit Arcade In &', void, True))
+        self.b.append(Button((0, 144), (256, 24), (0, 0, 0), '8-bit Arcade Out', void, True))
+        self.b.append(Button((0, 168), (256, 24), (0, 0, 0), 'From Damien Gosset', void, True))
 
-        self.b.append(Button((0, 192), (256, 24), (0, 0, 0), '+' * 15, test, True))
+        self.b.append(Button((0, 192), (256, 24), (0, 0, 0), '+' * 15, void, True))
 
-        self.b.append(Button((0, 216), (256, 24), (0, 0, 0), 'Manaspace', test, True))
-        self.b.append(Button((0, 240), (256, 24), (0, 0, 0), 'From codeman38', test, True))
+        self.b.append(Button((0, 216), (256, 24), (0, 0, 0), 'Manaspace', void, True))
+        self.b.append(Button((0, 240), (256, 24), (0, 0, 0), 'From codeman38', void, True))
 
-        self.b.append(Button((0, 264), (256, 24), (0, 0, 0), '=' * 15, test, True))
-        self.b.append(Button((0, 288), (256, 24), (0, 0, 0), 'Music:', test, True))
-        self.b.append(Button((0, 312), (256, 24), (0, 0, 0), 'Main game music is', test, True))
-        self.b.append(Button((0, 336), (256, 24), (0, 0, 0), 'Kung Fu Fighters March - Fast', test, True))
-        self.b.append(Button((0, 360), (256, 24), (0, 0, 0), 'By Loco Loco', test, True))
+        self.b.append(Button((0, 264), (256, 24), (0, 0, 0), '=' * 15, void, True))
+        self.b.append(Button((0, 288), (256, 24), (0, 0, 0), 'Music:', void, True))
+        self.b.append(Button((0, 312), (256, 24), (0, 0, 0), 'Main game music is', void, True))
+        self.b.append(Button((0, 336), (256, 24), (0, 0, 0), 'Kung Fu Fighters March - Fast', void, True))
+        self.b.append(Button((0, 360), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
 
-        self.b.append(Button((0, 384), (256, 24), (0, 0, 0), '+' * 15, test, True))
+        self.b.append(Button((0, 384), (256, 24), (0, 0, 0), '+' * 15, void, True))
 
-        self.b.append(Button((0, 408), (256, 24), (0, 0, 0), 'Background music is', test, True))
-        self.b.append(Button((0, 432), (256, 24), (0, 0, 0), 'Temple of the Dragon Friendship', test, True))
-        self.b.append(Button((0, 456), (256, 24), (0, 0, 0), 'By Loco Loco', test, True))
+        self.b.append(Button((0, 408), (256, 24), (0, 0, 0), 'Background music is', void, True))
+        self.b.append(Button((0, 432), (256, 24), (0, 0, 0), 'Temple of the Dragon Friendship', void, True))
+        self.b.append(Button((0, 456), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
 
 
         self.group = pygame.sprite.Group()
@@ -105,21 +105,34 @@ class M_settings(M_page):
     def __init__(self):
         global m
         m(M_settings)
-        self.b = []
-        self.b.append(Button((0, 0), (256, 24), (0, 0, 0), 'Hystersis ', test))
         self.group = pygame.sprite.Group()
-        for x in self.b:
-            self.group.add(x)
+        # <The SFX Toggle>
+        self.group.add(Button((5, 5), (128, 24), (0, 0, 0), 'Do Sound Effects', void, do_hover=False))
+        self.group.add(StateFullButton((220, 5), (30, 24), True, void, {True: (0,230,118), False: (255,23,68),
+                                                                        'txt': {True: 'T', False: 'F'}}, SFX_control()))
+        # </The SFX Toggle>
+
+        # <The Music Toggle>
+        self.group.add(Button((5, 34), (128, 24), (0, 0, 0), 'Do Music', void, do_hover=False))
+        self.group.add(StateFullButton((220, 34), (30, 24), True, void, {True: (0,230,118), False: (255,23,68),
+                                                                        'txt': {True: 'T', False: 'F'}}, music_control()))
+        # </The Music Toggle>
+
+        # self.group = pygame.sprite.Group()
+        # for x in self.b:
+        #     self.group.add(x)
         self.scroll = 0
         self.elapsed_time = time.time()
         self.message = grph.message_box('Press the key esc to leave', (106, 23, 45, 200), [256, 16], xy=[0, 240])
-    
+
     def update(self, *args, **kwargs):
+        mscreen.blit(pygame.image.load(os.path.join('Assets', 'sunset1.png')), (0,0))
         self.group.update(*args, **kwargs)
         if time.time() - self.elapsed_time > 7.5:
             self.message.update()
         for event in pygame.event.get():
             events(event)
+
     
     def draw(self):
         t_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
@@ -127,9 +140,46 @@ class M_settings(M_page):
         t_screen.blit(self.message.image, (0, 0))
         return t_screen
 
+class SFX_control:
+    def __init__(self) -> None:
+        self.num_of_channels = pygame.mixer.get_num_channels()
+
+    @property
+    def val(self):
+        return self._state
+    
+    @val.setter
+    def val(self, value):
+        self._state = value
+        if value:
+            # Turning on playback, so value is True
+            for v in range(1, self.num_of_channels):
+                pygame.mixer.Channel(v).set_volume(1)
+        else:
+            # Turning off playback, so value is False
+            for v in range(1, self.num_of_channels):
+                pygame.mixer.Channel(v).set_volume(0)
+
+class music_control:
+    def __init__(self):
+        self._state = False
+
+    @property
+    def val(self):
+        return self._state
+    
+    @val.setter
+    def val(self, value):
+        self._state = value
+        if value:
+            pygame.mixer.Channel(0).set_volume(1)
+        else:
+            pygame.mixer.Channel(0).set_volume(0)
+        print(pygame.mixer.Channel(0).get_volume())
+    
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, xy, wh, colour, txt, action, font=None):
+    def __init__(self, xy, wh, colour, txt, action, font=None, do_hover=True):
         super().__init__()
         self.xy, self.wh = xy, wh
         self.image = pygame.Surface(wh)
@@ -140,11 +190,12 @@ class Button(pygame.sprite.Sprite):
         self.txt = txt
         self.font = font
         self.colour = colour
+        self.do_hover = do_hover
 
     def update(self, *args, **kwargs):
         if self.font == None:
             mouse_pos = pygame.mouse.get_pos()
-            if self.xy[0] <= mouse_pos[0] <= (self.xy[0] + self.wh[0]) and self.xy[1] <= mouse_pos[1] <= (self.xy[1] + self.wh[1]):
+            if self.xy[0] <= mouse_pos[0] <= (self.xy[0] + self.wh[0]) and self.xy[1] <= mouse_pos[1] <= (self.xy[1] + self.wh[1]) and self.do_hover:
                 for event in pygame.event.get():
                     if event.type == pygame.MOUSEBUTTONDOWN and event.__dict__['button'] == 1:
                         if self.action == core.start:
@@ -160,6 +211,66 @@ class Button(pygame.sprite.Sprite):
             self.image.fill(self.colour)
             grph.word_wrap(self.image, self.txt, pygame.freetype.Font(os.path.join("Assets/", 'manaspace.regular.ttf'), 12), (255, 255, 255), 'center')
 
+class StateFullButton(pygame.sprite.Sprite):
+    def __init__(self, xy, wh, current_state, action, state_dict: dict, state_latch = None):
+        """[summary]
+
+        Parameters
+        ----------
+        xy : tuple
+            The xy position of the topleft corner
+        wh : tuple
+            The width and height of the button
+        current_state : bool
+            The current state either True or False
+        action : [type]
+            Any action to be performed on a state change
+        state_dict : dict
+            The colours that should be change between:
+            dict should be in this form:
+            {True: (a, b, c), False: (x, y, z)}
+            -- or --
+            {True: (a, b, c), False: (x, y, z), 'txt' : {True: 'text1', False: 'text2'}}
+        """        
+        super().__init__()
+        self.xy, self.wh = xy, wh
+        self.image = pygame.Surface(wh)
+        self.image.fill(state_dict[current_state])
+        self.rect = self.image.get_rect()
+        self.rect.topleft = xy
+        self.action = action
+        self._state = current_state
+        if state_latch is not None:
+            self._latch = state_latch
+        self.state_dict = state_dict
+        # The state is dict of colour 
+
+    def update(self, *args, **kwargs):
+        mouse_pos = pygame.mouse.get_pos()
+        if self.xy[0] <= mouse_pos[0] <= (self.xy[0] + self.wh[0]) and self.xy[1] <= mouse_pos[1] <= (self.xy[1] + self.wh[1]):
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONDOWN and event.__dict__['button'] == 1:
+                    # This means that the mouse button has been pressed
+                    self._state = not self._state
+                    # Flips self.state from one bool to another
+                    if '_latch' in self.__dict__.keys():
+                        print('yes')
+                        self._latch.val = self._state
+
+        self.image.fill(self.state_dict[self._state])
+        if 'txt' in self.state_dict.keys():
+            nex_xy = grph.word_wrap(self.image, self.state_dict['txt'][self._state], pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade In.ttf'), 32), (255, 255, 255), 'center')
+            grph.word_wrap(self.image, self.state_dict['txt'][self._state], pygame.freetype.Font(os.path.join("Assets/", '8-bit Arcade Out.ttf'), 32), (197,202,233), nex_xy)
+    
+    # class change_state:
+    #     def __init__(self, change_class, change_variable):
+    #         self.change_str = f'{change_class}.{change_variable}'
+        
+    #     def __call__(self, arg):
+    #         exec(f'{self.change_str} = {arg}')
+        
+    #     def __setattr__(self, __name: str, arg) -> None:
+    #         exec(f'{self.change_str} = {arg}')
 
 def make_screen():
     icon = pygame.image.load(os.path.join("Assets", "dodger_icon.png"))
@@ -205,7 +316,7 @@ class Menus:
         self.state.update(*args, **kwargs)
 
 
-def test(*args, **kwargs):
+def void(*args, **kwargs):
     print('done')
 
 
@@ -214,10 +325,11 @@ if __name__ == '__main__':
     clock = pygame.time.Clock()
     mscreen = make_screen()
     m = Menus()
-    pygame.mixer.init()
+    core.start_sounds()
 
     # Music
-    pygame.mixer.Sound(os.path.join("Assets","Sounds","Background-sound.mp3")).play(loops = -1).set_volume(0.07)
+    pygame.mixer.Channel(0).play(sound := pygame.mixer.Sound(os.path.join("Assets","Sounds","Background-sound.mp3")), loops = -1)
+    sound.set_volume(0.08)
 
     while True:
         pygame.display.flip()
