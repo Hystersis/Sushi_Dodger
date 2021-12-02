@@ -11,14 +11,59 @@ Some challenges include:
 ## Contents:
 - [Sushi Dodger](#sushi-dodger)
   - [Contents:](#contents)
-  - [Installation:](#installation)
+- [Installation:](#installation)
+  - [Prerequisites:](#prerequisites)
+  - [Beginners Guide:](#beginners-guide)
+  - [Terminal:](#terminal)
   - [Usage:](#usage)
   - [Credits:](#credits)
     - [Music:](#music)
   - [License:](#license)
 
-## Installation:
-Terminal:
+# Installation:
+## Prerequisites:
+
+Git installed on your machine, which can be downloaded [here](https://github.com/git-guides/install-git)
+
+Python 3.9 installed on your machine, which can be downloaded [here](https://wiki.python.org/moin/BeginnersGuide/Download)
+
+## Beginners Guide:
+
+<details>
+<summary> <img src="Assets/Github/microsoft-windows.png" alt="Windows Icon" style="width:12px;height:12px;"> Windows</summary>
+<ol>
+  <li>Create a folder where you want the program to be </li>
+  <li><kbd>Right click</kbd> in the bar at the top where the information of where the file will be and type <code>cmd</code></li>
+  <li>A command prompt will appear where you will type the <a href="#terminal">instructions below</a></li>
+</ol>
+</details>
+
+<details>
+<summary> <img src="Assets/Github/apple.png" alt="Apple Icon" style="width:12px;height:12px;"> Mac OS</summary>
+<ol>
+  <li>Click the Apple logo (<img src="Assets/Github/apple.png" alt="Apple Icon" style="width:12px;height:12px;">) in the top right corner of your screen</li>
+  <li>Open <code>System preferences</code></li>
+  <li>Navigate and click on <code>Keyboard</code></li>
+  <li>In the Keyboard pane, click on <code>Shortcuts</code></li>
+  <li>In the this Shortcuts windows, scroll down to the <code>services</code> tab in the left-most pane</li>
+  <li>Make sure <code>New terminal at Folder</code> is enabled in the right-most pane (can be seen by scrolling down)</li>
+  <li>Create your folder where you want Sushi Dodger to be located in Finder</li>
+  <li>Make sure you are in the parent directory of where you want the folder to located and then single click on the folder</li>
+  <li>Go to the <code>Finder</code> option in the bar of Finder, navigate to <code>Services</code> and click on <code>New Terminal at Folder</code></li>
+  <li>A command prompt will appear where you will type the <a href="#terminal">instructions below</a></li>
+</ol>
+</details>
+
+<details>
+<summary> <img src="Assets/Github/linux.png" alt="Linux Icon" style="width:12px;height:12px;"> Linux</summary>
+<ol>
+  <li>Create your folder where you want Sushi Dodger to be located in your File Explorer/Manager</li>
+  <li>Right click in the empty space within the folder and select <code>Open in Terminal</code></li>
+  <li>A command prompt will appear where you will type the <a href="#terminal">instructions below</a></li>
+</ol>
+</details>
+
+## Terminal:
 
 ```
 git clone https://github.com/Hystersis/Sushi_Dodger.git
