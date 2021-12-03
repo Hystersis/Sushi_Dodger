@@ -6,6 +6,7 @@ import pygame.freetype
 
 import sshi_core as core
 import sshi_graphics as grph
+import sshi_json as jsn
 
 # `7MMM.     ,MMF'
 #   MMMb    dPMM
@@ -17,130 +18,210 @@ import sshi_graphics as grph
 
 
 class M_page:
+    """A PARENT class template for all pages in the menu screen
+    """
     def update(self, *args, **kwargs):
+        """A basic template for the update method of the pages
+        """
         self.group.update(*args, **kwargs)
 
     def draw(self):
+        """A basic template for the draw method of the pages
+
+        Returns
+        -------
+        pygame.Surface
+            Returns a surfaces with all the objects drawn on it
+        """
         t_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
         self.group.draw(t_screen)
         return t_screen
 
 
 class M_main(M_page):
+    """The main landing page for Sushi Dodger
+
+    Parameters
+    ----------
+    M_page : class
+        It is the parent class for all the pages,
+        allowing for structural pattern adherence
+    """
     def __init__(self):
+        """The initalisation module for the main page
+        """
         self.b1 = Button((77, 59), (103, 24), (0, 0, 0), 'Play', core.start)
         self.b2 = Button((77, 117), (103, 24), (0, 0, 0), 'Settings', M_settings)
         self.b3 = Button((77, 175), (103, 24), (0, 0, 0), 'Credits', M_credits)  # Credits is a built in variable, so it can't be assigned
         self.group = pygame.sprite.Group()
-        self.group.add(self.b1), self.group.add(self.b2)
+        self.group.add(self.b1)
+        self.group.add(self.b2)
         self.group.add(self.b3)
-    
+
     def update(self, *args, **kwargs):
+        """The update method for the main page, very similar to the parent class' update method just
+        has event management
+        """        
         self.group.update(*args, **kwargs)
         for event in pygame.event.get():
             events(event)
 
 
 class M_credits(M_page):
+    """The credits page off the main landing page
+
+    Parameters
+    ----------
+    M_page : class
+        It is the parent class for all the pages, allowing for structural pattern adherence
+    """    
     def __init__(self):
+        """The initalisation method for the credits page, all the text in created 
+        """        
         global m
-        m(M_credits)
-        self.b = []
-        self.b.append(Button((0, 0), (256, 24), (0, 0, 0), '(c) Hystersis ', void, True))
-        self.b.append(Button((0, 24), (256, 24), (0, 0, 0), 'Original idea', void, True))
-        self.b.append(Button((0, 48), (256, 24), (0, 0, 0), 'Original design in Lua', void, True))
-
-        self.b.append(Button((0, 72), (256, 24), (0, 0, 0), '=' * 15, void, True))
-
-        self.b.append(Button((0, 96), (256, 24), (0, 0, 0), 'Fonts from:', void, True))
-        self.b.append(Button((0, 120), (256, 24), (0, 0, 0), '8-bit Arcade In &', void, True))
-        self.b.append(Button((0, 144), (256, 24), (0, 0, 0), '8-bit Arcade Out', void, True))
-        self.b.append(Button((0, 168), (256, 24), (0, 0, 0), 'From Damien Gosset', void, True))
-
-        self.b.append(Button((0, 192), (256, 24), (0, 0, 0), '+' * 15, void, True))
-
-        self.b.append(Button((0, 216), (256, 24), (0, 0, 0), 'Manaspace', void, True))
-        self.b.append(Button((0, 240), (256, 24), (0, 0, 0), 'From codeman38', void, True))
-
-        self.b.append(Button((0, 264), (256, 24), (0, 0, 0), '=' * 15, void, True))
-        self.b.append(Button((0, 288), (256, 24), (0, 0, 0), 'Music:', void, True))
-        self.b.append(Button((0, 312), (256, 24), (0, 0, 0), 'Main game music is', void, True))
-        self.b.append(Button((0, 336), (256, 24), (0, 0, 0), 'Kung Fu Fighters March - Fast', void, True))
-        self.b.append(Button((0, 360), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
-
-        self.b.append(Button((0, 384), (256, 24), (0, 0, 0), '+' * 15, void, True))
-
-        self.b.append(Button((0, 408), (256, 24), (0, 0, 0), 'Background music is', void, True))
-        self.b.append(Button((0, 432), (256, 24), (0, 0, 0), 'Temple of the Dragon Friendship', void, True))
-        self.b.append(Button((0, 456), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
-
+        # This tells the menu system (m) that the credits page is now the main page
+        m(self)
 
         self.group = pygame.sprite.Group()
+        self.ground.add(Button((0, 0), (256, 24), (0, 0, 0), '(c) Hystersis ', void, True))
+        self.ground.add(Button((0, 24), (256, 24), (0, 0, 0), 'Original idea', void, True))
+        self.ground.add(Button((0, 48), (256, 24), (0, 0, 0), 'Original design in Lua', void, True))
+
+        # This is a 'line' break between sections
+        self.ground.add(Button((0, 72), (256, 24), (0, 0, 0), '=' * 15, void, True))
+
+        self.ground.add(Button((0, 96), (256, 24), (0, 0, 0), 'Fonts from:', void, True))
+        self.ground.add(Button((0, 120), (256, 24), (0, 0, 0), '8-bit Arcade In &', void, True))
+        self.ground.add(Button((0, 144), (256, 24), (0, 0, 0), '8-bit Arcade Out', void, True))
+        self.ground.add(Button((0, 168), (256, 24), (0, 0, 0), 'From Damien Gosset', void, True))
+
+        # This is a 'line' break between paragraphs
+        self.ground.add(Button((0, 192), (256, 24), (0, 0, 0), '+' * 15, void, True))
+
+        self.ground.add(Button((0, 216), (256, 24), (0, 0, 0), 'Manaspace', void, True))
+        self.ground.add(Button((0, 240), (256, 24), (0, 0, 0), 'From codeman38', void, True))
+
+        self.ground.add(Button((0, 264), (256, 24), (0, 0, 0), '=' * 15, void, True))
+
+        self.ground.add(Button((0, 288), (256, 24), (0, 0, 0), 'Music:', void, True))
+        self.ground.add(Button((0, 312), (256, 24), (0, 0, 0), 'Main game music is', void, True))
+        self.ground.add(Button((0, 336), (256, 24), (0, 0, 0), 'Kung Fu Fighters March - Fast', void, True))
+        self.ground.add(Button((0, 360), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
+
+        self.ground.add(Button((0, 384), (256, 24), (0, 0, 0), '+' * 15, void, True))
+
+        self.ground.add(Button((0, 408), (256, 24), (0, 0, 0), 'Background music is', void, True))
+        self.ground.add(Button((0, 432), (256, 24), (0, 0, 0), 'Temple of the Dragon Friendship', void, True))
+        self.ground.add(Button((0, 456), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
 
         self.elapsed_time = time.time()
+
+        # Adds a message box to alert people that they can escape out of credits page
         self.message = grph.message_box('Press the key esc to leave', (106, 23, 45, 200), [256, 16], xy=[0, 240])
-        for x in self.b:
-            self.group.add(x)
         self.scroll = 0
 
     def update(self, *args, **kwargs):
+        """Update method for credits of sushi dodger
+        """        
         self.group.update(*args, **kwargs)
+
         if time.time() - self.elapsed_time > 7.5:
+            # After 7.5 seconds, show the alert message box
             self.message.update()
+
         for event in pygame.event.get():
             if event.type == pygame.MOUSEWHEEL:
+                # Allows for scrolling up and down of the page
+                # Scrolling 'up' the scroll wheel, scrolls up the page and vice versa
+                # This can be changed with the negative sign in front of 'event.__dict__[y]'
                 self.scroll = core.minmax(0, self.scroll + -event.__dict__['y'] * 10, 224)
             events(event)
 
     def draw(self):
+        """Draws the scrolling screen to 256*256 area
+
+        Returns
+        -------
+        pygame.Surface
+            Returns a surfaces with all the objects drawn on it
+        """
+        # The scrolling screen
         s_screen = pygame.Surface((256, 1024), pygame.SRCALPHA)
+
+        # The 'viewing' screen in 256*256 resolution
         t_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
+
+        # Draws all the text onto the scrolling screen
         self.group.draw(s_screen)
+
+        # 'Scrolls' the screen up or down in the viewpot 
         t_screen.blit(s_screen, (0, 0 - self.scroll))
         t_screen.blit(self.message.image, (0, 0))
         return t_screen
 
 
 class M_settings(M_page):
+    """The settings page off the main landing page
+
+    Parameters
+    ----------
+    M_page : class
+        It is the parent class for all the pages, allowing for structural pattern adherence
+    """
     def __init__(self):
+        """The initalisation system for the settings page
+        """        
         global m
-        m(M_settings)
+        # This tells the menu system (m) that the settings page is now the main page
+        m(self)
+
         self.group = pygame.sprite.Group()
-        # <The SFX Toggle>
+        # The SFX Toggle
         self.group.add(Button((5, 5), (128, 24), (0, 0, 0), 'Do Sound Effects', void, do_hover=False))
-        self.group.add(StateFullButton((220, 5), (30, 24), True, void, {True: (0,230,118), False: (255,23,68),
+        self.group.add(StateFullButton((220, 5), (30, 24), jsn.config().sget('SFX'), void, {True: (0,230,118), False: (255,23,68),
                                                                         'txt': {True: 'T', False: 'F'}}, SFX_control()))
-        # </The SFX Toggle>
 
-        # <The Music Toggle>
+        # The Music Toggle
         self.group.add(Button((5, 34), (128, 24), (0, 0, 0), 'Do Music', void, do_hover=False))
-        self.group.add(StateFullButton((220, 34), (30, 24), True, void, {True: (0,230,118), False: (255,23,68),
+        self.group.add(StateFullButton((220, 34), (30, 24), jsn.config().sget('Music'), void, {True: (0,230,118), False: (255,23,68),
                                                                         'txt': {True: 'T', False: 'F'}}, music_control()))
-        # </The Music Toggle>
 
-        # self.group = pygame.sprite.Group()
-        # for x in self.b:
-        #     self.group.add(x)
-        self.scroll = 0
+        # Adds an alert box to tell people they can exit 
         self.elapsed_time = time.time()
         self.message = grph.message_box('Press the key esc to leave', (106, 23, 45, 200), [256, 16], xy=[0, 240])
 
     def update(self, *args, **kwargs):
+        """The update method for the settings page
+        """
+        # Puts a different background for the settings page
         mscreen.blit(pygame.image.load(os.path.join('Assets', 'sunset1.png')), (0,0))
         self.group.update(*args, **kwargs)
+
         if time.time() - self.elapsed_time > 7.5:
+            # After 7.5 seconds, show the alert message box
             self.message.update()
         for event in pygame.event.get():
             events(event)
 
     
     def draw(self):
+        """The drawing method for the settings screen
+
+        Returns
+        -------
+        pygame.Surface
+            Returns a surfaces with all the objects drawn on it
+        """        
         t_screen = pygame.Surface((256, 256), pygame.SRCALPHA)
         self.group.draw(t_screen)
         t_screen.blit(self.message.image, (0, 0))
         return t_screen
 
+
 class SFX_control:
+    """The sound effects (SFX) control class, allowing for toggling on or off
+    of sound effects
+    """
     def __init__(self) -> None:
         self.num_of_channels = pygame.mixer.get_num_channels()
 
@@ -153,12 +234,12 @@ class SFX_control:
         self._state = value
         if value:
             # Turning on playback, so value is True
-            for v in range(1, self.num_of_channels):
-                pygame.mixer.Channel(v).set_volume(1)
+            jsn.config().write("SFX", True)
+            
         else:
             # Turning off playback, so value is False
-            for v in range(1, self.num_of_channels):
-                pygame.mixer.Channel(v).set_volume(0)
+            jsn.config().write("SFX", False)
+
 
 class music_control:
     def __init__(self):
@@ -172,8 +253,10 @@ class music_control:
     def val(self, value):
         self._state = value
         if value:
+            jsn.config().write("Music", True)
             pygame.mixer.Channel(0).set_volume(1)
         else:
+            jsn.config().write("Music", False)
             pygame.mixer.Channel(0).set_volume(0)
         print(pygame.mixer.Channel(0).get_volume())
     
@@ -254,7 +337,6 @@ class StateFullButton(pygame.sprite.Sprite):
                     self._state = not self._state
                     # Flips self.state from one bool to another
                     if '_latch' in self.__dict__.keys():
-                        print('yes')
                         self._latch.val = self._state
 
         self.image.fill(self.state_dict[self._state])
@@ -293,20 +375,17 @@ def events(event):
         pygame.quit()
         exit()
     if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-        m(M_main)
+        m(M_main())
     if event.type == pygame.KEYDOWN and event.key == pygame.K_F11:
         pygame.display.toggle_fullscreen()
 
 class Menus:
-    state = M_main
-
     def __init__(self):
-        self.state = Menus.state()
+        self.state = M_main()
 
     def __call__(self, state):
-        if Menus.state != state:
-            Menus.state = state
-            self.state = Menus.state()
+        if self.state != state:
+            self.state = state
 
     def draw(self):
         self.screen = self.state.draw()
@@ -328,8 +407,9 @@ if __name__ == '__main__':
     core.start_sounds()
 
     # Music
-    pygame.mixer.Channel(0).play(sound := pygame.mixer.Sound(os.path.join("Assets","Sounds","Background-sound.mp3")), loops = -1)
-    sound.set_volume(0.08)
+    if jsn.config().sget("Music"):
+        pygame.mixer.Channel(0).play(sound := pygame.mixer.Sound(os.path.join("Assets","Sounds","Background-sound.mp3")), loops = -1)
+        sound.set_volume(0.08)
 
     while True:
         pygame.display.flip()

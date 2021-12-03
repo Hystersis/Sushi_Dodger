@@ -101,6 +101,47 @@ class config:
             self.values = json.load(board)['settings']
             for y, v in self.values.items():
                 setattr(write_to, str(y), int(v))
+    
+    def sget(self, name_of_value):
+        """Allows for one value to be retrieved from config
+
+        Parameters
+        ----------
+        value : string
+            The name of the value to retriever
+
+        Returns
+        -------
+        Any
+            The value retrieved
+        """             
+        with open('scoreboard.json', 'r') as board:
+            try:
+                # If the desired value exists, return it
+                desired_value = json.load(board)['settings'][name_of_value]
+            except:
+                # If it doesn't just return None
+                desired_value = None
+        return desired_value         
+    
+    def write(self, value_to_change, what_to_change_to):
+        """Allows for writing to the settings values
+
+        Parameters
+        ----------
+        value_to_change : string
+            Which value should be changed
+        what_to_change_to : Any
+            What the value should be changed to
+        """        
+        with open('scoreboard.json', 'r') as board:
+            self.values = json.load(board)
+            print(self.values)
+
+        with open('scoreboard.json', 'w') as board:
+            self.values['settings'][value_to_change] = what_to_change_to
+            print(self.values)
+            json.dump(self.values, board, indent=4)
 
 
 class items:

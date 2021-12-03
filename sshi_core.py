@@ -478,7 +478,8 @@ class sshi_classic_hit(sshi_hit):
                 else:
                     i.ddger.killed()
             else:
-                pygame.mixer.Sound(os.path.join("Assets","Sounds","Sword-swish.wav")).play().set_volume(0.07)
+                if c.SFX:
+                    pygame.mixer.Sound(os.path.join("Assets","Sounds","Sword-swish.wav")).play().set_volume(0.07)
                 sshi.killed()
 
 
@@ -806,7 +807,6 @@ class Background(pygame.sprite.Sprite):
 
     def set_alpha(self, alpha):
         self.image.set_alpha(alpha)
-        print(alpha)
 
     @classmethod
     def change_i(cls, image, layer=0, a=255):
@@ -963,7 +963,6 @@ class item_manager(pygame.sprite.Sprite):
         self.item_list = []
         self.unique_items = {}
         c._health = 0
-        print(self.item_list, self.unique_items, c.health, c._health)
 
     def _calculate_unique_items(self):
         self.unique_items = Counter([object.name for object in self.item_list])
@@ -1182,11 +1181,14 @@ class input_box:
 def start(screen=None):
     global i, c, score
     c = DifficultlyStats()
+    jsn.config().get(c)
+    print(c.__dict__)
     
     # Music
     pygame.mixer.stop()
-    pygame.mixer.Channel(0).play(pygame.mixer.Sound(os.path.join("Assets","Sounds","Main-sound.mp3")), loops = -1)
-    if pygame.mixer.Channel(0).get_volume() > 0: pygame.mixer.Channel(0).set_volume(0.08)
+    if c.Music:
+        pygame.mixer.Channel(0).play(sound := pygame.mixer.Sound(os.path.join("Assets","Sounds","Main-sound.mp3")), loops = -1)
+        sound.set_volume(0.08)
 
     i = Initi(screen=screen)
     score = 0

@@ -40,6 +40,7 @@ Python 3.9 installed on your machine, which can be downloaded [here](https://wik
 
 <details>
 <summary> <img src="Assets/Github/apple.png" alt="Apple Icon" style="width:12px;height:12px;"> Mac OS</summary>
+<b>Setting up terminal use in Finder</b>
 <ol>
   <li>Click the Apple logo (<img src="Assets/Github/apple.png" alt="Apple Icon" style="width:12px;height:12px;">) in the top right corner of your screen</li>
   <li>Open <code>System preferences</code></li>
@@ -47,6 +48,9 @@ Python 3.9 installed on your machine, which can be downloaded [here](https://wik
   <li>In the Keyboard pane, click on <code>Shortcuts</code></li>
   <li>In the this Shortcuts windows, scroll down to the <code>services</code> tab in the left-most pane</li>
   <li>Make sure <code>New terminal at Folder</code> is enabled in the right-most pane (can be seen by scrolling down)</li>
+</ol>
+<b>Creating the directory for Sushi Dodger</b>
+<ol>
   <li>Create your folder where you want Sushi Dodger to be located in Finder</li>
   <li>Make sure you are in the parent directory of where you want the folder to located and then single click on the folder</li>
   <li>Go to the <code>Finder</code> option in the bar of Finder, navigate to <code>Services</code> and click on <code>New Terminal at Folder</code></li>
