@@ -4,7 +4,8 @@
     },
     
     "settings": {
-        "Language": "English"
+        "Music": true,
+        "SFX": true
     },
     "items": [
         {
