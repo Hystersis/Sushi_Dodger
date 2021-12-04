@@ -400,6 +400,7 @@ def void(*args, **kwargs):
 
 
 if __name__ == '__main__':
+    jsn.init()
     pygame.freetype.init()
     clock = pygame.time.Clock()
     mscreen = make_screen()

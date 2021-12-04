@@ -1301,6 +1301,7 @@ def start_sounds():
 
 
 if __name__ == '__main__':
+    jsn.init()
     icon = pygame.image.load(os.path.join("Assets", "dodger_icon.png"))
     pygame.display.set_icon(icon)
     pygame.display.set_caption("Sushi Dodger")

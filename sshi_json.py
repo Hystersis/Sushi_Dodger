@@ -7,16 +7,81 @@ from collections import Counter
 
 # !FILE = scoreboard.json
 
+json_file_template = """
+{
+    "scores": {
+
+    },
+    
+    "settings": {
+        "Music": false,
+        "SFX": false
+    },
+    "items": [
+        {
+            "name": "slow down time",
+            "effects": {
+                "fps": 8
+            },
+            "rarity": 3,
+            "duration": 5,
+            "sprite": [
+                0,
+                12
+            ]
+        },
+        {
+            "name": "health",
+            "instants": {
+                "health": 1
+            },
+            "rarity": 10,
+            "sprite": [
+                0,
+                0
+            ]
+        },
+        {
+            "name": "restart",
+            "rarity": 2,
+            "instants": {
+                "restart": null
+            },
+            "key_press": "F5",
+            "sprite": [
+                12,
+                12
+            ]
+        }
+    ]
+}
+"""
+
+def init():
+    """This creates the json file if it doesn't exist with the template above,
+    it must be called before all functions
+    """
+    global json_file_template
+    # Creates the scoreboard.json file
+    if not os.path.isfile('scoreboard.json'):
+        with open("scoreboard.json", "w") as jsonfile:
+            x = json.loads(json_file_template)
+            # This creates the file
+            json.dump(x, jsonfile, indent=4)
+            
+        
+
 class scoreboard:
     """The manager for the scoreboard and the scoreboard part of FILE
     """
     def __init__(self):
         """Resets the scoreboard if the FILE doesn't exist
         """
-        if not os.path.isfile('scoreboard.json'):
-            # File doesn't exist
-            with open('scoreboard.json', 'w') as board:
-                json.dump({'scores': {}}, board)
+        # if not os.path.isfile('scoreboard.json'):
+        #     # File doesn't exist
+        #     with open('scoreboard.json', 'w') as board:
+        #         json.dump({'scores': {}}, board)
+        pass
 
     def write(self, name: str, score: int):
         """Writes a players name to the scoreboard
