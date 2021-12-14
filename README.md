@@ -30,7 +30,7 @@ Python 3.9 installed on your machine, which can be downloaded [here](https://wik
 ## Beginners Guide:
 
 <details>
-<summary> <img src="Assets/Github/microsoft-windows.png" alt="Windows Icon" style="width:12px;height:12px;"> Windows</summary>
+<summary> <a><img src="Assets/Github/microsoft-windows.png" alt="Windows Icon" style="width:12px;height:12px;"></a> Windows</summary>
 <ol>
   <li>Create a folder where you want the program to be </li>
   <li><kbd>Right click</kbd> in the bar at the top where the information of where the file will be and type <code>cmd</code></li>
@@ -39,10 +39,10 @@ Python 3.9 installed on your machine, which can be downloaded [here](https://wik
 </details>
 
 <details>
-<summary> <img src="Assets/Github/apple.png" alt="Apple Icon" style="width:12px;height:12px;"> Mac OS</summary>
+<summary> <a><img src="Assets/Github/apple.png" alt="Apple Icon" style="width:12px;height:12px;"></a> Mac OS</summary>
 <b>Setting up terminal use in Finder</b>
 <ol>
-  <li>Click the Apple logo (<img src="Assets/Github/apple.png" alt="Apple Icon" style="width:12px;height:12px;">) in the top right corner of your screen</li>
+  <li>Click the Apple logo (<a><img src="Assets/Github/apple.png" alt="Apple Icon" style="width:12px;height:12px;"></a>) in the top right corner of your screen</li>
   <li>Open <code>System preferences</code></li>
   <li>Navigate and click on <code>Keyboard</code></li>
   <li>In the Keyboard pane, click on <code>Shortcuts</code></li>
@@ -59,7 +59,7 @@ Python 3.9 installed on your machine, which can be downloaded [here](https://wik
 </details>
 
 <details>
-<summary> <img src="Assets/Github/linux.png" alt="Linux Icon" style="width:12px;height:12px;"> Linux</summary>
+<summary> <a><img src="Assets/Github/linux.png" alt="Linux Icon" style="width:12px;height:12px;"></a> Linux</summary>
 <ol>
   <li>Create your folder where you want Sushi Dodger to be located in your File Explorer/Manager</li>
   <li>Right click in the empty space within the folder and select <code>Open in Terminal</code></li>

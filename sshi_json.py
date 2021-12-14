@@ -7,6 +7,7 @@ from collections import Counter
 
 # !FILE = scoreboard.json
 
+# It is in this form, so it is readable as json 'code'
 json_file_template = """
 {
     "scores": {
@@ -14,8 +15,8 @@ json_file_template = """
     },
     
     "settings": {
-        "Music": false,
-        "SFX": false
+        "Music": true,
+        "SFX": true
     },
     "items": [
         {
@@ -64,9 +65,12 @@ def init():
     global json_file_template
     # Creates the scoreboard.json file
     if not os.path.isfile('scoreboard.json'):
+        # This creates the file
         with open("scoreboard.json", "w") as jsonfile:
+            # This deserializes the json data into 'python' form
             x = json.loads(json_file_template)
-            # This creates the file
+
+            # This then takes that python friendly form and writes it to the json file (converting it) 
             json.dump(x, jsonfile, indent=4)
             
         
