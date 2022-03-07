@@ -306,7 +306,7 @@ class StateFullButton(pygame.sprite.Sprite):
             The width and height of the button
         current_state : bool
             The current state either True or False
-        action : [type]
+        action : Any
             Any action to be performed on a state change
         state_dict : dict
             The colours that should be change between:

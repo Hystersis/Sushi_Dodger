@@ -95,11 +95,11 @@ class Prtcl(pygame.sprite.Sprite, G):
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
 
-
+# !Need to removd/updated
 class MvPrtcl(pygame.sprite.Sprite, G):
     def __init__(self, strt, end, imge):
         super().__init__()
-        self.path = msci.pthfnd(np.zeros(256, 256), *strt, *end)
+        # self.path = msci.pthfnd(np.zeros(256, 256), *strt, *end)
         self.image = pygame.image.load(os.path.join("Assets", imge))
         self.rect = self.image.get_rect()
         self.rect.topleft = self.path.pop(0)
@@ -116,14 +116,14 @@ class Background(pygame.sprite.Sprite, G):
         self.rect = self.image.get_rect()
         self.rect.topleft = (0, 0)
 
-
+# !Need to be removed/updated
 class FadeMove(pygame.sprite.Sprite, G):
     def __inti__(self, strt, end, imge):
         super().__init__()
         self.image = pygame.image.load(os.path.join("Assets", imge))
         self.surface = pygame.Surface((self.image.get_width(),
                                       self.image.get_width()))
-        self.path = msci.pthfnd(np.zeros(256, 256), *strt, *end)
+        # self.path = msci.pthfnd(np.zeros(256, 256), *strt, *end)
         self.fade = iter([x for x in range(255, -1, -(255 / len(self.path)))])
         # This creates an iterator of the transparency values; it starts at 0
         # and incriments up to 255, by the len of self.path

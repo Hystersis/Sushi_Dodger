@@ -1167,33 +1167,15 @@ class input_box:
         # surface.blit(self.font.render(self.input.return_text(), False, (46, 34, 47))[0], (self.rect.x + 16, self.rect.y + 16))
         self.font.render_to(surface, (self.rect.x + 16, self.rect.y + 16), self.input.return_text(), (46, 34, 47))
         # pygame.draw.rect(surface, self.colour, self.rect)
-
-#                               ,,
-# `7MM"""YMM                  `7MM
-#   MM    `7                    MM
-#   MM   d    `7MMpMMMb.   ,M""bMM
-#   MMmmMM      MM    MM ,AP    MM
-#   MM   Y  ,   MM    MM 8MI    MM
-#   MM     ,M   MM    MM `Mb    MaM
-# .JMMmmmmMMM .JMML  JMML.`Wbmd"MML.
-
-
-def start(screen=None):
-    global i, c, score
-    c = DifficultlyStats()
-    jsn.config().get(c)
-    print(c.__dict__)
-    
-    # Music
-    pygame.mixer.stop()
-    if c.Music:
-        pygame.mixer.Channel(0).play(sound := pygame.mixer.Sound(os.path.join("Assets","Sounds","Main-sound.mp3")), loops = -1)
-        sound.set_volume(0.08)
-
-    i = Initi(screen=screen)
-    score = 0
-    main()
-
+                                                                        
+                                                     
+# `7MM"""YMM                             mm           
+#   MM    `7                             MM           
+#   MM   d `7M'   `MF'.gP"Ya `7MMpMMMb.mmMMmm ,pP"Ybd 
+#   MMmmMM   VA   ,V ,M'   Yb  MM    MM  MM   8I   `" 
+#   MM   Y  , VA ,V  8M""""""  MM    MM  MM   `YMMMa. 
+#   MM     ,M  VVV   YM.    ,  MM    MM  MM   L.   I8 
+# .JMMmmmmMMM   W     `Mbmmd'.JMML  JMML.`MbmoM9mmmP'                                                 
 
 class events_sync:
     """
@@ -1231,8 +1213,12 @@ class events_sync:
                 # matches with the selected event type
                 k = list(x.keys())[0]
                 v = tuple(x.values())[0]
+
+                # These are for 'normal' events
                 if event.type == k[0] and len(k) < 2:
                     v[0](*v[1], **v[2])
+
+                # These are for keyboard input events
                 elif event.type == k[0] and event.key == k[1] and len(k) == 2:
                     v[0](*v[1], **v[2])
             if event.type in self.latch_register.keys():
@@ -1249,7 +1235,7 @@ class events_sync:
             At what game mode should the action trigger
         event : int
             The pygame event that should be listened too
-        action : [type]
+        action : Any
             The function that should be called when the event occurs
         key : int, optional
             If the event is a keyboard event, so on what key should
@@ -1295,6 +1281,31 @@ class events_sync:
     def __delattr__(self, key: str) -> None:
         self.register = {k: v for k, v in self.register.items()}
 
+#                               ,,
+# `7MM"""YMM                  `7MM
+#   MM    `7                    MM
+#   MM   d    `7MMpMMMb.   ,M""bMM
+#   MMmmMM      MM    MM ,AP    MM
+#   MM   Y  ,   MM    MM 8MI    MM
+#   MM     ,M   MM    MM `Mb    MaM
+# .JMMmmmmMMM .JMML  JMML.`Wbmd"MML.
+
+
+def start(screen=None):
+    global i, c, score
+    c = DifficultlyStats()
+    jsn.config().get(c)
+    print(c.__dict__)
+    
+    # Music
+    pygame.mixer.stop()
+    if c.Music:
+        pygame.mixer.Channel(0).play(sound := pygame.mixer.Sound(os.path.join("Assets","Sounds","Main-sound.mp3")), loops = -1)
+        sound.set_volume(0.08)
+
+    i = Initi(screen=screen)
+    score = 0
+    main()
 def start_sounds():
     pygame.mixer.init()
     pygame.mixer.set_reserved(0)

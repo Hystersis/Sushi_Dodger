@@ -18,6 +18,13 @@ json_file_template = """
         "Music": true,
         "SFX": true
     },
+
+    "keybindings": {
+        "up": "w",
+        "down": "s",
+        
+    }
+
     "items": [
         {
             "name": "slow down time",
@@ -58,20 +65,24 @@ json_file_template = """
 }
 """
 
-def init():
+def init(reset = False):
     """This creates the json file if it doesn't exist with the template above,
     it must be called before all functions
     """
     global json_file_template
-    # Creates the scoreboard.json file
-    if not os.path.isfile('scoreboard.json'):
+    # Creates the scoreboard.json file if it doesn't exist
+    # Or it has to be reset
+    if not os.path.isfile('scoreboard.json') or reset:
         # This creates the file
         with open("scoreboard.json", "w") as jsonfile:
-            # This deserializes the json data into 'python' form
+            # This deserializes the json data into python friendly form
             x = json.loads(json_file_template)
 
             # This then takes that python friendly form and writes it to the json file (converting it) 
             json.dump(x, jsonfile, indent=4)
+        
+        if reset:
+            print("Successfully overwrote json file!")
             
         
 
@@ -156,7 +167,10 @@ class config:
             If FILE/config file exists
         """
         if not os.path.isfile('scoreboard.json'):
-            raise Exception('Config file was deleted!')
+            try:
+                init()
+            except:
+                raise Exception('Fatal error has occurred with config file!')
 
     def get(self, write_to):
         """Gets all the settings from FILE and writes them to a class
