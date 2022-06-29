@@ -83,7 +83,7 @@ class M_credits(M_page):
         m(self)
 
         self.group = pygame.sprite.Group()
-        self.ground.add(Button((0, 0), (256, 24), (0, 0, 0), '(c) Hystersis ', void, True))
+        self.ground.add(Button((0, 0), (256, 24), (0, 0, 0), '(c) Hystersis', void, True))
         self.ground.add(Button((0, 24), (256, 24), (0, 0, 0), 'Original idea', void, True))
         self.ground.add(Button((0, 48), (256, 24), (0, 0, 0), 'Original design in Lua', void, True))
 
@@ -169,7 +169,7 @@ class M_settings(M_page):
         It is the parent class for all the pages, allowing for structural pattern adherence
     """
     def __init__(self):
-        """The initalisation system for the settings page
+        """The initialisation system for the settings page
         """        
         global m
         # This tells the menu system (m) that the settings page is now the main page
