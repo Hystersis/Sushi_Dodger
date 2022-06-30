@@ -1,7 +1,6 @@
 # Graphics for Game
 import pygame
 from sshi_msci import Apj
-import numpy as np
 import os
 from pygame.freetype import Font
 from PIL import Image, ImageFilter

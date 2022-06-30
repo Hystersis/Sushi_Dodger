@@ -21,8 +21,7 @@ import sshi_graphics as grph
 from sshi_msci import Apj
 import sshi_json as jsn
 import sshi_special as spe
-import tkinter
-from tkinter import messagebox
+
 
 
 #                     ,,
