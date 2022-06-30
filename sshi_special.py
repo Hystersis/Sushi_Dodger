@@ -347,7 +347,11 @@ class laser_enemy(pygame.sprite.Sprite):
                     if config().sget('SFX'):
                         self.alarm_sound = pygame.mixer.Sound(os.path.join("Assets","Sounds","alarm-laser-fast.wav")).play().set_volume(0.01)
                 elif n == -1 and config().sget('SFX'):
-                    self.alarm_sound.stop()
+                    try:
+                        self.alarm_sound.stop()
+                    except:
+                        pass
+
                 pygame.draw.circle(screen, (255, 255, 255), coords, 0 - n)
                 self.particles = []
             elif 0 < n <= 4:

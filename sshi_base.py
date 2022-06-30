@@ -83,36 +83,36 @@ class M_credits(M_page):
         m(self)
 
         self.group = pygame.sprite.Group()
-        self.ground.add(Button((0, 0), (256, 24), (0, 0, 0), '(c) Hystersis', void, True))
-        self.ground.add(Button((0, 24), (256, 24), (0, 0, 0), 'Original idea', void, True))
-        self.ground.add(Button((0, 48), (256, 24), (0, 0, 0), 'Original design in Lua', void, True))
+        self.group.add(Button((0, 0), (256, 24), (0, 0, 0), '(c) Hystersis', void, True))
+        self.group.add(Button((0, 24), (256, 24), (0, 0, 0), 'Original idea', void, True))
+        self.group.add(Button((0, 48), (256, 24), (0, 0, 0), 'Original design in Lua', void, True))
 
         # This is a 'line' break between sections
-        self.ground.add(Button((0, 72), (256, 24), (0, 0, 0), '=' * 15, void, True))
+        self.group.add(Button((0, 72), (256, 24), (0, 0, 0), '=' * 15, void, True))
 
-        self.ground.add(Button((0, 96), (256, 24), (0, 0, 0), 'Fonts from:', void, True))
-        self.ground.add(Button((0, 120), (256, 24), (0, 0, 0), '8-bit Arcade In &', void, True))
-        self.ground.add(Button((0, 144), (256, 24), (0, 0, 0), '8-bit Arcade Out', void, True))
-        self.ground.add(Button((0, 168), (256, 24), (0, 0, 0), 'From Damien Gosset', void, True))
+        self.group.add(Button((0, 96), (256, 24), (0, 0, 0), 'Fonts from:', void, True))
+        self.group.add(Button((0, 120), (256, 24), (0, 0, 0), '8-bit Arcade In &', void, True))
+        self.group.add(Button((0, 144), (256, 24), (0, 0, 0), '8-bit Arcade Out', void, True))
+        self.group.add(Button((0, 168), (256, 24), (0, 0, 0), 'From Damien Gosset', void, True))
 
         # This is a 'line' break between paragraphs
-        self.ground.add(Button((0, 192), (256, 24), (0, 0, 0), '+' * 15, void, True))
+        self.group.add(Button((0, 192), (256, 24), (0, 0, 0), '+' * 15, void, True))
 
-        self.ground.add(Button((0, 216), (256, 24), (0, 0, 0), 'Manaspace', void, True))
-        self.ground.add(Button((0, 240), (256, 24), (0, 0, 0), 'From codeman38', void, True))
+        self.group.add(Button((0, 216), (256, 24), (0, 0, 0), 'Manaspace', void, True))
+        self.group.add(Button((0, 240), (256, 24), (0, 0, 0), 'From codeman38', void, True))
 
-        self.ground.add(Button((0, 264), (256, 24), (0, 0, 0), '=' * 15, void, True))
+        self.group.add(Button((0, 264), (256, 24), (0, 0, 0), '=' * 15, void, True))
 
-        self.ground.add(Button((0, 288), (256, 24), (0, 0, 0), 'Music:', void, True))
-        self.ground.add(Button((0, 312), (256, 24), (0, 0, 0), 'Main game music is', void, True))
-        self.ground.add(Button((0, 336), (256, 24), (0, 0, 0), 'Kung Fu Fighters March - Fast', void, True))
-        self.ground.add(Button((0, 360), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
+        self.group.add(Button((0, 288), (256, 24), (0, 0, 0), 'Music:', void, True))
+        self.group.add(Button((0, 312), (256, 24), (0, 0, 0), 'Main game music is', void, True))
+        self.group.add(Button((0, 336), (256, 24), (0, 0, 0), 'Kung Fu Fighters March - Fast', void, True))
+        self.group.add(Button((0, 360), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
 
-        self.ground.add(Button((0, 384), (256, 24), (0, 0, 0), '+' * 15, void, True))
+        self.group.add(Button((0, 384), (256, 24), (0, 0, 0), '+' * 15, void, True))
 
-        self.ground.add(Button((0, 408), (256, 24), (0, 0, 0), 'Background music is', void, True))
-        self.ground.add(Button((0, 432), (256, 24), (0, 0, 0), 'Temple of the Dragon Friendship', void, True))
-        self.ground.add(Button((0, 456), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
+        self.group.add(Button((0, 408), (256, 24), (0, 0, 0), 'Backgroup music is', void, True))
+        self.group.add(Button((0, 432), (256, 24), (0, 0, 0), 'Temple of the Dragon Friendship', void, True))
+        self.group.add(Button((0, 456), (256, 24), (0, 0, 0), 'By Loco Loco', void, True))
 
         self.elapsed_time = time.time()
 
@@ -193,7 +193,7 @@ class M_settings(M_page):
     def update(self, *args, **kwargs):
         """The update method for the settings page
         """
-        # Puts a different background for the settings page
+        # Puts a different backgroup for the settings page
         mscreen.blit(pygame.image.load(os.path.join('Assets', 'sunset1.png')), (0,0))
         self.group.update(*args, **kwargs)
 
