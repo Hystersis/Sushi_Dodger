@@ -96,3 +96,5 @@ What that means is that:
 - You must make a copy of the work available for users to download even if it is on a network
 
 *Disclaimer: This is not legal advice, read the full [license](https://www.gnu.org/licenses/agpl-3.0.en.html) for details*
+
+[AGPL-3.0](/LICENSE) **Copyright** [Hystersis](https://github.com/Hystersis)
